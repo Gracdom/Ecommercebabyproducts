@@ -1,6 +1,6 @@
 export function LifestyleSection() {
   return (
-    <section className="py-20 bg-gradient-to-br from-amber-50/40 via-rose-50/20 to-stone-50">
+    <section className="py-20 bg-gradient-to-br from-[#e6dfd9]/20 via-[#8da399]/10 to-[#fcfbf9]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* First row - 2 columns */}
         <div className="grid md:grid-cols-2 gap-6 mb-6">

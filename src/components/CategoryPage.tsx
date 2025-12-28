@@ -116,10 +116,10 @@ export function CategoryPage({ onAddToCart, onBack, onProductClick, onQuickView,
 
   const getBadgeColor = (tag?: string) => {
     switch (tag) {
-      case 'hot': return 'from-rose-500 to-pink-500';
-      case 'new': return 'from-blue-500 to-cyan-500';
-      case 'trending': return 'from-purple-500 to-indigo-500';
-      default: return 'from-amber-500 to-orange-500';
+      case 'hot': return 'from-destructive to-accent';
+      case 'new': return 'from-primary to-[#7a8f85]';
+      case 'trending': return 'from-secondary to-[#d6ccc2]';
+      default: return 'from-stone-500 to-stone-600';
     }
   };
 
@@ -139,12 +139,12 @@ export function CategoryPage({ onAddToCart, onBack, onProductClick, onQuickView,
       </div>
 
       {/* Header */}
-      <div className="bg-gradient-to-r from-stone-50 to-rose-50/30 border-b border-stone-200">
+      <div className="bg-gradient-to-r from-background to-secondary/30 border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="flex items-center justify-between mb-6">
             <div>
               <div className="inline-flex items-center gap-2 bg-white px-3 py-1 rounded-full text-xs text-stone-600 mb-4 border border-stone-200">
-                <Sparkles className="h-3 w-3 text-amber-500" />
+                <Sparkles className="h-3 w-3 text-[#dccf9d]" />
                 147 productos
               </div>
               <h1 className="text-4xl sm:text-5xl text-stone-900 mb-3">
@@ -166,7 +166,7 @@ export function CategoryPage({ onAddToCart, onBack, onProductClick, onQuickView,
               <SlidersHorizontal className="h-4 w-4" />
               <span className="text-sm font-medium">Filtros</span>
               {selectedCategories.length > 0 && (
-                <span className="bg-rose-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                <span className="bg-primary text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
                   {selectedCategories.length}
                 </span>
               )}
@@ -226,7 +226,7 @@ export function CategoryPage({ onAddToCart, onBack, onProductClick, onQuickView,
                         type="checkbox"
                         checked={selectedCategories.includes(category)}
                         onChange={() => toggleCategory(category)}
-                        className="w-5 h-5 rounded border-stone-300 text-rose-500 focus:ring-rose-500"
+                        className="w-5 h-5 rounded border-stone-300 text-primary focus:ring-primary"
                       />
                       <span className="text-sm text-stone-700 group-hover:text-stone-900 capitalize">
                         {category}
@@ -246,7 +246,7 @@ export function CategoryPage({ onAddToCart, onBack, onProductClick, onQuickView,
                     max="100"
                     value={priceRange[1]}
                     onChange={(e) => setPriceRange([0, parseInt(e.target.value)])}
-                    className="w-full accent-rose-500"
+                    className="w-full accent-primary"
                   />
                   <div className="flex items-center justify-between text-sm text-stone-600">
                     <span>€0</span>
@@ -261,12 +261,12 @@ export function CategoryPage({ onAddToCart, onBack, onProductClick, onQuickView,
                 <div className="space-y-3">
                   {[5, 4, 3].map((rating) => (
                     <label key={rating} className="flex items-center gap-2 cursor-pointer group">
-                      <input type="checkbox" className="w-5 h-5 rounded border-stone-300 text-rose-500 focus:ring-rose-500" />
+                      <input type="checkbox" className="w-5 h-5 rounded border-stone-300 text-primary focus:ring-primary" />
                       <div className="flex items-center gap-1">
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`h-4 w-4 ${i < rating ? 'fill-amber-400 text-amber-400' : 'text-stone-300'}`}
+                            className={`h-4 w-4 ${i < rating ? 'fill-[#dccf9d] text-[#dccf9d]' : 'text-stone-300'}`}
                           />
                         ))}
                       </div>
@@ -314,7 +314,7 @@ export function CategoryPage({ onAddToCart, onBack, onProductClick, onQuickView,
 
                     {/* Discount */}
                     {product.originalPrice && (
-                      <div className="absolute top-4 right-4 w-12 h-12 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg">
+                      <div className="absolute top-4 right-4 w-12 h-12 bg-destructive text-white rounded-full flex items-center justify-center shadow-lg">
                         <div className="text-center leading-tight">
                           <div className="text-xs font-medium">-{Math.round((1 - product.price / product.originalPrice) * 100)}%</div>
                         </div>
@@ -327,7 +327,7 @@ export function CategoryPage({ onAddToCart, onBack, onProductClick, onQuickView,
                     }`}>
                       <button
                         onClick={() => onAddToCart(product)}
-                        className="flex-1 bg-stone-900 hover:bg-rose-600 text-white px-4 py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg group/btn"
+                        className="flex-1 bg-stone-900 hover:bg-primary text-white px-4 py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg group/btn"
                       >
                         <ShoppingCart className="h-4 w-4 transition-transform group-hover/btn:scale-110" />
                         <span className="text-sm font-medium">Añadir</span>
@@ -336,8 +336,8 @@ export function CategoryPage({ onAddToCart, onBack, onProductClick, onQuickView,
                         onClick={() => onToggleWishlist(product)}
                         className={`p-2.5 rounded-xl transition-all duration-300 shadow-lg ${
                           isInWishlist(product.id)
-                            ? 'bg-rose-500 text-white'
-                            : 'bg-white/95 backdrop-blur-sm text-stone-900 hover:bg-rose-500 hover:text-white'
+                            ? 'bg-accent text-white'
+                            : 'bg-white/95 backdrop-blur-sm text-stone-900 hover:bg-accent hover:text-white'
                         }`}
                       >
                         <Heart className={`h-4 w-4 ${isInWishlist(product.id) ? 'fill-white' : ''}`} />
@@ -359,7 +359,7 @@ export function CategoryPage({ onAddToCart, onBack, onProductClick, onQuickView,
                     
                     <h3 
                       onClick={onProductClick}
-                      className="text-base text-stone-900 mb-3 line-clamp-2 cursor-pointer hover:text-rose-600 transition-colors"
+                      className="text-base text-stone-900 mb-3 line-clamp-2 cursor-pointer hover:text-primary transition-colors"
                     >
                       {product.name}
                     </h3>
@@ -372,7 +372,7 @@ export function CategoryPage({ onAddToCart, onBack, onProductClick, onQuickView,
                             key={i}
                             className={`h-3 w-3 ${
                               i < Math.floor(product.rating)
-                                ? 'fill-amber-400 text-amber-400'
+                                ? 'fill-[#dccf9d] text-[#dccf9d]'
                                 : 'text-stone-300'
                             }`}
                           />
@@ -398,7 +398,7 @@ export function CategoryPage({ onAddToCart, onBack, onProductClick, onQuickView,
                     {viewMode === 'list' && (
                       <button
                         onClick={() => onAddToCart(product)}
-                        className="mt-4 w-full sm:w-auto px-6 py-2.5 bg-stone-900 hover:bg-rose-600 text-white rounded-xl transition-all duration-300"
+                        className="mt-4 w-full sm:w-auto px-6 py-2.5 bg-stone-900 hover:bg-primary text-white rounded-xl transition-all duration-300"
                       >
                         Añadir al carrito
                       </button>

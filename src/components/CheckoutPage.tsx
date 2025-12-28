@@ -126,7 +126,7 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
                       step > s.num
-                        ? 'bg-green-600 text-white'
+                        ? 'bg-primary text-white'
                         : step === s.num
                         ? 'bg-stone-900 text-white'
                         : 'bg-stone-200 text-stone-600'
@@ -139,7 +139,7 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
                 {idx < 2 && (
                   <div
                     className={`w-12 sm:w-24 h-0.5 mx-2 ${
-                      step > s.num ? 'bg-green-600' : 'bg-stone-200'
+                      step > s.num ? 'bg-primary' : 'bg-stone-200'
                     }`}
                   />
                 )}
@@ -330,7 +330,7 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
                         </div>
                       </div>
                       <span className="text-sm text-stone-900">
-                        {standardShipping === 0 ? <span className="text-green-700">GRATIS</span> : `€${standardShipping.toFixed(2)}`}
+                        {standardShipping === 0 ? <span className="text-primary">GRATIS</span> : `€${standardShipping.toFixed(2)}`}
                       </span>
                     </label>
 
@@ -344,7 +344,7 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
                           className="text-stone-900"
                         />
                         <div className="flex items-center gap-2">
-                          <Truck className="h-5 w-5 text-amber-600" />
+                          <Truck className="h-5 w-5 text-accent" />
                           <div>
                             <p className="text-sm text-stone-900">Envío express</p>
                             <p className="text-xs text-stone-600">Recíbelo mañana</p>
@@ -450,11 +450,11 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
                 </div>
 
                 {/* Security Badge */}
-                <div className="mt-6 flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <Lock className="h-5 w-5 text-green-700" />
+                <div className="mt-6 flex items-center gap-3 p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                  <Lock className="h-5 w-5 text-primary" />
                   <div>
-                    <p className="text-sm text-green-900">Pago 100% seguro</p>
-                    <p className="text-xs text-green-700">Tus datos están protegidos con encriptación SSL</p>
+                    <p className="text-sm text-primary">Pago 100% seguro</p>
+                    <p className="text-xs text-primary/80">Tus datos están protegidos con encriptación SSL</p>
                   </div>
                 </div>
               </div>
@@ -530,7 +530,7 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
                   </button>
                 </div>
                 {couponApplied && (
-                  <p className="text-xs text-green-700 mt-2">¡Código aplicado! -10% de descuento</p>
+                  <p className="text-xs text-primary mt-2">¡Código aplicado! -10% de descuento</p>
                 )}
               </div>
 
@@ -544,7 +544,7 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
                     className="text-stone-900"
                   />
                   <div className="flex items-center gap-2">
-                    <Gift className="h-4 w-4 text-rose-600" />
+                    <Gift className="h-4 w-4 text-accent" />
                     <div>
                       <p className="text-sm text-stone-900">Envoltorio regalo</p>
                       <p className="text-xs text-stone-600">+ tarjeta personalizada</p>
@@ -563,12 +563,12 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
                 {discount > 0 && (
                   <div className="flex justify-between">
                     <span className="text-stone-600">Descuento (10%)</span>
-                    <span className="text-green-700">-€{discount.toFixed(2)}</span>
+                    <span className="text-primary">-€{discount.toFixed(2)}</span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span className="text-stone-600">Envío</span>
-                  <span className={shipping === 0 ? 'text-green-700' : 'text-stone-900'}>
+                  <span className={shipping === 0 ? 'text-primary' : 'text-stone-900'}>
                     {shipping === 0 ? 'GRATIS' : `€${shipping.toFixed(2)}`}
                   </span>
                 </div>
@@ -587,15 +587,15 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
               {/* Trust Signals */}
               <div className="space-y-2 pt-4 border-t border-stone-200">
                 <div className="flex items-center gap-2 text-xs text-stone-600">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <CheckCircle className="h-4 w-4 text-primary" />
                   <span>Pago seguro encriptado</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-stone-600">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <CheckCircle className="h-4 w-4 text-primary" />
                   <span>Devoluciones gratuitas 30 días</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-stone-600">
-                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <CheckCircle className="h-4 w-4 text-primary" />
                   <span>Garantía de satisfacción</span>
                 </div>
               </div>

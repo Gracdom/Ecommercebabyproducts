@@ -101,7 +101,7 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
               
               {/* Discount Badge */}
               {product.originalPrice && (
-                <div className="absolute top-6 right-6 w-16 h-16 bg-gradient-to-br from-rose-500 to-pink-600 text-white rounded-full flex items-center justify-center shadow-xl transform rotate-12">
+                <div className="absolute top-6 right-6 w-16 h-16 bg-gradient-to-br from-destructive to-accent text-white rounded-full flex items-center justify-center shadow-xl transform rotate-12">
                   <div className="text-center leading-tight transform -rotate-12">
                     <div className="text-sm font-bold">-{Math.round((1 - product.price / product.originalPrice) * 100)}%</div>
                     <div className="text-[10px]">OFF</div>
@@ -115,8 +115,8 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
                   onClick={() => onToggleWishlist(product)}
                   className={`w-12 h-12 rounded-full backdrop-blur-md shadow-lg transition-all duration-300 flex items-center justify-center ${
                     isInWishlist(product.id)
-                      ? 'bg-rose-500 text-white'
-                      : 'bg-white/90 text-stone-900 hover:bg-rose-500 hover:text-white'
+                      ? 'bg-accent text-white'
+                      : 'bg-white/90 text-stone-900 hover:bg-accent hover:text-white'
                   }`}
                 >
                   <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? 'fill-white' : ''}`} />
@@ -166,7 +166,7 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
                     key={i}
                     className={`h-5 w-5 ${
                       i < Math.floor(product.rating)
-                        ? 'fill-amber-400 text-amber-400'
+                        ? 'fill-[#dccf9d] text-[#dccf9d]'
                         : 'text-stone-300'
                     }`}
                   />
@@ -239,7 +239,7 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
             <div className="space-y-3 pt-4">
               <button
                 onClick={handleAddToCart}
-                className="w-full bg-stone-900 hover:bg-rose-600 text-white py-5 rounded-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] flex items-center justify-center gap-3 group"
+                className="w-full bg-stone-900 hover:bg-primary text-white py-5 rounded-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] flex items-center justify-center gap-3 group"
               >
                 <ShoppingCart className="h-5 w-5 transition-transform group-hover:scale-110" />
                 <span className="text-lg font-medium">Añadir al carrito - €{(product.price * quantity).toFixed(2)}</span>
@@ -273,8 +273,8 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
               </div>
 
               <div className="flex items-start gap-3 p-4 bg-stone-50 rounded-xl">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <RefreshCw className="h-5 w-5 text-purple-600" />
+                <div className="w-10 h-10 bg-[#e6dfd9] rounded-lg flex items-center justify-center flex-shrink-0">
+                  <RefreshCw className="h-5 w-5 text-accent" />
                 </div>
                 <div>
                   <div className="text-sm font-medium text-stone-900">Devolución</div>
@@ -354,7 +354,7 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
                     <div className="text-6xl font-bold text-stone-900 mb-2">{product.rating}</div>
                     <div className="flex items-center gap-1 justify-center mb-2">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
+                        <Star key={i} className="h-5 w-5 fill-[#dccf9d] text-[#dccf9d]" />
                       ))}
                     </div>
                     <div className="text-sm text-stone-600">{product.reviews} reseñas</div>
@@ -366,7 +366,7 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
                         <span className="text-sm text-stone-600 w-8">{stars}★</span>
                         <div className="flex-1 h-2 bg-stone-200 rounded-full overflow-hidden">
                           <div
-                            className="h-full bg-amber-400 rounded-full"
+                            className="h-full bg-[#dccf9d] rounded-full"
                             style={{ width: `${stars === 5 ? 85 : stars === 4 ? 12 : 3}%` }}
                           />
                         </div>
@@ -383,7 +383,7 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
                   {[1, 2, 3].map((i) => (
                     <div key={i} className="border-b border-stone-200 pb-6 last:border-0">
                       <div className="flex items-start gap-4">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-rose-400 to-pink-500 flex items-center justify-center text-white font-medium">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-medium">
                           M{i}
                         </div>
                         <div className="flex-1">
@@ -392,7 +392,7 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
                               <div className="font-medium text-stone-900">María García</div>
                               <div className="flex items-center gap-1 mt-1">
                                 {[...Array(5)].map((_, i) => (
-                                  <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                                  <Star key={i} className="h-4 w-4 fill-[#dccf9d] text-[#dccf9d]" />
                                 ))}
                               </div>
                             </div>
@@ -435,7 +435,7 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
                   <h3 className="text-base text-stone-900 mb-2 line-clamp-2">{item.name}</h3>
                   <div className="flex items-center gap-1 mb-3">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-3 w-3 fill-amber-400 text-amber-400" />
+                      <Star key={i} className="h-3 w-3 fill-[#dccf9d] text-[#dccf9d]" />
                     ))}
                     <span className="text-xs text-stone-600 ml-1">{item.rating}</span>
                   </div>

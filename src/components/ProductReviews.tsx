@@ -62,7 +62,7 @@ export function ProductReviews() {
           <div className="flex items-center gap-3">
             <div className="flex gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
-                <Star key={star} className="h-5 w-5 fill-amber-400 text-amber-400" />
+                <Star key={star} className="h-5 w-5 fill-[#dccf9d] text-[#dccf9d]" />
               ))}
             </div>
             <span className="text-stone-700">4.9 out of 5</span>
@@ -96,7 +96,7 @@ export function ProductReviews() {
                     key={star}
                     className={`h-4 w-4 ${
                       star <= review.rating
-                        ? 'fill-amber-400 text-amber-400'
+                        ? 'fill-[#dccf9d] text-[#dccf9d]'
                         : 'text-stone-300'
                     }`}
                   />

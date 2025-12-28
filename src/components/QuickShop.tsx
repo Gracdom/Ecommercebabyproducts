@@ -61,10 +61,10 @@ export function QuickShop() {
 
   const getBadgeColor = (tag?: string) => {
     switch (tag) {
-      case 'hot': return 'from-rose-500 to-pink-500';
-      case 'new': return 'from-blue-500 to-cyan-500';
-      case 'trending': return 'from-purple-500 to-indigo-500';
-      default: return 'from-amber-500 to-orange-500';
+      case 'hot': return 'from-destructive to-accent';
+      case 'new': return 'from-primary to-[#7a8f85]';
+      case 'trending': return 'from-secondary to-[#d6ccc2]';
+      default: return 'from-stone-500 to-stone-600';
     }
   };
 
@@ -72,15 +72,15 @@ export function QuickShop() {
     <section className="py-20 bg-gradient-to-b from-stone-50 to-white relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-gradient-to-br from-rose-200 to-amber-200 rounded-full blur-3xl" />
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-gradient-to-br from-[#8da399]/40 to-[#9fb3b8]/40 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-gradient-to-br from-[#e6dfd9]/40 to-[#a09085]/40 rounded-full blur-3xl" />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full mb-6 border border-stone-200 shadow-sm">
-            <Flame className="h-4 w-4 text-rose-600 animate-pulse" />
+            <Flame className="h-4 w-4 text-destructive animate-pulse" />
             <span className="text-sm text-stone-900 font-medium">Ofertas destacadas del día</span>
           </div>
           <h2 className="text-4xl sm:text-5xl text-stone-900 mb-4">
@@ -125,7 +125,7 @@ export function QuickShop() {
 
                   {/* Discount */}
                   {product.originalPrice && (
-                    <div className="absolute top-4 right-4 w-14 h-14 bg-gradient-to-br from-rose-500 to-pink-600 text-white rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                    <div className="absolute top-4 right-4 w-14 h-14 bg-gradient-to-br from-destructive to-accent text-white rounded-full flex items-center justify-center shadow-lg animate-pulse">
                       <div className="text-center leading-tight">
                         <div className="text-sm font-bold">-{Math.round((1 - product.price / product.originalPrice) * 100)}%</div>
                       </div>
@@ -135,7 +135,7 @@ export function QuickShop() {
                   {/* Timer for flash sale */}
                   {product.timeLeft && (
                     <div className="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-lg flex items-center justify-center gap-2">
-                      <Clock className="h-4 w-4 text-rose-400" />
+                      <Clock className="h-4 w-4 text-accent" />
                       <span className="text-xs font-medium">Termina en {product.timeLeft}</span>
                     </div>
                   )}
@@ -148,7 +148,7 @@ export function QuickShop() {
                       <ShoppingCart className="h-4 w-4 transition-transform group-hover/btn:scale-110" />
                       <span className="text-sm font-medium">Añadir</span>
                     </button>
-                    <button className="bg-white/95 backdrop-blur-sm hover:bg-rose-500 text-stone-900 hover:text-white p-2.5 rounded-xl transition-all duration-300 shadow-lg group/heart">
+                    <button className="bg-white/95 backdrop-blur-sm hover:bg-accent text-stone-900 hover:text-white p-2.5 rounded-xl transition-all duration-300 shadow-lg group/heart">
                       <Heart className="h-4 w-4 transition-transform group-hover/heart:scale-110" />
                     </button>
                   </div>
@@ -164,7 +164,7 @@ export function QuickShop() {
                           key={i}
                           className={`h-3 w-3 ${
                             i < Math.floor(product.rating)
-                              ? 'fill-amber-400 text-amber-400'
+                              ? 'fill-[#dccf9d] text-[#dccf9d]'
                               : 'text-stone-300'
                           }`}
                         />
@@ -176,7 +176,7 @@ export function QuickShop() {
                   </div>
 
                   {/* Name */}
-                  <h3 className="text-base text-stone-900 line-clamp-2 min-h-[3rem] group-hover:text-rose-600 transition-colors duration-300">
+                  <h3 className="text-base text-stone-900 line-clamp-2 min-h-[3rem] group-hover:text-primary transition-colors duration-300">
                     {product.name}
                   </h3>
 
@@ -196,10 +196,10 @@ export function QuickShop() {
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-xs text-stone-600">
                       <span>Quedan pocas unidades</span>
-                      <span className="font-medium text-rose-600">78%</span>
+                      <span className="font-medium text-destructive">78%</span>
                     </div>
                     <div className="h-1.5 bg-stone-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-rose-500 to-pink-500 rounded-full transition-all duration-500" style={{ width: '78%' }} />
+                      <div className="h-full bg-gradient-to-r from-destructive to-accent rounded-full transition-all duration-500" style={{ width: '78%' }} />
                     </div>
                   </div>
                 </div>

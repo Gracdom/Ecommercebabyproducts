@@ -23,7 +23,7 @@ export function TrustBadges() {
 
           <div className="flex flex-col items-center text-center">
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm">
-              <RefreshCw className="h-6 w-6 text-purple-600" />
+              <RefreshCw className="h-6 w-6 text-accent" />
             </div>
             <p className="text-xs text-stone-900 mb-1">Devolución</p>
             <p className="text-xs text-stone-600">30 días gratis</p>
@@ -47,7 +47,7 @@ export function TrustBadges() {
 
           <div className="flex flex-col items-center text-center">
             <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center mb-3 shadow-sm">
-              <Heart className="h-6 w-6 text-rose-600" />
+              <Heart className="h-6 w-6 text-primary" />
             </div>
             <p className="text-xs text-stone-900 mb-1">+15,000</p>
             <p className="text-xs text-stone-600">Clientes felices</p>

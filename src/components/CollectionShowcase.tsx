@@ -17,7 +17,7 @@ const collections: Collection[] = [
     subtitle: 'Certificado GOTS',
     description: 'Algodón 100% orgánico para la piel más delicada',
     image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=800&q=80',
-    gradient: 'from-green-500/90 to-emerald-600/90',
+    gradient: 'from-[#8da399]/90 to-[#7a8f85]/90',
     itemCount: 45,
   },
   {
@@ -26,7 +26,7 @@ const collections: Collection[] = [
     subtitle: '0-3 meses',
     description: 'Todo lo esencial para los primeros días de tu bebé',
     image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&q=80',
-    gradient: 'from-blue-500/90 to-cyan-600/90',
+    gradient: 'from-[#e6dfd9]/90 to-[#d6ccc2]/90',
     itemCount: 38,
   },
   {
@@ -35,7 +35,7 @@ const collections: Collection[] = [
     subtitle: 'Montessori',
     description: 'Desarrollo sensorial y motor con juguetes de madera',
     image: 'https://images.unsplash.com/photo-1519689373023-dd07c7988603?w=800&q=80',
-    gradient: 'from-purple-500/90 to-pink-600/90',
+    gradient: 'from-[#dcbaba]/90 to-[#c8a8a8]/90',
     itemCount: 52,
   },
 ];
@@ -46,8 +46,8 @@ export function CollectionShowcase() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-100 to-rose-100 px-4 py-2 rounded-full mb-6">
-            <Sparkles className="h-4 w-4 text-amber-600 animate-pulse" />
+          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-secondary/50 to-accent/50 px-4 py-2 rounded-full mb-6">
+            <Sparkles className="h-4 w-4 text-accent animate-pulse" />
             <span className="text-sm text-stone-900">Colecciones destacadas</span>
           </div>
           <h2 className="text-4xl sm:text-5xl text-stone-900 mb-4">
@@ -144,7 +144,7 @@ export function CollectionShowcase() {
         {/* Bottom CTA */}
         <div className="mt-12 text-center">
           <button className="group relative px-8 py-4 bg-gradient-to-r from-stone-900 to-stone-800 text-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105">
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <div className="relative flex items-center gap-2">
               <span className="font-medium">Ver todas las colecciones</span>
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />

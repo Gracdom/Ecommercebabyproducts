@@ -80,11 +80,11 @@ export function Testimonials() {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-br from-stone-50 via-rose-50/30 to-amber-50/20 relative overflow-hidden">
+    <section className="py-20 bg-gradient-to-br from-[#fcfbf9] via-[#8da399]/10 to-[#e6dfd9]/20 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-rose-200 to-pink-200 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-blue-200 to-purple-200 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-[#dcbaba] to-[#a09085] rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-br from-[#9fb3b8] to-[#7a8f85] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -116,8 +116,8 @@ export function Testimonials() {
                 >
                   <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-xl relative">
                     {/* Quote icon */}
-                    <div className="absolute top-8 right-8 w-16 h-16 bg-gradient-to-br from-rose-100 to-purple-100 rounded-2xl flex items-center justify-center opacity-50">
-                      <Quote className="h-8 w-8 text-rose-600" />
+                    <div className="absolute top-8 right-8 w-16 h-16 bg-gradient-to-br from-[#dcbaba]/20 to-[#9fb3b8]/20 rounded-2xl flex items-center justify-center opacity-50">
+                      <Quote className="h-8 w-8 text-accent" />
                     </div>
 
                     {/* Rating */}
@@ -125,7 +125,7 @@ export function Testimonials() {
                       {[...Array(testimonial.rating)].map((_, i) => (
                         <Star
                           key={i}
-                          className="h-5 w-5 fill-amber-400 text-amber-400"
+                          className="h-5 w-5 fill-[#dccf9d] text-[#dccf9d]"
                         />
                       ))}
                     </div>
@@ -170,7 +170,7 @@ export function Testimonials() {
                     </div>
 
                     {/* Decorative gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 via-transparent to-purple-500/5 rounded-3xl pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rounded-3xl pointer-events-none" />
                   </div>
                 </div>
               ))}
@@ -183,14 +183,14 @@ export function Testimonials() {
             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 sm:-translate-x-12 w-12 h-12 bg-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 group"
             aria-label="Anterior testimonio"
           >
-            <ChevronLeft className="h-6 w-6 text-stone-900 group-hover:text-rose-600 transition-colors" />
+            <ChevronLeft className="h-6 w-6 text-stone-900 group-hover:text-primary transition-colors" />
           </button>
           <button
             onClick={goToNext}
             className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 sm:translate-x-12 w-12 h-12 bg-white rounded-full shadow-lg hover:shadow-xl flex items-center justify-center transition-all duration-300 hover:scale-110 group"
             aria-label="Siguiente testimonio"
           >
-            <ChevronRight className="h-6 w-6 text-stone-900 group-hover:text-rose-600 transition-colors" />
+            <ChevronRight className="h-6 w-6 text-stone-900 group-hover:text-primary transition-colors" />
           </button>
 
           {/* Dots indicator */}
@@ -204,7 +204,7 @@ export function Testimonials() {
                 }}
                 className={`h-2 rounded-full transition-all duration-300 ${
                   index === currentIndex
-                    ? 'w-8 bg-gradient-to-r from-rose-500 to-purple-500'
+                    ? 'w-8 bg-gradient-to-r from-primary to-accent'
                     : 'w-2 bg-stone-300 hover:bg-stone-400'
                 }`}
                 aria-label={`Ir al testimonio ${index + 1}`}

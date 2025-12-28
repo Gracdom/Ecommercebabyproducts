@@ -2,18 +2,18 @@ import { Heart, Award, Leaf, Shield, Users, TrendingUp } from 'lucide-react';
 
 export function AboutUs() {
   return (
-    <section className="py-20 bg-gradient-to-br from-stone-50 via-rose-50/20 to-amber-50/20 relative overflow-hidden">
+    <section className="py-20 bg-gradient-to-br from-[#fcfbf9] via-[#8da399]/20 to-[#e6dfd9]/20 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-rose-300 to-pink-300 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-blue-300 to-purple-300 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-[#8da399] to-[#7a8f85] rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-[#e6dfd9] to-[#d6ccc2] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full mb-6 border border-stone-200">
-            <Heart className="h-4 w-4 text-rose-600 fill-rose-600" />
+            <Heart className="h-4 w-4 text-accent fill-accent" />
             <span className="text-sm text-stone-900">Nuestra historia</span>
           </div>
           <h2 className="text-4xl sm:text-5xl text-stone-900 mb-6">
@@ -49,7 +49,7 @@ export function AboutUs() {
             </div>
             <div className="absolute -top-6 -left-6 bg-white rounded-2xl p-4 shadow-xl border border-stone-200">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-rose-500 to-pink-600 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary to-[#7a8f85] rounded-xl flex items-center justify-center">
                   <Users className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -94,8 +94,8 @@ export function AboutUs() {
               </div>
 
               <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Heart className="h-5 w-5 text-purple-600" />
+                <div className="w-10 h-10 bg-[#e6dfd9] rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Heart className="h-5 w-5 text-accent" />
                 </div>
                 <div>
                   <div className="font-medium text-stone-900 mb-1">Con amor</div>
@@ -146,7 +146,7 @@ export function AboutUs() {
         {/* CTA */}
         <div className="text-center mt-16">
           <button className="group relative px-8 py-4 bg-gradient-to-r from-stone-900 to-stone-800 text-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105">
-            <div className="absolute inset-0 bg-gradient-to-r from-rose-600 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-r from-primary to-[#7a8f85] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <div className="relative flex items-center gap-2">
               <span className="font-medium">Conoce más sobre nosotros</span>
               <Heart className="h-5 w-5" />

@@ -19,13 +19,13 @@ export function Newsletter() {
   return (
     <section className="relative py-20 overflow-hidden">
       {/* Background with gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-rose-500 via-pink-600 to-purple-600" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary via-[#9fb3b8] to-accent" />
       
       {/* Animated shapes */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-10 left-10 w-64 h-64 bg-white rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-10 right-10 w-96 h-96 bg-white rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-yellow-200 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-[#e6dfd9] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -77,19 +77,19 @@ export function Newsletter() {
               {!isSubscribed ? (
                 <div className="flex flex-col sm:flex-row gap-3">
                   <div className="relative flex-1">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                     <input
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="tu@email.com"
                       required
-                      className="w-full pl-12 pr-4 py-5 bg-white rounded-xl text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-4 focus:ring-white/30 transition-all text-lg"
+                      className="w-full pl-12 pr-4 py-5 bg-white rounded-xl text-foreground placeholder-muted-foreground focus:outline-none focus:ring-4 focus:ring-white/30 transition-all text-lg"
                     />
                   </div>
                   <button
                     type="submit"
-                    className="group px-8 py-5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap"
+                    className="group px-8 py-5 bg-[#4a4541] hover:bg-[#2c2a29] text-white rounded-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap"
                   >
                     <span className="font-medium text-lg">Suscribirme</span>
                     <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
@@ -100,7 +100,7 @@ export function Newsletter() {
                   <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                     <Check className="h-5 w-5 text-white" />
                   </div>
-                  <span className="text-lg text-stone-900 font-medium">
+                  <span className="text-lg text-foreground font-medium">
                     ¡Gracias por suscribirte! Revisa tu email 🎉
                   </span>
                 </div>
@@ -116,9 +116,17 @@ export function Newsletter() {
           <div className="mt-12 flex items-center justify-center gap-6 text-white/90">
             <div className="flex -space-x-3">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div
+                <img
                   key={i}
-                  className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 border-2 border-white"
+                  src={[
+                    "https://images.unsplash.com/photo-1764859878528-2b512ab9d4d9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoYXBweSUyMGJhYnklMjBmYWNlJTIwbmF0dXJhbCUyMGxpZ2h0fGVufDF8fHx8MTc2NjgzMjY0OXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+                    "https://images.unsplash.com/photo-1622632405663-f43782a098b5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3RoZXIlMjBzbWlsaW5nJTIwcG9ydHJhaXQlMjBzb2Z0JTIwY29sb3JzfGVufDF8fHx8MTc2NjgzMjY1M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+                    "https://images.unsplash.com/photo-1761891949359-abd8fb35b987?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXRoZXIlMjBiYWJ5JTIwcG9ydHJhaXQlMjBuYXR1cmFsfGVufDF8fHx8MTc2NjgzMjY1NXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+                    "https://images.unsplash.com/photo-1725393197924-e1dff51c29f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxwcmVnbmFudCUyMHdvbWFuJTIwc21pbGluZyUyMHBvcnRyYWl0JTIwbmF0dXJhbCUyMGxpZ2h0fGVufDF8fHx8MTc2Njg1MTQ5MXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+                    "https://images.unsplash.com/photo-1606051228013-5c2ececa4c61?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3RoZXIlMjBraXNzaW5nJTIwYmFieSUyMHNvZnQlMjBuYXR1cmFsJTIwbGlnaHR8ZW58MXx8fHwxNzY2ODUxNjA4fDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                  ][i - 1]}
+                  alt="Happy subscriber"
+                  className="w-10 h-10 rounded-full border-2 border-white object-cover"
                 />
               ))}
             </div>

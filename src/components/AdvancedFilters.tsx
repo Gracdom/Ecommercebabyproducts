@@ -230,7 +230,7 @@ export function AdvancedFilters({ onFilterChange, onSortChange }: AdvancedFilter
                 >
                   <div className="flex">
                     {Array.from({ length: rating }).map((_, i) => (
-                      <span key={i} className="text-amber-400">★</span>
+                      <span key={i} className="text-[#dccf9d]">★</span>
                     ))}
                   </div>
                   <span className="text-sm">y más</span>

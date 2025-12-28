@@ -46,12 +46,12 @@ export function RecommendedProducts({
   if (recommendations.length === 0) return null;
 
   return (
-    <div className="bg-gradient-to-br from-purple-50 via-pink-50 to-amber-50 py-16">
+    <div className="bg-gradient-to-br from-[#e6dfd9]/20 via-[#fcfbf9] to-[#8da399]/20 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
           <div className="bg-white p-3 rounded-full shadow-md">
-            <Sparkles className="h-6 w-6 text-purple-600" />
+            <Sparkles className="h-6 w-6 text-accent" />
           </div>
           <div>
             <h2 className="text-2xl text-stone-900">
@@ -83,7 +83,7 @@ export function RecommendedProducts({
                 
                 {/* Badge */}
                 {product.badge && (
-                  <span className="absolute top-3 left-3 bg-purple-600 text-white px-2 py-1 rounded text-xs">
+                  <span className="absolute top-3 left-3 bg-primary text-white px-2 py-1 rounded text-xs">
                     {product.badge}
                   </span>
                 )}
@@ -116,7 +116,7 @@ export function RecommendedProducts({
                   {/* Rating */}
                   {product.rating && (
                     <div className="flex items-center gap-1 text-xs">
-                      <span className="text-amber-400">★</span>
+                      <span className="text-[#dccf9d]">★</span>
                       <span className="text-stone-600">{product.rating}</span>
                     </div>
                   )}

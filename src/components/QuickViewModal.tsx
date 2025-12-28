@@ -55,12 +55,12 @@ export function QuickViewModal({ product, isOpen, onClose, onAddToCart }: QuickV
               {/* Badges */}
               <div className="absolute top-3 left-3 flex flex-col gap-2">
                 {product.badge && (
-                  <span className="bg-rose-500 text-white px-3 py-1 rounded text-xs">
+                  <span className="bg-destructive text-white px-3 py-1 rounded text-xs">
                     {product.badge}
                   </span>
                 )}
                 {isBestseller && (
-                  <span className="bg-amber-400 text-stone-900 px-3 py-1 rounded text-xs flex items-center gap-1">
+                  <span className="bg-[#dccf9d] text-stone-900 px-3 py-1 rounded text-xs flex items-center gap-1">
                     <TrendingUp className="h-3 w-3" />
                     Bestseller
                   </span>
@@ -107,7 +107,7 @@ export function QuickViewModal({ product, isOpen, onClose, onAddToCart }: QuickV
                       key={i}
                       className={`h-4 w-4 ${
                         i < Math.floor(product.rating || 4.5)
-                          ? 'fill-amber-400 text-amber-400'
+                          ? 'fill-[#dccf9d] text-[#dccf9d]'
                           : 'text-stone-300'
                       }`}
                     />
@@ -126,7 +126,7 @@ export function QuickViewModal({ product, isOpen, onClose, onAddToCart }: QuickV
                     <p className="text-xl text-stone-400 line-through">
                       € {product.originalPrice.toFixed(2)}
                     </p>
-                    <span className="bg-rose-500 text-white px-2 py-1 rounded text-sm">
+                    <span className="bg-destructive text-white px-2 py-1 rounded text-sm">
                       -{discount}%
                     </span>
                   </>

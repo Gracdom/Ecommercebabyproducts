@@ -65,41 +65,41 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
       />
 
       {/* Cart panel */}
-      <div className={`fixed right-0 top-0 h-full w-full sm:w-[420px] bg-white shadow-2xl z-50 flex flex-col transition-transform duration-300 ease-out ${
+      <div className={`fixed right-0 top-0 h-full w-full sm:w-[480px] bg-white shadow-2xl z-50 flex flex-col transition-transform duration-300 ease-out ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-stone-200">
-          <h3 className="text-xl text-stone-900">
+        <div className="flex items-center justify-between p-6 border-b border-[#e6dfd9] bg-white">
+          <h3 className="text-xl text-[#5e544e] font-medium">
             Carrito ({items.reduce((sum, item) => sum + (item.quantity || 1), 0)})
           </h3>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-stone-100 rounded-lg"
+            className="p-2 hover:bg-[#faf9f8] rounded-lg transition-colors"
           >
-            <X className="h-5 w-5 text-stone-600" />
+            <X className="h-5 w-5 text-[#9ca3af]" />
           </button>
         </div>
 
         {/* Progress Bars - Sticky at top */}
         {items.length > 0 && (
-          <div className="bg-stone-50 p-4 border-b border-stone-200 space-y-3">
+          <div className="bg-[#faf9f8] p-4 border-b border-[#e6dfd9] space-y-3">
             {/* Free shipping progress */}
             {subtotal < freeShippingThreshold && (
               <div>
                 <div className="flex items-center justify-between text-sm mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-amber-100 rounded-full flex items-center justify-center">
-                      <ArrowRight className="h-3 w-3 text-amber-700" />
+                    <div className="w-6 h-6 bg-[#8da399]/20 rounded-full flex items-center justify-center">
+                      <ArrowRight className="h-3 w-3 text-[#8da399]" />
                     </div>
-                    <span className="text-stone-700">
+                    <span className="text-[#5e544e]">
                       <strong>€{(freeShippingThreshold - subtotal).toFixed(2)}</strong> para envío gratis
                     </span>
                   </div>
                 </div>
-                <div className="h-2 bg-stone-200 rounded-full overflow-hidden">
+                <div className="h-2 bg-[#e6dfd9] rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full transition-all duration-500"
+                    className="h-full bg-[#8da399] rounded-full transition-all duration-500"
                     style={{ width: `${Math.min((subtotal / freeShippingThreshold) * 100, 100)}%` }}
                   />
                 </div>
@@ -111,17 +111,17 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
               <div>
                 <div className="flex items-center justify-between text-sm mb-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-rose-100 rounded-full flex items-center justify-center">
-                      <Gift className="h-3 w-3 text-rose-600" />
+                    <div className="w-6 h-6 bg-[#e2bfb3]/30 rounded-full flex items-center justify-center">
+                      <Gift className="h-3 w-3 text-[#c59a8b]" />
                     </div>
-                    <span className="text-stone-700">
+                    <span className="text-[#5e544e]">
                       <strong>€{(giftThreshold - subtotal).toFixed(2)}</strong> para regalo gratis
                     </span>
                   </div>
                 </div>
-                <div className="h-2 bg-stone-200 rounded-full overflow-hidden">
+                <div className="h-2 bg-[#e6dfd9] rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-rose-400 to-rose-500 rounded-full transition-all duration-500"
+                    className="h-full bg-gradient-to-r from-[#e2bfb3] to-[#c59a8b] rounded-full transition-all duration-500"
                     style={{ width: `${Math.min((subtotal / giftThreshold) * 100, 100)}%` }}
                   />
                 </div>
@@ -130,14 +130,14 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
 
             {/* Success message */}
             {subtotal >= giftThreshold && (
-              <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg">
+              <div className="flex items-center gap-2 text-sm text-[#8da399] bg-[#8da399]/10 px-3 py-2 rounded-lg font-medium">
                 <Gift className="h-4 w-4" />
                 <span>¡Felicidades! Regalo gratis incluido 🎁</span>
               </div>
             )}
 
             {subtotal >= freeShippingThreshold && subtotal < giftThreshold && (
-              <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg">
+              <div className="flex items-center gap-2 text-sm text-[#8da399] bg-[#8da399]/10 px-3 py-2 rounded-lg font-medium">
                 <ArrowRight className="h-4 w-4" />
                 <span>¡Envío gratis desbloqueado! 🚚</span>
               </div>
@@ -145,210 +145,224 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
           </div>
         )}
 
-        {/* Items */}
-        <div className="flex-1 overflow-y-auto p-6">
+        {/* Scrollable Content: Items + Options */}
+        <div className="flex-1 overflow-y-auto p-6 bg-white">
           {items.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-center">
-              <ShoppingBag className="h-16 w-16 text-stone-300 mb-4" />
-              <p className="text-stone-600 mb-2">Tu carrito está vacío</p>
-              <p className="text-sm text-stone-500">¡Añade productos para empezar!</p>
+            <div className="flex flex-col items-center justify-center h-full text-center space-y-6">
+              <div className="w-24 h-24 bg-[#faf9f8] rounded-full flex items-center justify-center animate-in zoom-in duration-500">
+                <ShoppingBag className="h-10 w-10 text-[#8da399]" />
+              </div>
+              <div>
+                <p className="text-xl text-[#5e544e] font-medium mb-2">Tu carrito está vacío</p>
+                <p className="text-[#9ca3af] max-w-[200px] mx-auto">Descubre nuestra colección de productos orgánicos</p>
+              </div>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-8 pb-4">
               {/* Cart items */}
               <div className="space-y-4">
                 {items.map((item) => (
-                  <div key={item.id} className="flex gap-4 bg-stone-50 p-4 rounded-xl">
-                    <img
+                  <div key={item.id} className="flex gap-4 bg-[#faf9f8] p-4 rounded-2xl border border-[#e6dfd9] group transition-colors hover:border-[#d6cfc9]">
+                    <ImageWithFallback
                       src={item.image}
                       alt={item.name}
-                      className="w-20 h-20 object-cover rounded-lg"
+                      className="w-24 h-24 shrink-0 object-cover rounded-xl border border-white shadow-sm"
                     />
-                    <div className="flex-1">
-                      <h4 className="text-sm text-stone-900 mb-1">{item.name}</h4>
-                      <p className="text-stone-800 mb-2">€{item.price.toFixed(2)}</p>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => onUpdateQuantity(item.id, (item.quantity || 1) - 1)}
-                          className="p-1 hover:bg-white rounded border border-stone-200"
-                        >
-                          <Minus className="h-4 w-4 text-stone-600" />
-                        </button>
-                        <span className="text-sm w-8 text-center text-stone-900">{item.quantity || 1}</span>
-                        <button
-                          onClick={() => onUpdateQuantity(item.id, (item.quantity || 1) + 1)}
-                          className="p-1 hover:bg-white rounded border border-stone-200"
-                        >
-                          <Plus className="h-4 w-4 text-stone-600" />
-                        </button>
+                    <div className="flex-1 flex flex-col justify-between py-1 min-w-0">
+                      <div>
+                        <div className="flex justify-between items-start gap-2">
+                          <h4 className="text-sm font-medium text-[#5e544e] line-clamp-2 mb-1">{item.name}</h4>
+                          <button
+                            onClick={() => onRemove(item.id)}
+                            className="text-[#9ca3af] hover:text-[#ef4444] hover:bg-red-50 p-1.5 rounded-lg transition-all shrink-0 -mr-2 -mt-2"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        </div>
+                        <p className="text-[#8da399] font-medium">€{item.price.toFixed(2)}</p>
+                      </div>
+                      
+                      <div className="flex items-center mt-2">
+                        <div className="flex items-center gap-3 bg-white rounded-lg p-1 border border-[#e6dfd9] shadow-sm">
+                          <button
+                            onClick={() => onUpdateQuantity(item.id, (item.quantity || 1) - 1)}
+                            className="w-7 h-7 flex items-center justify-center hover:bg-[#faf9f8] rounded text-[#5e544e] transition-colors"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </button>
+                          <span className="text-sm min-w-[1.5rem] text-center text-[#5e544e] font-medium">{item.quantity || 1}</span>
+                          <button
+                            onClick={() => onUpdateQuantity(item.id, (item.quantity || 1) + 1)}
+                            className="w-7 h-7 flex items-center justify-center hover:bg-[#faf9f8] rounded text-[#5e544e] transition-colors"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <button
-                      onClick={() => onRemove(item.id)}
-                      className="text-stone-400 hover:text-stone-700"
-                    >
-                      <X className="h-5 w-5" />
-                    </button>
                   </div>
                 ))}
               </div>
 
               {/* Recommended products */}
-              <div className="border-t border-stone-200 pt-4">
-                <h4 className="text-sm text-stone-900 mb-3 flex items-center gap-2">
-                  <Tag className="h-4 w-4" />
+              <div className="border-t border-[#e6dfd9] pt-6">
+                <h4 className="text-sm font-medium text-[#5e544e] mb-4 flex items-center gap-2">
+                  <Tag className="h-4 w-4 text-[#8da399]" />
                   Completa tu compra
                 </h4>
-                <div className="space-y-3">
+                <div className="grid gap-3">
                   {recommendedProducts.slice(0, 2).map((product) => (
-                    <div key={product.id} className="flex gap-3 p-3 border border-stone-200 rounded-lg hover:border-stone-300 transition-colors">
+                    <div key={product.id} className="flex gap-3 p-3 border border-[#e6dfd9] rounded-xl hover:border-[#8da399]/50 transition-colors bg-[#faf9f8]/50">
                       <ImageWithFallback
                         src={product.image}
                         alt={product.name}
                         className="w-16 h-16 object-cover rounded-lg"
                       />
                       <div className="flex-1">
-                        <p className="text-xs text-stone-900 mb-1 line-clamp-2">{product.name}</p>
-                        <p className="text-sm text-stone-800">€{product.price.toFixed(2)}</p>
+                        <p className="text-xs font-medium text-[#5e544e] mb-1 line-clamp-2">{product.name}</p>
+                        <p className="text-sm text-[#8da399]">€{product.price.toFixed(2)}</p>
                       </div>
-                      <button className="text-xs text-stone-600 hover:text-stone-900 hover:underline self-start">
+                      <button className="text-xs text-[#5e544e] hover:text-[#8da399] font-medium px-3 py-1.5 bg-white border border-[#e6dfd9] rounded-lg shadow-sm hover:shadow transition-all">
                         Añadir
                       </button>
                     </div>
                   ))}
                 </div>
               </div>
+
+              {/* Cart Options (Moved to Scrollable Area) */}
+              <div className="border-t border-[#e6dfd9] pt-6 space-y-6">
+                 {/* Coupon Code */}
+                <div>
+                  <label className="text-sm font-medium text-[#5e544e] mb-2 block">Código de descuento</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="WELCOME10"
+                      value={couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      disabled={couponApplied}
+                      className="flex-1 px-3 py-2 border border-[#e6dfd9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#8da399]/20 text-sm disabled:bg-[#faf9f8] text-[#5e544e] placeholder:text-[#9ca3af]"
+                    />
+                    <button
+                      onClick={handleApplyCoupon}
+                      disabled={couponApplied}
+                      className="bg-[#5e544e] text-white px-4 py-2 rounded-lg hover:bg-[#4a4541] transition-colors text-sm disabled:bg-[#8da399]"
+                    >
+                      {couponApplied ? '✓' : 'Aplicar'}
+                    </button>
+                  </div>
+                  {couponApplied && (
+                    <p className="text-xs text-[#8da399] mt-1 font-medium">¡Código aplicado! -10% de descuento</p>
+                  )}
+                </div>
+
+                {/* Shipping Options */}
+                <div className="space-y-3">
+                  <p className="text-sm font-medium text-[#5e544e]">Opciones de envío</p>
+                  <label className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${!expressShipping ? 'border-[#8da399] bg-[#8da399]/5' : 'border-[#e6dfd9] hover:bg-[#faf9f8]'}`}>
+                    <input
+                      type="radio"
+                      name="shipping"
+                      checked={!expressShipping}
+                      onChange={() => setExpressShipping(false)}
+                      className="text-[#8da399] focus:ring-[#8da399]"
+                    />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-[#5e544e]">Envío estándar</p>
+                      <p className="text-xs text-[#9ca3af]">2-4 días laborables</p>
+                    </div>
+                    <span className="text-sm font-medium text-[#5e544e]">
+                      {standardShipping === 0 ? 'GRATIS' : `€${standardShipping.toFixed(2)}`}
+                    </span>
+                  </label>
+                  <label className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${expressShipping ? 'border-[#c59a8b] bg-[#c59a8b]/5' : 'border-[#e6dfd9] hover:bg-[#faf9f8]'}`}>
+                    <input
+                      type="radio"
+                      name="shipping"
+                      checked={expressShipping}
+                      onChange={() => setExpressShipping(true)}
+                      className="text-[#c59a8b] focus:ring-[#c59a8b]"
+                    />
+                    <div className="flex-1 flex items-center gap-2">
+                      <Zap className="h-4 w-4 text-[#c59a8b]" />
+                      <div>
+                        <p className="text-sm font-medium text-[#5e544e]">Envío express</p>
+                        <p className="text-xs text-[#9ca3af]">Recíbelo mañana</p>
+                      </div>
+                    </div>
+                    <span className="text-sm font-medium text-[#5e544e]">€{expressShippingCost.toFixed(2)}</span>
+                  </label>
+                </div>
+
+                {/* Gift Wrap */}
+                <label className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all ${giftWrap ? 'border-[#c59a8b] bg-[#c59a8b]/5' : 'border-[#e6dfd9] hover:bg-[#faf9f8]'}`}>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={giftWrap}
+                      onChange={(e) => setGiftWrap(e.target.checked)}
+                      className="text-[#c59a8b] rounded focus:ring-[#c59a8b]"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Gift className="h-4 w-4 text-[#c59a8b]" />
+                      <div>
+                        <p className="text-sm font-medium text-[#5e544e]">Envoltorio de regalo</p>
+                        <p className="text-xs text-[#9ca3af]">Incluye tarjeta personalizada</p>
+                      </div>
+                    </div>
+                  </div>
+                  <span className="text-sm font-medium text-[#5e544e]">+ €{giftWrapCost.toFixed(2)}</span>
+                </label>
+
+                {/* Loyalty Points */}
+                <div className="flex items-center gap-2 p-3 bg-[#faf9f8] border border-[#e6dfd9] rounded-xl">
+                  <Award className="h-5 w-5 text-[#8da399]" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-[#5e544e]">Gana {pointsEarned} puntos</p>
+                    <p className="text-xs text-[#9ca3af]">1 punto = €0.05 de descuento</p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
 
-        {/* Footer */}
+        {/* Footer (Totals & Actions) */}
         {items.length > 0 && (
-          <div className="border-t border-stone-200 p-6 space-y-4">
-            {/* Coupon Code */}
-            <div>
-              <label className="text-sm text-stone-700 mb-2 block">Código de descuento</label>
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  placeholder="WELCOME10"
-                  value={couponCode}
-                  onChange={(e) => setCouponCode(e.target.value)}
-                  disabled={couponApplied}
-                  className="flex-1 px-3 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900 text-sm disabled:bg-stone-100"
-                />
-                <button
-                  onClick={handleApplyCoupon}
-                  disabled={couponApplied}
-                  className="bg-stone-900 text-white px-4 py-2 rounded-lg hover:bg-stone-800 transition-colors text-sm disabled:bg-green-600"
-                >
-                  {couponApplied ? '✓' : 'Aplicar'}
-                </button>
-              </div>
-              {couponApplied && (
-                <p className="text-xs text-green-700 mt-1">¡Código aplicado! -10% de descuento</p>
-              )}
-            </div>
-
-            {/* Shipping Options */}
-            <div className="space-y-2">
-              <p className="text-sm text-stone-700 mb-2">Opciones de envío</p>
-              <label className="flex items-center gap-3 p-3 border border-stone-200 rounded-lg cursor-pointer hover:bg-stone-50">
-                <input
-                  type="radio"
-                  name="shipping"
-                  checked={!expressShipping}
-                  onChange={() => setExpressShipping(false)}
-                  className="text-stone-900"
-                />
-                <div className="flex-1">
-                  <p className="text-sm text-stone-900">Envío estándar</p>
-                  <p className="text-xs text-stone-600">2-4 días laborables</p>
-                </div>
-                <span className="text-sm text-stone-900">
-                  {standardShipping === 0 ? 'GRATIS' : `€${standardShipping.toFixed(2)}`}
-                </span>
-              </label>
-              <label className="flex items-center gap-3 p-3 border border-stone-200 rounded-lg cursor-pointer hover:bg-stone-50">
-                <input
-                  type="radio"
-                  name="shipping"
-                  checked={expressShipping}
-                  onChange={() => setExpressShipping(true)}
-                  className="text-stone-900"
-                />
-                <div className="flex-1 flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-amber-600" />
-                  <div>
-                    <p className="text-sm text-stone-900">Envío express</p>
-                    <p className="text-xs text-stone-600">Recíbelo mañana</p>
-                  </div>
-                </div>
-                <span className="text-sm text-stone-900">€{expressShippingCost.toFixed(2)}</span>
-              </label>
-            </div>
-
-            {/* Gift Wrap */}
-            <label className="flex items-center justify-between p-3 border border-stone-200 rounded-lg cursor-pointer hover:bg-stone-50">
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  checked={giftWrap}
-                  onChange={(e) => setGiftWrap(e.target.checked)}
-                  className="text-stone-900"
-                />
-                <div className="flex items-center gap-2">
-                  <Gift className="h-4 w-4 text-rose-600" />
-                  <div>
-                    <p className="text-sm text-stone-900">Envoltorio de regalo</p>
-                    <p className="text-xs text-stone-600">Incluye tarjeta personalizada</p>
-                  </div>
-                </div>
-              </div>
-              <span className="text-sm text-stone-900">+ €{giftWrapCost.toFixed(2)}</span>
-            </label>
-
-            {/* Loyalty Points */}
-            <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <Award className="h-5 w-5 text-amber-600" />
-              <div className="flex-1">
-                <p className="text-sm text-amber-900">Gana {pointsEarned} puntos con esta compra</p>
-                <p className="text-xs text-amber-700">1 punto = €0.05 de descuento</p>
-              </div>
-            </div>
-
-            <div className="space-y-2 text-sm pt-4 border-t border-stone-200">
+          <div className="border-t border-[#e6dfd9] p-6 space-y-4 bg-white shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)] z-10">
+            <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-stone-600">Subtotal</span>
-                <span className="text-stone-900">€{subtotal.toFixed(2)}</span>
+                <span className="text-[#9ca3af]">Subtotal</span>
+                <span className="text-[#5e544e] font-medium">€{subtotal.toFixed(2)}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-stone-600">Descuento</span>
-                  <span className="text-green-700">-€{discount.toFixed(2)}</span>
+                  <span className="text-[#9ca3af]">Descuento</span>
+                  <span className="text-[#8da399] font-medium">-€{discount.toFixed(2)}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-stone-600">Envío</span>
-                <span className={shipping === 0 ? 'text-green-700' : 'text-stone-900'}>
+                <span className="text-[#9ca3af]">Envío</span>
+                <span className={`font-medium ${shipping === 0 ? 'text-[#8da399]' : 'text-[#5e544e]'}`}>
                   {shipping === 0 ? 'GRATIS' : `€${shipping.toFixed(2)}`}
                 </span>
               </div>
               {giftWrapCost > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-stone-600">Envoltorio</span>
-                  <span className="text-stone-900">€{giftWrapCost.toFixed(2)}</span>
+                  <span className="text-[#9ca3af]">Envoltorio</span>
+                  <span className="text-[#5e544e] font-medium">€{giftWrapCost.toFixed(2)}</span>
                 </div>
               )}
-              <div className="flex justify-between pt-2 border-t border-stone-200">
-                <span className="text-stone-900">Total</span>
-                <span className="text-xl text-stone-900">€{total.toFixed(2)}</span>
+              <div className="flex justify-between pt-3 border-t border-[#e6dfd9] mt-2">
+                <span className="text-[#5e544e] text-base font-medium">Total</span>
+                <span className="text-xl text-[#5e544e] font-bold">€{total.toFixed(2)}</span>
               </div>
             </div>
 
             <button
               onClick={onCheckout}
-              className="w-full bg-stone-800 text-white py-3.5 rounded-lg hover:bg-stone-900 transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-[#5e544e] text-white py-4 rounded-xl hover:bg-[#4a4541] transition-all duration-300 hover:shadow-lg hover:scale-[1.02] flex items-center justify-center gap-2 font-medium text-lg"
             >
               Finalizar Compra
               <ArrowRight className="h-5 w-5" />
@@ -356,7 +370,7 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
 
             <button 
               onClick={onClose}
-              className="w-full border border-stone-300 text-stone-700 py-3.5 rounded-lg hover:bg-stone-50 transition-colors"
+              className="w-full text-[#9ca3af] hover:text-[#5e544e] text-sm font-medium transition-colors"
             >
               Seguir Comprando
             </button>

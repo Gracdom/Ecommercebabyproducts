@@ -111,12 +111,12 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
   // Landing Page
   if (step === 'landing') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#8da399]/10 relative overflow-hidden">
         {/* Animated background */}
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-pink-300 to-rose-300 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-br from-blue-300 to-cyan-300 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-gradient-to-br from-purple-300 to-pink-300 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+          <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-[#dcbaba] to-[#c8a8a8] rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-br from-[#9fb3b8] to-[#8ea2a7] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-gradient-to-br from-[#a09085] to-[#dcbaba] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
         </div>
 
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
@@ -132,12 +132,12 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
           <div className="text-center space-y-8">
             {/* Icon */}
             <div className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-3xl shadow-2xl mb-6 animate-bounce">
-              <Baby className="h-12 w-12 text-rose-500" />
+              <Baby className="h-12 w-12 text-accent" />
             </div>
 
             {/* Badge */}
             <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-white/50 shadow-lg">
-              <Sparkles className="h-4 w-4 text-amber-500 animate-pulse" />
+              <Sparkles className="h-4 w-4 text-primary animate-pulse" />
               <span className="text-sm text-stone-900 font-medium">+50,000 predicciones realizadas</span>
             </div>
 
@@ -153,7 +153,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
             {/* Benefits */}
             <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto pt-8">
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg hover:scale-105 transition-all duration-300">
-                <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-rose-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-accent to-[#c8a8a8] rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Star className="h-6 w-6 text-white" />
                 </div>
                 <div className="text-lg font-medium text-stone-900 mb-2">85% Precisión</div>
@@ -161,7 +161,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
               </div>
 
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg hover:scale-105 transition-all duration-300">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-[#9fb3b8] to-[#8ea2a7] rounded-xl flex items-center justify-center mx-auto mb-4">
                   <TrendingUp className="h-6 w-6 text-white" />
                 </div>
                 <div className="text-lg font-medium text-stone-900 mb-2">5 Preguntas</div>
@@ -169,7 +169,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
               </div>
 
               <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg hover:scale-105 transition-all duration-300">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mx-auto mb-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-primary to-[#7a8f85] rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Gift className="h-6 w-6 text-white" />
                 </div>
                 <div className="text-lg font-medium text-stone-900 mb-2">Descuentos</div>
@@ -180,9 +180,9 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
             {/* CTA */}
             <button
               onClick={() => setStep('quiz')}
-              className="group relative px-12 py-6 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-500 text-white rounded-2xl text-xl font-medium overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 mt-8"
+              className="group relative px-12 py-6 bg-gradient-to-r from-primary via-[#7a8f85] to-accent text-white rounded-2xl text-xl font-medium overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 mt-8"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-r from-accent to-[#c8a8a8] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div className="relative flex items-center gap-3">
                 <span>Comenzar predicción</span>
                 <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
@@ -199,14 +199,14 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div
                     key={i}
-                    className="w-12 h-12 rounded-full bg-gradient-to-br from-pink-400 to-purple-500 border-4 border-white"
+                    className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent border-4 border-white"
                   />
                 ))}
               </div>
               <div className="text-left">
                 <div className="flex items-center gap-1 mb-1">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <Star key={i} className="h-4 w-4 fill-[#dccf9d] text-[#dccf9d]" />
                   ))}
                 </div>
                 <div className="text-sm text-stone-700 font-medium">+50,000 mamás han predicho aquí</div>
@@ -224,7 +224,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
     const currentQ = questions[currentQuestion];
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#8da399]/10 relative overflow-hidden">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
           {/* Progress Bar */}
           <div className="mb-12">
@@ -238,7 +238,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
             </div>
             <div className="h-3 bg-white/50 rounded-full overflow-hidden shadow-inner">
               <div
-                className="h-full bg-gradient-to-r from-pink-500 via-rose-500 to-purple-500 rounded-full transition-all duration-500"
+                className="h-full bg-gradient-to-r from-primary via-[#7a8f85] to-accent rounded-full transition-all duration-500"
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
@@ -247,7 +247,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
           {/* Question Card */}
           <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-2xl border-2 border-white/50 animate-in fade-in slide-in-from-bottom duration-500">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-pink-500 to-purple-500 rounded-2xl mb-6">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-2xl mb-6">
                 <Baby className="h-8 w-8 text-white" />
               </div>
               <h2 className="text-3xl sm:text-4xl text-stone-900 mb-4">
@@ -261,16 +261,16 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
                 <button
                   key={index}
                   onClick={() => handleAnswer(option.value)}
-                  className="w-full p-6 bg-stone-50 hover:bg-gradient-to-r hover:from-pink-50 hover:to-purple-50 rounded-2xl border-2 border-stone-200 hover:border-purple-300 transition-all duration-300 hover:scale-105 hover:shadow-lg group"
+                  className="w-full p-6 bg-stone-50 hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 rounded-2xl border-2 border-stone-200 hover:border-accent transition-all duration-300 hover:scale-105 hover:shadow-lg group"
                 >
                   <div className="flex items-center gap-4">
                     <div className="text-4xl">{option.emoji}</div>
                     <div className="flex-1 text-left">
-                      <div className="text-lg text-stone-900 font-medium group-hover:text-purple-700 transition-colors">
+                      <div className="text-lg text-stone-900 font-medium group-hover:text-primary transition-colors">
                         {option.text}
                       </div>
                     </div>
-                    <ArrowRight className="h-6 w-6 text-stone-400 group-hover:text-purple-600 transition-all group-hover:translate-x-1" />
+                    <ArrowRight className="h-6 w-6 text-stone-400 group-hover:text-primary transition-all group-hover:translate-x-1" />
                   </div>
                 </button>
               ))}
@@ -298,18 +298,18 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
   // Email Capture
   if (step === 'email') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#8da399]/10 flex items-center justify-center px-4">
         <div className="max-w-lg w-full">
           <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-2xl border-2 border-white/50 animate-in fade-in slide-in-from-bottom duration-500">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-pink-500 to-purple-500 rounded-2xl mb-6">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary to-accent rounded-2xl mb-6">
                 <Mail className="h-10 w-10 text-white" />
               </div>
               <h2 className="text-3xl sm:text-4xl text-stone-900 mb-4">
                 ¡Ya casi está!
               </h2>
               <p className="text-lg text-stone-600">
-                Ingresa tu email para recibir el resultado y un <span className="text-purple-600 font-medium">15% de descuento</span> en productos para bebé
+                Ingresa tu email para recibir el resultado y un <span className="text-accent font-medium">15% de descuento</span> en productos para bebé
               </p>
             </div>
 
@@ -322,13 +322,13 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="tu@email.com"
                   required
-                  className="w-full pl-12 pr-4 py-4 bg-stone-50 rounded-xl text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-4 focus:ring-purple-200 transition-all text-lg border-2 border-stone-200 focus:border-purple-400"
+                  className="w-full pl-12 pr-4 py-4 bg-stone-50 rounded-xl text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all text-lg border-2 border-stone-200 focus:border-primary"
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-5 bg-gradient-to-r from-pink-500 via-rose-500 to-purple-500 text-white rounded-xl text-lg font-medium hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
+                className="w-full py-5 bg-gradient-to-r from-primary via-[#7a8f85] to-accent text-white rounded-xl text-lg font-medium hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
               >
                 <span>Ver mi resultado</span>
                 <Sparkles className="h-5 w-5" />
@@ -359,10 +359,10 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
   // Calculating
   if (step === 'calculating') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#8da399]/10 flex items-center justify-center px-4">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-32 h-32 bg-white rounded-full shadow-2xl mb-8 animate-bounce">
-            <Baby className="h-16 w-16 text-purple-500 animate-pulse" />
+            <Baby className="h-16 w-16 text-accent animate-pulse" />
           </div>
           
           <h2 className="text-4xl text-stone-900 mb-6">
@@ -372,7 +372,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
           <div className="max-w-md mx-auto mb-8">
             <div className="h-3 bg-white/50 rounded-full overflow-hidden shadow-inner">
               <div
-                className="h-full bg-gradient-to-r from-pink-500 via-rose-500 to-purple-500 rounded-full transition-all duration-300"
+                className="h-full bg-gradient-to-r from-primary via-[#7a8f85] to-accent rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -394,13 +394,13 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
     const isBoy = result === 'boy';
     
     return (
-      <div className={`min-h-screen bg-gradient-to-br ${isBoy ? 'from-blue-50 via-cyan-50 to-sky-50' : 'from-pink-50 via-rose-50 to-purple-50'} relative overflow-hidden`}>
+      <div className={`min-h-screen bg-gradient-to-br ${isBoy ? 'from-[#9fb3b8]/20 via-[#8ea2a7]/20 to-[#fcfbf9]' : 'from-[#dcbaba]/20 via-[#c8a8a8]/20 to-[#fcfbf9]'} relative overflow-hidden`}>
         {/* Animated confetti background */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           {[...Array(20)].map((_, i) => (
             <div
               key={i}
-              className={`absolute w-3 h-3 ${isBoy ? 'bg-blue-400' : 'bg-pink-400'} rounded-full animate-ping`}
+              className={`absolute w-3 h-3 ${isBoy ? 'bg-[#9fb3b8]' : 'bg-[#dcbaba]'} rounded-full animate-ping`}
               style={{
                 left: `${Math.random() * 100}%`,
                 top: `${Math.random() * 100}%`,
@@ -414,7 +414,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
           <div className="text-center space-y-8 animate-in fade-in slide-in-from-bottom duration-700">
             {/* Icon */}
-            <div className={`inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br ${isBoy ? 'from-blue-500 to-cyan-500' : 'from-pink-500 to-rose-500'} rounded-full shadow-2xl animate-bounce`}>
+            <div className={`inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br ${isBoy ? 'from-[#9fb3b8] to-[#8ea2a7]' : 'from-[#dcbaba] to-[#c8a8a8]'} rounded-full shadow-2xl animate-bounce`}>
               <span className="text-6xl">{isBoy ? '👦' : '👧'}</span>
             </div>
 
@@ -451,7 +451,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
             </div>
 
             {/* Discount */}
-            <div className={`bg-gradient-to-r ${isBoy ? 'from-blue-500 to-cyan-500' : 'from-pink-500 to-rose-500'} text-white rounded-2xl p-8 shadow-2xl max-w-md mx-auto`}>
+            <div className={`bg-gradient-to-r ${isBoy ? 'from-[#9fb3b8] to-[#8ea2a7]' : 'from-[#dcbaba] to-[#c8a8a8]'} text-white rounded-2xl p-8 shadow-2xl max-w-md mx-auto`}>
               <div className="flex items-center justify-center gap-3 mb-4">
                 <Gift className="h-8 w-8" />
                 <span className="text-3xl font-bold">15% OFF</span>
@@ -468,7 +468,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
             {/* CTA to products */}
             <button
               onClick={handleViewProducts}
-              className={`group px-12 py-6 bg-gradient-to-r ${isBoy ? 'from-blue-600 to-cyan-600' : 'from-pink-600 to-rose-600'} text-white rounded-2xl text-xl font-medium transition-all duration-300 hover:shadow-2xl hover:scale-105`}
+              className={`group px-12 py-6 bg-gradient-to-r ${isBoy ? 'from-[#9fb3b8] to-[#8ea2a7]' : 'from-[#dcbaba] to-[#c8a8a8]'} text-white rounded-2xl text-xl font-medium transition-all duration-300 hover:shadow-2xl hover:scale-105`}
             >
               <div className="flex items-center gap-3">
                 <span>Ver productos para {isBoy ? 'niño' : 'niña'}</span>
@@ -480,13 +480,13 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
             <div className="pt-8">
               <p className="text-stone-600 mb-4">¡Comparte tu resultado!</p>
               <div className="flex items-center justify-center gap-4">
-                <button className="w-12 h-12 bg-white/80 backdrop-blur-sm hover:bg-blue-600 hover:text-white rounded-xl flex items-center justify-center transition-all duration-300 border border-stone-200">
+                <button className="w-12 h-12 bg-white/80 backdrop-blur-sm hover:bg-[#9fb3b8] hover:text-white rounded-xl flex items-center justify-center transition-all duration-300 border border-stone-200">
                   <Users className="h-5 w-5" />
                 </button>
-                <button className="w-12 h-12 bg-white/80 backdrop-blur-sm hover:bg-pink-600 hover:text-white rounded-xl flex items-center justify-center transition-all duration-300 border border-stone-200">
+                <button className="w-12 h-12 bg-white/80 backdrop-blur-sm hover:bg-[#dcbaba] hover:text-white rounded-xl flex items-center justify-center transition-all duration-300 border border-stone-200">
                   <Heart className="h-5 w-5" />
                 </button>
-                <button className="w-12 h-12 bg-white/80 backdrop-blur-sm hover:bg-purple-600 hover:text-white rounded-xl flex items-center justify-center transition-all duration-300 border border-stone-200">
+                <button className="w-12 h-12 bg-white/80 backdrop-blur-sm hover:bg-[#8da399] hover:text-white rounded-xl flex items-center justify-center transition-all duration-300 border border-stone-200">
                   <Star className="h-5 w-5" />
                 </button>
               </div>

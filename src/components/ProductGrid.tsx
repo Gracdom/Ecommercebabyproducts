@@ -49,7 +49,7 @@ export function ProductGrid({
                     </span>
                   )}
                   {isBestseller && (
-                    <span className="bg-amber-400 text-stone-900 px-2 py-1 rounded text-xs flex items-center gap-1">
+                    <span className="bg-[#dccf9d] text-stone-900 px-2 py-1 rounded text-xs flex items-center gap-1">
                       <TrendingUp className="h-3 w-3" />
                       Bestseller
                     </span>
