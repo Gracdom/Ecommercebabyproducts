@@ -2,12 +2,15 @@ import { ShoppingCart, Search, Menu, Heart, User } from 'lucide-react';
 import { SearchAutocomplete } from './SearchAutocomplete';
 import { MegaMenu } from './MegaMenu';
 import { Product } from '../types';
+import { useAuth } from '../hooks/useAuth';
 
 interface HeaderProps {
   cartCount: number;
   wishlistCount?: number;
   onCartClick: () => void;
   onWishlistClick?: () => void;
+  onUserClick?: () => void;
+  onLogoClick?: () => void;
   products?: Product[];
   onProductClick?: (product: Product) => void;
 }
@@ -17,9 +20,12 @@ export function Header({
   wishlistCount = 0,
   onCartClick, 
   onWishlistClick,
+  onUserClick,
+  onLogoClick,
   products = [], 
   onProductClick 
 }: HeaderProps) {
+  const { user } = useAuth();
   return (
     <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md shadow-sm border-b border-border">
       {/* Promo bar */}
@@ -35,12 +41,35 @@ export function Header({
           <div className="flex items-center justify-between h-20">
             {/* Logo */}
             <div className="flex items-center">
-              <button className="lg:hidden mr-4 p-2 text-foreground">
+              <button 
+                onClick={() => {
+                  // Toggle mobile menu or navigate to categories
+                  window.location.hash = '#category';
+                }}
+                className="lg:hidden mr-4 p-2 text-foreground hover:bg-muted rounded-lg transition-colors"
+              >
                 <Menu className="h-6 w-6" />
               </button>
-              <h1 className="text-2xl font-bold text-foreground">
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log('Logo clicked, onLogoClick:', onLogoClick);
+                  if (onLogoClick) {
+                    onLogoClick();
+                  } else {
+                    // Fallback: navigate to home if handler not provided
+                    console.log('No handler, using fallback');
+                    window.location.hash = '';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
+                className="text-2xl font-bold text-foreground hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0 outline-none focus:outline-none"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
                 Baby<span className="text-primary">Only</span>
-              </h1>
+              </button>
             </div>
 
             {/* Search bar - hidden on mobile */}
@@ -61,8 +90,14 @@ export function Header({
 
             {/* Actions */}
             <div className="flex items-center gap-2">
-              <button className="hidden sm:block p-2.5 hover:bg-muted text-foreground rounded-lg transition-colors">
+              <button 
+                onClick={onUserClick}
+                className="hidden sm:block p-2.5 hover:bg-muted text-foreground rounded-lg transition-colors relative"
+              >
                 <User className="h-5 w-5" />
+                {user && (
+                  <span className="absolute top-0 right-0 h-2 w-2 bg-green-500 rounded-full border-2 border-white" />
+                )}
               </button>
               <button 
                 onClick={onWishlistClick}
@@ -94,15 +129,29 @@ export function Header({
       {/* Navigation with Mega Menu */}
       <div className="bg-background border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <MegaMenu />
+          <MegaMenu onCategoryClick={(categoryName, subcategoryName) => {
+            // Navigate to category page
+            if (onProductClick && products.length > 0) {
+              // For now, just navigate to category view
+              // In the future, this could filter products by category
+              window.location.hash = '#category';
+            }
+          }} />
           
           {/* Mobile horizontal scroll fallback */}
           <nav className="flex lg:hidden items-center gap-0 overflow-x-auto scrollbar-hide">
             {['Nuevos', 'Ropa', 'Accesorios', 'Habitación', 'Textil', 'Juguetes', 'Cuidado', 'Paseo', 'Outlet'].map((item) => (
-              <a key={item} href="#" className="flex items-center gap-1 px-4 py-4 text-sm text-foreground hover:text-primary whitespace-nowrap border-b-2 border-transparent hover:border-primary transition-all">
+              <button 
+                key={item} 
+                onClick={() => {
+                  // Navigate to category page
+                  window.location.hash = '#category';
+                }}
+                className="flex items-center gap-1 px-4 py-4 text-sm text-foreground hover:text-primary whitespace-nowrap border-b-2 border-transparent hover:border-primary transition-all"
+              >
                 {item}
                 <span className="text-muted-foreground">›</span>
-              </a>
+              </button>
             ))}
           </nav>
         </div>

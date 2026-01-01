@@ -1,0 +1,1726 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subdiagonal | AI‑First Capabilities 2025</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reveal.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/theme/white.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #06b6d4;
+            --accent-color: #f97316;
+            --dark-color: #0b1220;
+            --light-gray: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --muted: #475569;
+            --muted-2: #64748b;
+            --ring: rgba(37, 99, 235, 0.25);
+        }
+
+        .reveal {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background:
+                radial-gradient(1200px 600px at 15% 10%, rgba(37, 99, 235, 0.08), transparent 60%),
+                radial-gradient(900px 500px at 85% 20%, rgba(6, 182, 212, 0.10), transparent 55%),
+                radial-gradient(900px 700px at 60% 90%, rgba(249, 115, 22, 0.08), transparent 55%),
+                linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+        }
+
+        .reveal .slides section {
+            text-align: left;
+            padding: 2rem;
+        }
+
+        .reveal h1, .reveal h2, .reveal h3 {
+            color: var(--primary-color);
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .reveal h1 {
+            font-size: 3.35em;
+            border-bottom: 4px solid rgba(249, 115, 22, 0.85);
+            padding-bottom: 0.45em;
+        }
+
+        .reveal h2 {
+            font-size: 2.5em;
+            margin-top: 0;
+        }
+
+        .reveal h3 {
+            font-size: 1.8em;
+            color: var(--secondary-color);
+            font-weight: 800;
+        }
+
+        .reveal p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            color: var(--muted);
+        }
+
+        .reveal ul, .reveal ol {
+            font-size: 1.1em;
+            line-height: 1.8;
+        }
+
+        .reveal li {
+            margin-bottom: 0.8em;
+        }
+
+        .hero-slide {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            text-align: center !important;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-slide h1 {
+            color: white;
+            border: none;
+            font-size: 4em;
+            margin-bottom: 0.5em;
+        }
+
+        .hero-slide p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.5em;
+        }
+
+        .section-title {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            text-align: center !important;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .section-title h1 {
+            color: white;
+            border: none;
+            font-size: 4em;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 24px rgba(2, 6, 23, 0.08);
+            transition: transform 0.3s ease;
+            border: 1px solid rgba(15, 23, 42, 0.06);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-number {
+            font-size: 3em;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.2em;
+            color: var(--text-gray);
+        }
+
+        .capabilities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .capability-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 22px rgba(2, 6, 23, 0.06);
+        }
+
+        .capability-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 16px 34px rgba(37, 99, 235, 0.14);
+            transform: translateY(-3px);
+        }
+
+        .capability-card h3 {
+            margin-top: 0;
+            font-size: 1.4em;
+            color: var(--primary-color);
+        }
+
+        .capability-card ul {
+            margin-top: 1rem;
+            padding-left: 1.5rem;
+        }
+
+        .capability-card li {
+            font-size: 0.95em;
+            margin-bottom: 0.5em;
+        }
+
+        .client-logos {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+            align-items: center;
+            margin: 2rem 0;
+        }
+
+        .client-logo {
+            padding: 1rem 2rem;
+            background: rgba(248, 250, 252, 0.95);
+            border-radius: 8px;
+            font-weight: 600;
+            color: var(--muted);
+            border: 1px solid rgba(15, 23, 42, 0.06);
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 3rem;
+            margin: 2rem 0;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--primary-color);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+            padding-left: 2rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -2.5rem;
+            top: 0.5rem;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            border: 3px solid white;
+            box-shadow: 0 0 0 3px var(--primary-color);
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            align-items: start;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.10) 0%, rgba(6, 182, 212, 0.10) 100%);
+            border-left: 4px solid rgba(37, 99, 235, 0.9);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(2, 6, 23, 0.05);
+        }
+
+        .icon-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .icon-list li {
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .icon-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: var(--accent-color);
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: var(--accent-color);
+            color: white;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin: 0.25rem;
+        }
+
+        .kicker {
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.85);
+            opacity: 0.95;
+            font-size: 0.95em;
+            margin: 0 0 0.75rem 0;
+        }
+
+        .lead {
+            font-size: 1.45em !important;
+            line-height: 1.35 !important;
+            color: rgba(255, 255, 255, 0.92) !important;
+            max-width: 26ch;
+        }
+
+        .muted {
+            color: var(--muted-2) !important;
+        }
+
+        .small {
+            font-size: 0.92em !important;
+        }
+
+        .pill-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem;
+            margin: 1.25rem 0 0 0;
+        }
+
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 0.9rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.10);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 650;
+            font-size: 0.95em;
+        }
+
+        .quote-slide {
+            background: linear-gradient(135deg, var(--dark-color) 0%, #0f2a46 55%, #063a47 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .quote-slide h1, .quote-slide h2, .quote-slide h3 {
+            color: white;
+            border: none;
+        }
+
+        .quote {
+            font-size: 2.2em;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            color: rgba(255, 255, 255, 0.95);
+            max-width: 34ch;
+            margin: 0;
+        }
+
+        .quote-author {
+            margin-top: 1.25rem;
+            color: rgba(255, 255, 255, 0.75);
+            font-weight: 650;
+            font-size: 1.1em;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+            margin-top: 1.25rem;
+        }
+
+        .metric-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(15, 23, 42, 0.08);
+            border-radius: 14px;
+            padding: 1.25rem 1.25rem;
+            box-shadow: 0 14px 30px rgba(2, 6, 23, 0.06);
+        }
+
+        .metric-value {
+            font-weight: 850;
+            letter-spacing: -0.02em;
+            color: var(--primary-color);
+            font-size: 2.1em;
+            margin: 0;
+        }
+
+        .metric-label {
+            margin: 0.35rem 0 0 0;
+            color: var(--muted);
+            font-weight: 600;
+            font-size: 1em;
+        }
+
+        @media (max-width: 768px) {
+            .metric-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .process-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .process-step {
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            padding: 1rem;
+            position: relative;
+        }
+
+        .process-step::after {
+            content: '→';
+            position: absolute;
+            right: -1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 2em;
+            color: var(--primary-color);
+        }
+
+        .process-step:last-child::after {
+            display: none;
+        }
+
+        .process-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            margin: 0 auto 1rem;
+        }
+
+        .compact-list {
+            columns: 2;
+            column-gap: 2rem;
+            margin: 1rem 0;
+        }
+
+        .compact-list li {
+            break-inside: avoid;
+            margin-bottom: 0.5rem;
+            font-size: 0.95em;
+        }
+
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+            
+            .process-flow {
+                flex-direction: column;
+            }
+            
+            .process-step::after {
+                content: '↓';
+                right: auto;
+                bottom: -1rem;
+                top: auto;
+                transform: translateX(-50%);
+            }
+            
+            .compact-list {
+                columns: 1;
+            }
+        }
+
+        .reveal .progress {
+            color: var(--primary-color);
+        }
+
+        .reveal .controls {
+            color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="reveal">
+        <div class="slides">
+            <!-- Portada -->
+            <section class="hero-slide">
+                <p class="kicker">Grupo Subdiagonal · Innovación · IA · Transformación digital</p>
+                <h1>Subdiagonal</h1>
+                <p class="lead" style="max-width: 46ch; margin-top: 0.75em;">De un punto a otro, de la forma más eficiente.</p>
+                <p style="font-size: 1.15em; margin-top: 1.5em; opacity: 0.9;">Presentación corporativa · 2025</p>
+                <div class="pill-row" style="justify-content: center; margin-top: 1.5rem;">
+                    <span class="pill">IA aplicada</span>
+                    <span class="pill">Agentes &amp; RAG</span>
+                    <span class="pill">Data &amp; Producto</span>
+                    <span class="pill">Ejecución 0→1→Scale</span>
+                </div>
+            </section>
+
+            <section class="quote-slide">
+                <p class="kicker">Nuestra tesis</p>
+                <p class="quote">La IA no es un proyecto: es un sistema que mejora cada semana.</p>
+                <p class="quote-author">Subdiagonal · AI‑First Delivery</p>
+            </section>
+
+            <section>
+                <h1>Subdiagonal en 30 segundos</h1>
+                <p>Combinamos el rigor de la ingeniería con la mentalidad de producto para convertir tecnología en impacto medible.</p>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <p class="metric-value">40+</p>
+                        <p class="metric-label">startups en nuestro ecosistema</p>
+                    </div>
+                    <div class="metric-card">
+                        <p class="metric-value">2020</p>
+                        <p class="metric-label">nacimos construyendo (y operando)</p>
+                    </div>
+                    <div class="metric-card">
+                        <p class="metric-value">AI‑First</p>
+                        <p class="metric-label">IA integrada en producto, datos y procesos</p>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p style="margin: 0;"><strong>No vendemos humo:</strong> diseñamos sistemas de IA con seguridad, evaluación y gobernanza desde el día 1.</p>
+                </div>
+            </section>
+
+            <!-- Índice -->
+            <section>
+                <h1>Agenda</h1>
+                <div class="two-column">
+                    <div>
+                        <h3>1. ¿Quiénes somos?</h3>
+                        <h3>2. Visión AI‑First</h3>
+                        <h3>3. IA en Subdiagonal</h3>
+                        <h3>4. Capacidades 360°</h3>
+                    </div>
+                    <div>
+                        <h3>5. Marketing y Comunicación</h3>
+                        <h3>6. Data & Tecnología</h3>
+                        <h3>7. Optimización de Procesos</h3>
+                        <h3>8. Innovación & Emprendimiento</h3>
+                        <p class="muted small" style="margin-top: 1.25rem;">Anexos: capacidades completas IT &amp; Marketing</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 1: ¿QUIÉNES SOMOS? -->
+            <section class="section-title">
+                <h1>¿Quiénes somos?</h1>
+            </section>
+
+            <section>
+                <h1>Grupo Subdiagonal</h1>
+                <div class="two-column">
+                    <div>
+                        <p>Nacimos en <strong>2020</strong> como emprendedores y creadores de startups de base tecnológica.</p>
+                        <div class="highlight-box">
+                            <p style="font-size: 1.3em; margin: 0;"><strong>Hoy gestionamos y operamos un ecosistema con más de 40 startups propias.</strong></p>
+                        </div>
+                    </div>
+                    <div>
+                        <p>Apoyamos a organizaciones públicas y privadas con nuestras capacidades de:</p>
+                        <ul class="icon-list">
+                            <li>Emprendimiento</li>
+                            <li>Innovación</li>
+                            <li>Aceleración de Empresas</li>
+                            <li>Marketing Digital</li>
+                            <li>Digitalización de servicios</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>Conócenos</h1>
+                <p>Ofrecemos a nuestros clientes lo que aplicamos en el desarrollo de nuestro propio negocio:</p>
+                <div class="capabilities-grid">
+                    <div class="capability-card">
+                        <h3>Creatividad</h3>
+                        <p>Soluciones innovadoras y únicas</p>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Innovación</h3>
+                        <p>Tecnología de vanguardia</p>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Calidad</h3>
+                        <p>Estándares de excelencia</p>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Agilidad</h3>
+                        <p>Implementación rápida y eficiente</p>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Resultados</h3>
+                        <p>Enfoque en objetivos medibles</p>
+                    </div>
+                </div>
+                <div class="highlight-box" style="margin-top: 2rem;">
+                    <p><strong>Entidades que confían en nosotros:</strong></p>
+                    <div class="client-logos">
+                        <span class="client-logo">Grupo Barceló</span>
+                        <span class="client-logo">Enisa</span>
+                        <span class="client-logo">Gobierno de Canarias</span>
+                        <span class="client-logo">La Finca</span>
+                        <span class="client-logo">Sodexo</span>
+                        <span class="client-logo">Fintonic</span>
+                        <span class="client-logo">Comarca de Sobrarbe</span>
+                        <span class="client-logo">CIC-Consulting</span>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>Nuestro Ecosistema</h1>
+                <p style="text-align: center; font-size: 1.5em; margin-bottom: 2rem;">Empresas que forman el grupo</p>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">40+</div>
+                        <div class="stat-label">Startups propias</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">60%</div>
+                        <div class="stat-label">Ratio de éxito<br>La Finca Ventures Camp</div>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p><strong>La Finca Ventures Camp</strong> es la incubadora de España con el mayor ratio de éxito.</p>
+                </div>
+            </section>
+
+            <section>
+                <h1>¿En qué nos especializamos?</h1>
+                <h2>Capacidades técnicas</h2>
+                <div class="capabilities-grid">
+                    <div class="capability-card">
+                        <h3>📊 Analytics</h3>
+                        <ul>
+                            <li>Business Intelligence (Power BI, Looker Studio)</li>
+                            <li>Ingeniería de Datos (Procesos ETL)</li>
+                            <li>Data Analysis</li>
+                            <li>Machine learning & Deep learning</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>🚀 Innovación</h3>
+                        <ul>
+                            <li>Lanzamiento, aceleración e incubación de Startups</li>
+                            <li>Innovación Corporativa: Venture Corporate Building</li>
+                            <li>Innovación interna (Subdiagonal Lab)</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>🎨 Diseño y Branding</h3>
+                        <ul>
+                            <li>Diseño gráfico y Audiovisual</li>
+                            <li>Diseño Web (UX/UI)</li>
+                            <li>Branding Corporativo</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>🔧 Hardware propio</h3>
+                        <ul>
+                            <li>Baliza conectada DGT ecológica</li>
+                            <li>Detección de vehículos</li>
+                            <li>Agrotech (riego inteligente)</li>
+                            <li>Comunicaciones IoT</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>📱 Marketing Digital</h3>
+                        <ul>
+                            <li>Estrategias de marketing y comunicación</li>
+                            <li>Estrategias de captación (CRO, Publicidad Programática)</li>
+                            <li>Campañas publicitarias INBOUND/Outbound</li>
+                            <li>Optimización SEO</li>
+                            <li>Gestión de Redes Sociales</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>⚙️ Automatización</h3>
+                        <ul>
+                            <li>RPA (UiPath), Power, Automatize, Hubspot</li>
+                            <li>Chatbots</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>Oficinas con cobertura internacional</h1>
+                <p>Desde nuestro nacimiento, Subdiagonal ha experimentado un fuerte crecimiento, apalancado en el progreso de las startups del grupo y de nuestro trabajo con terceros que nos ha permitido ampliar nuestras fronteras para dar servicios 360° a nivel internacional.</p>
+                <div class="highlight-box">
+                    <p style="font-size: 1.3em; text-align: center; margin: 0;">
+                        <strong>Servicios 360° a nivel internacional</strong>
+                    </p>
+                </div>
+            </section>
+
+            <section class="section-title">
+                <h1>Seguimos creciendo</h1>
+                <p style="font-size: 2em; margin-top: 1em;">Grupo Subdiagonal</p>
+                <p style="font-size: 1.5em; margin-top: 1em;">En 2025</p>
+            </section>
+
+            <!-- SECCIÓN 2: VISIÓN AI-FIRST -->
+            <section class="section-title">
+                <h1>Visión AI‑First</h1>
+                <p style="color: rgba(255, 255, 255, 0.92); font-size: 1.45em; margin-top: 1em; max-width: 34ch;">
+                    Convertir IA en capacidad organizativa, no en pilotos aislados.
+                </p>
+            </section>
+
+            <section>
+                <h1>La ola de IA ya está aquí</h1>
+                <p>La diferencia no es “usar IA”, sino <strong>operarla</strong> con seguridad, calidad y adopción.</p>
+                <div class="two-column">
+                    <div>
+                        <h3>Lo que vemos</h3>
+                        <ul class="icon-list">
+                            <li class="fragment">La fricción está en el trabajo diario: buscar, redactar, decidir, validar.</li>
+                            <li class="fragment">Hay datos, pero no siempre están listos para IA (calidad, permisos, trazabilidad).</li>
+                            <li class="fragment">Los pilotos funcionan… hasta que intentas escalar a toda la organización.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Lo que hacemos</h3>
+                        <div class="highlight-box">
+                            <p style="margin: 0;"><strong>Industrializamos IA</strong> para que sea útil hoy y fiable mañana.</p>
+                        </div>
+                        <ul class="icon-list">
+                            <li class="fragment">Arquitectura y producto (no solo prompts).</li>
+                            <li class="fragment">Evaluación y observabilidad (lo que no se mide, se degrada).</li>
+                            <li class="fragment">Gobernanza y cambio (la adopción es parte del sistema).</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>¿Qué significa AI‑First?</h1>
+                <p>Diseñar la organización para que la IA sea <strong>segura</strong>, <strong>útil</strong> y <strong>escalable</strong>.</p>
+                <div class="capabilities-grid">
+                    <div class="capability-card">
+                        <h3>Producto</h3>
+                        <ul>
+                            <li>Experiencia de usuario y flujos reales</li>
+                            <li>Feedback loop y mejora continua</li>
+                            <li>Métricas de valor (no vanity metrics)</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Datos</h3>
+                        <ul>
+                            <li>Calidad, lineage y permisos</li>
+                            <li>Ingesta, normalización y gobernanza</li>
+                            <li>Conocimiento corporativo listo para IA</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Operación</h3>
+                        <ul>
+                            <li>Evaluación (golden sets, métricas)</li>
+                            <li>Observabilidad (coste, latencia, errores)</li>
+                            <li>Seguridad por diseño y controles</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Personas</h3>
+                        <ul>
+                            <li>Adopción, formación y change management</li>
+                            <li>Roles y procesos claros</li>
+                            <li>Políticas y guías de uso responsable</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>Principios de ejecución</h1>
+                <div class="two-column">
+                    <div>
+                        <ul class="icon-list">
+                            <li class="fragment"><strong>Impacto &gt; demo</strong>: empezamos por casos de uso con ROI claro.</li>
+                            <li class="fragment"><strong>Seguridad por defecto</strong>: permisos, auditoría, redacción de PII.</li>
+                            <li class="fragment"><strong>Calidad medible</strong>: evaluación continua y tests semánticos.</li>
+                            <li class="fragment"><strong>Iteración semanal</strong>: la IA es un producto vivo.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="highlight-box">
+                            <p style="margin: 0;"><strong>Regla de oro:</strong> si no podemos explicarlo, medirlo y controlarlo, no lo ponemos en producción.</p>
+                        </div>
+                        <ul class="icon-list">
+                            <li class="fragment"><strong>Human‑in‑the‑loop</strong> donde aporta valor.</li>
+                            <li class="fragment"><strong>Arquitectura &amp; datos</strong> antes de escalar.</li>
+                            <li class="fragment"><strong>Coste bajo control</strong>: eficiencia y caching inteligente.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 3: IA EN SUBDIAGONAL -->
+            <section class="section-title">
+                <h1>IA en Subdiagonal</h1>
+                <p style="color: rgba(255, 255, 255, 0.92); font-size: 1.45em; margin-top: 1em; max-width: 32ch;">
+                    De prototipos a sistemas operados en producción.
+                </p>
+            </section>
+
+            <section>
+                <h1>De pilotos a productos</h1>
+                <p>Un sistema de IA no se “entrega”: se <strong>opera</strong>, se <strong>evalúa</strong> y se <strong>mejora</strong>.</p>
+                <div class="process-flow">
+                    <div class="process-step" style="min-width: 170px;">
+                        <div class="process-number">1</div>
+                        <h4>Descubrimiento</h4>
+                        <p class="small muted">casos + datos + riesgos</p>
+                    </div>
+                    <div class="process-step" style="min-width: 170px;">
+                        <div class="process-number">2</div>
+                        <h4>Prototipo</h4>
+                        <p class="small muted">rápido, útil, medible</p>
+                    </div>
+                    <div class="process-step" style="min-width: 170px;">
+                        <div class="process-number">3</div>
+                        <h4>Piloto</h4>
+                        <p class="small muted">usuarios reales + feedback</p>
+                    </div>
+                    <div class="process-step" style="min-width: 170px;">
+                        <div class="process-number">4</div>
+                        <h4>Industrialización</h4>
+                        <p class="small muted">seguridad + integraciones</p>
+                    </div>
+                    <div class="process-step" style="min-width: 170px;">
+                        <div class="process-number">5</div>
+                        <h4>Mejora continua</h4>
+                        <p class="small muted">evaluación + observabilidad</p>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p style="margin: 0;"><strong>Outcome:</strong> IA fiable, gobernada y preparada para escalar (equipos, áreas y países).</p>
+                </div>
+            </section>
+
+            <section>
+                <h1>Qué construimos con IA</h1>
+                <p>Soluciones que combinan conocimiento, automatización y control.</p>
+                <div class="capabilities-grid">
+                    <div class="capability-card">
+                        <h3>Copilotos de conocimiento</h3>
+                        <ul>
+                            <li>RAG sobre documentación interna</li>
+                            <li>Búsqueda semántica + re-ranking</li>
+                            <li>Respuestas con trazabilidad</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Agentes de procesos</h3>
+                        <ul>
+                            <li>Tool-calling con allowlists</li>
+                            <li>Orquestación y reintentos</li>
+                            <li>Human‑in‑the‑loop cuando conviene</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Plataforma de operación</h3>
+                        <ul>
+                            <li>Observabilidad (coste, latencia, calidad)</li>
+                            <li>Versionado de prompts y evaluaciones</li>
+                            <li>Políticas, permisos y auditoría</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>Arquitecturas que dominamos</h1>
+                <div class="capabilities-grid">
+                    <div class="capability-card">
+                        <h3>RAG industrial</h3>
+                        <ul>
+                            <li>Ingesta (PDF/HTML/Drive/Notion)</li>
+                            <li>Chunking, deduplicación, normalización</li>
+                            <li>Vector DB + filtros + re-ranking</li>
+                            <li>Respuestas con citas/grounding</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Agentes con control</h3>
+                        <ul>
+                            <li>Permisos (RBAC/ABAC)</li>
+                            <li>Herramientas seguras y sandboxing</li>
+                            <li>Workflows (DAGs) y colas de revisión</li>
+                            <li>Protección ante prompt injection</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>IA multimodal</h3>
+                        <ul>
+                            <li>Texto + imagen + documentos</li>
+                            <li>Extracción estructurada y validación</li>
+                            <li>Asistentes con contexto visual</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Edge &amp; IoT</h3>
+                        <ul>
+                            <li>IA en dispositivos y sensores</li>
+                            <li>Procesamiento en el borde cuando aplica</li>
+                            <li>Arquitecturas híbridas (cloud + edge)</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>RAG de calidad (no solo demos)</h1>
+                <div class="two-column">
+                    <div>
+                        <h3>Pipeline</h3>
+                        <ul class="icon-list">
+                            <li class="fragment">Ingesta + permisos + metadatos</li>
+                            <li class="fragment">Chunking por tipo de documento</li>
+                            <li class="fragment">Embeddings + índices + filtros</li>
+                            <li class="fragment">Recuperación + re-ranking</li>
+                            <li class="fragment">Respuesta con citas y validaciones</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Calidad y control</h3>
+                        <ul class="icon-list">
+                            <li class="fragment">Golden sets y métricas (MRR, nDCG, recall@k)</li>
+                            <li class="fragment">Guardrails: PII redaction, políticas, formato</li>
+                            <li class="fragment">Caching semántico para eficiencia</li>
+                            <li class="fragment">Observabilidad y feedback de usuario</li>
+                        </ul>
+                        <div class="highlight-box">
+                            <p style="margin: 0;"><strong>Objetivo:</strong> respuestas útiles, trazables y consistentes.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>Evaluación &amp; Observabilidad</h1>
+                <p>Tratamos la IA como software: tests, métricas y monitorización continua.</p>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <p class="metric-value">Recall@k</p>
+                        <p class="metric-label">calidad de recuperación (golden sets)</p>
+                    </div>
+                    <div class="metric-card">
+                        <p class="metric-value">Coste/req</p>
+                        <p class="metric-label">eficiencia, caching y control de gasto</p>
+                    </div>
+                    <div class="metric-card">
+                        <p class="metric-value">Latencia</p>
+                        <p class="metric-label">UX, escalado y performance</p>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p style="margin: 0;"><strong>Además:</strong> trazas por prompt, tasa de errores, drift, y auditoría para cumplimiento.</p>
+                </div>
+            </section>
+
+            <section>
+                <h1>IA responsable &amp; segura</h1>
+                <div class="capabilities-grid">
+                    <div class="capability-card">
+                        <h3>Privacidad</h3>
+                        <ul>
+                            <li>Redacción de PII y minimización de datos</li>
+                            <li>Retención y políticas de uso</li>
+                            <li>Separación de entornos y accesos</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Seguridad</h3>
+                        <ul>
+                            <li>Threat modeling y hardening</li>
+                            <li>Protección ante prompt injection</li>
+                            <li>Allowlists de herramientas y permisos</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Gobernanza</h3>
+                        <ul>
+                            <li>Políticas y guardrails por caso de uso</li>
+                            <li>Auditoría y trazabilidad</li>
+                            <li>Human‑in‑the‑loop donde aporta valor</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Calidad</h3>
+                        <ul>
+                            <li>Evaluación de factualidad y consistencia</li>
+                            <li>Versionado y tests de prompts</li>
+                            <li>Revisión y mejora continua</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>Casos de uso (ilustrativos)</h1>
+                <p>Ejemplos típicos donde la IA aporta valor cuando se diseña para producción.</p>
+                <div class="two-column">
+                    <div>
+                        <ul class="icon-list">
+                            <li><strong>Atención y soporte</strong>: copilotos, clasificación, respuestas guiadas.</li>
+                            <li><strong>Operaciones</strong>: automatización de tareas y validaciones.</li>
+                            <li><strong>Sector público</strong>: asistentes ciudadanos, gestión documental.</li>
+                            <li><strong>Turismo</strong>: personalización, upselling, previsión de demanda.</li>
+                            <li><strong>Retail/eCommerce</strong>: catálogo, búsqueda, recomendaciones.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <ul class="icon-list">
+                            <li><strong>Legal/Compliance</strong>: lectura y extracción de contratos.</li>
+                            <li><strong>RRHH</strong>: onboarding, FAQs internas, formación.</li>
+                            <li><strong>Finanzas</strong>: conciliación, reporting, detección de anomalías.</li>
+                            <li><strong>IT</strong>: copilotos de desarrollo y operaciones.</li>
+                            <li><strong>Marketing</strong>: creatividad, segmentación, automatización.</li>
+                        </ul>
+                        <div class="highlight-box">
+                            <p style="margin: 0;"><strong>Clave:</strong> siempre con permisos, trazas y métricas.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>Impacto (objetivos típicos)</h1>
+                <p class="muted small">Orientativo: depende del caso, baseline y madurez del proceso.</p>
+                <div class="metric-grid">
+                    <div class="metric-card">
+                        <p class="metric-value">20–40%</p>
+                        <p class="metric-label">reducción de tiempos en tareas repetitivas</p>
+                    </div>
+                    <div class="metric-card">
+                        <p class="metric-value">10–25%</p>
+                        <p class="metric-label">mejora en consistencia y calidad del servicio</p>
+                    </div>
+                    <div class="metric-card">
+                        <p class="metric-value">30–60%</p>
+                        <p class="metric-label">automatización de respuestas en casos aptos</p>
+                    </div>
+                </div>
+                <div class="highlight-box">
+                    <p style="margin: 0;"><strong>Enfoque:</strong> medimos antes/después y operamos la mejora.</p>
+                </div>
+            </section>
+
+            <section>
+                <h1>Subdiagonal AI Lab</h1>
+                <p>Un laboratorio interno para prototipar, evaluar y acelerar innovación aplicada.</p>
+                <div class="capabilities-grid">
+                    <div class="capability-card">
+                        <h3>Playbooks &amp; frameworks</h3>
+                        <ul>
+                            <li>Plantillas de prompts y guardrails</li>
+                            <li>Checklist de seguridad y gobernanza</li>
+                            <li>Patrones de arquitectura (RAG, agentes)</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Evaluación continua</h3>
+                        <ul>
+                            <li>Golden sets por dominio</li>
+                            <li>Tests semánticos y “judge models”</li>
+                            <li>Releases controladas y comparativas</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Innovación aplicada</h3>
+                        <ul>
+                            <li>Spikes y POCs rápidos</li>
+                            <li>Prototipos con usuarios reales</li>
+                            <li>Transferencia de conocimiento a equipos</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 4: CAPACIDADES 360° -->
+            <section class="section-title">
+                <h1>Capacidades 360°</h1>
+                <p style="color: rgba(255, 255, 255, 0.92); font-size: 1.35em; margin-top: 1em;">Estrategia, producto, datos, IA, procesos y comunicación</p>
+            </section>
+
+            <section>
+                <h1>Nuestro objetivo</h1>
+                <h2>Apoyamos a organizaciones a exprimir el potencial de la digitalización</h2>
+                <div class="two-column">
+                    <div>
+                        <p>La digitalización de las organizaciones tanto públicas como privadas no está ofreciendo los resultados esperados en proporción a la inversión realizada en términos de mejora de la eficiencia de los empleados o mejora de los servicios.</p>
+                        <p>A través de soluciones tecnológicas avanzadas y un enfoque estratégico, ayudamos a las administraciones a implementar herramientas digitales que optimicen sus procesos internos y mejoren la interacción con los usuarios.</p>
+                    </div>
+                    <div>
+                        <h3>Principales beneficios</h3>
+                        <ul class="icon-list">
+                            <li>Eficacia operativa y ahorro de costes</li>
+                            <li>Mayor transparencia y confianza ciudadana</li>
+                            <li>Acceso mejorado a servicios públicos</li>
+                            <li>Toma de decisiones basada en datos</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>Líneas de trabajo</h1>
+                <p>Desarrollamos estrategias que maximizan la visibilidad, optimizan los costes y permiten una comunicación directa y personalizada con el usuario de manera accesible e inclusiva.</p>
+                <div class="capabilities-grid">
+                    <div class="capability-card">
+                        <h3>📢 Marketing y Comunicación</h3>
+                        <p>Estrategias de comunicación digital que maximizan la visibilidad, optimizan los costes y permiten una comunicación directa y personalizada.</p>
+                    </div>
+                    <div class="capability-card">
+                        <h3>⚙️ Optimización de Procesos</h3>
+                        <p>Utilizando tecnologías como la gestión electrónica de documentos y la automatización de flujos de trabajo, ayudamos a reducir costes y a ofrecer servicios más ágiles y eficaces.</p>
+                    </div>
+                    <div class="capability-card">
+                        <h3>📊 Data & Tecnología</h3>
+                        <p>Apoyamos a las organizaciones para obtener el máximo valor de los datos. A través de soluciones de Big Data, Inteligencia Artificial y Machine Learning.</p>
+                    </div>
+                    <div class="capability-card">
+                        <h3>🚀 Innovación y emprendimiento</h3>
+                        <p>Ayudamos a las organizaciones a trabajar en nuevas soluciones y proyectos innovadores que beneficien a la comunidad.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>Nuestras capacidades</h1>
+                <h2>Transformación Digital</h2>
+                <p>Disponemos de equipos multidisciplinares y ágiles que dominan el ciclo completo de nuestros servicios: desde la ideación y definición estratégica y creativa, hasta su ejecución operativa.</p>
+                <div class="two-column">
+                    <div>
+                        <h3>Marketing y comunicación</h3>
+                        <ul class="compact-list">
+                            <li>Estrategia de comunicación</li>
+                            <li>Diseño de marca y posicionamiento</li>
+                            <li>Campañas de captación y awareness</li>
+                            <li>Gestión de RRSS</li>
+                            <li>Diseño y creación de contenido</li>
+                            <li>Escucha social</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Optimización de Procesos</h3>
+                        <ul class="compact-list">
+                            <li>Estrategia IT</li>
+                            <li>PMO, SMO, TMO</li>
+                            <li>Desarrollo de servicios, portales y apps</li>
+                            <li>Simplificación, Digitalización y Automatización</li>
+                            <li>Gestión del Cambio</li>
+                            <li>Implementación de IA</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>Data Analytics & Tecnología</h2>
+                <div class="two-column">
+                    <div>
+                        <ul class="compact-list">
+                            <li>Estrategia basada en Datos</li>
+                            <li>Gobierno y Calidad del Dato</li>
+                            <li>Analítica e IA</li>
+                            <li>Chatbots y Asistentes Virtuales</li>
+                            <li>Data Storytelling y BI</li>
+                            <li>Dashboarding & Visualización de datos</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Innovación y Emprendimiento</h3>
+                        <ul class="compact-list">
+                            <li>Desarrollo de ecosistemas de innovación</li>
+                            <li>Incubación de startups</li>
+                            <li>Apoyo a la internacionalización</li>
+                            <li>Atracción de inversión</li>
+                            <li>Innovación & Proyectos de alto impacto</li>
+                            <li>Metodologías ágiles e innovación abierta</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 3: MARKETING Y COMUNICACIÓN -->
+            <section class="section-title">
+                <h1>Marketing y Comunicación</h1>
+                <p style="font-size: 1.5em; margin-top: 1em;">El Marketing y la Comunicación como catalizador de objetivos de empresa e institucionales</p>
+            </section>
+
+            <section>
+                <h1>Análisis y Diagnóstico de Marca</h1>
+                <p>Analizamos las patas que conforman nuestra marca e identidad así como la percepción que los distintos stakeholders tienen de ella.</p>
+                <div class="two-column">
+                    <div>
+                        <ul class="icon-list">
+                            <li>Entendimiento propio y problemas</li>
+                            <li>Detección de oportunidades</li>
+                            <li>Aprender de tu audiencia</li>
+                            <li>Escuchar a la sociedad</li>
+                            <li>Poner la creatividad en el centro</li>
+                            <li>Crear un punto de vista único y relevante</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="process-flow">
+                            <div class="process-step">
+                                <div class="process-number">1</div>
+                                <h4>El Quién</h4>
+                                <p>¿Quién es nuestro usuario?</p>
+                            </div>
+                            <div class="process-step">
+                                <div class="process-number">2</div>
+                                <h4>El Qué</h4>
+                                <p>¿Qué mensaje debo utilizar?</p>
+                            </div>
+                            <div class="process-step">
+                                <div class="process-number">3</div>
+                                <h4>El Dónde</h4>
+                                <p>¿Qué medios tengo disponibles?</p>
+                            </div>
+                            <div class="process-step">
+                                <div class="process-number">4</div>
+                                <h4>El Cómo</h4>
+                                <p>¿Cómo comunicarme mejor?</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>Comunicación efectiva y coherente</h1>
+                <div class="capabilities-grid">
+                    <div class="capability-card">
+                        <h3>Estrategia de Comunicación</h3>
+                        <ul>
+                            <li>Plan de comunicación integral</li>
+                            <li>Arquitectura de mensajes</li>
+                            <li>Segmentación de audiencias</li>
+                            <li>Calendario editorial</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Branding y Posicionamiento</h3>
+                        <ul>
+                            <li>Diseño de identidad visual</li>
+                            <li>Manual de marca</li>
+                            <li>Posicionamiento estratégico</li>
+                            <li>Brand storytelling</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Contenido y Creatividad</h3>
+                        <ul>
+                            <li>Producción de contenido multimedia</li>
+                            <li>Copywriting estratégico</li>
+                            <li>Diseño gráfico y audiovisual</li>
+                            <li>Contenido SEO optimizado</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Digital Marketing</h3>
+                        <ul>
+                            <li>Campañas de captación</li>
+                            <li>Publicidad programática</li>
+                            <li>SEO y SEM</li>
+                            <li>Social Media Management</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 4: DATA & TECNOLOGÍA -->
+            <section class="section-title">
+                <h1>Data & Tecnología</h1>
+            </section>
+
+            <section>
+                <h1>Estrategia basada en Datos</h1>
+                <p>Transformamos datos en decisiones estratégicas que impulsan el crecimiento y la eficiencia de las organizaciones.</p>
+                <div class="two-column">
+                    <div>
+                        <h3>Gobierno y Calidad del Dato</h3>
+                        <ul class="icon-list">
+                            <li>Políticas de gestión de datos</li>
+                            <li>Calidad y limpieza de datos</li>
+                            <li>Seguridad y privacidad</li>
+                            <li>Cumplimiento normativo (GDPR)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Analítica e IA</h3>
+                        <ul class="icon-list">
+                            <li>Business Intelligence avanzado</li>
+                            <li>Machine Learning y Deep Learning</li>
+                            <li>Predicción y forecasting</li>
+                            <li>Análisis predictivo</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>Soluciones Tecnológicas</h1>
+                <div class="capabilities-grid">
+                    <div class="capability-card">
+                        <h3>Data Storytelling y BI</h3>
+                        <ul>
+                            <li>Dashboards interactivos</li>
+                            <li>Visualización de datos</li>
+                            <li>Reportes automatizados</li>
+                            <li>Power BI, Looker Studio</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Chatbots y Asistentes</h3>
+                        <ul>
+                            <li>Asistentes virtuales inteligentes</li>
+                            <li>Chatbots conversacionales</li>
+                            <li>Automatización de atención</li>
+                            <li>Integración con sistemas</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Ingeniería de Datos</h3>
+                        <ul>
+                            <li>Procesos ETL/ELT</li>
+                            <li>Data pipelines</li>
+                            <li>Data Warehouses</li>
+                            <li>Integración de fuentes</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Dashboarding</h3>
+                        <ul>
+                            <li>Visualización en tiempo real</li>
+                            <li>KPIs personalizados</li>
+                            <li>Análisis de tendencias</li>
+                            <li>Reportes ejecutivos</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 5: OPTIMIZACIÓN DE PROCESOS -->
+            <section class="section-title">
+                <h1>Optimización de Procesos</h1>
+            </section>
+
+            <section>
+                <h1>Eficiencia Operativa</h1>
+                <p>Utilizando tecnologías como la gestión electrónica de documentos y la automatización de flujos de trabajo, ayudamos a reducir costes y a ofrecer servicios más ágiles y eficaces, mejorando la experiencia de usuario.</p>
+                <div class="two-column">
+                    <div>
+                        <h3>Estrategia IT</h3>
+                        <ul class="icon-list">
+                            <li>Arquitectura de sistemas</li>
+                            <li>Roadmap tecnológico</li>
+                            <li>Gestión de proyectos (PMO)</li>
+                            <li>Gestión de servicios (SMO)</li>
+                            <li>Gestión de tecnología (TMO)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Desarrollo y Digitalización</h3>
+                        <ul class="icon-list">
+                            <li>Desarrollo de servicios y portales</li>
+                            <li>Aplicaciones móviles</li>
+                            <li>Simplificación de procesos</li>
+                            <li>Digitalización documental</li>
+                            <li>Automatización de workflows</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h1>Automatización e IA</h1>
+                <div class="capabilities-grid">
+                    <div class="capability-card">
+                        <h3>RPA y Automatización</h3>
+                        <ul>
+                            <li>UiPath, Power Automate</li>
+                            <li>Automatización de procesos</li>
+                            <li>Hubspot automation</li>
+                            <li>Workflow optimization</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Gestión del Cambio</h3>
+                        <ul>
+                            <li>Transformación organizacional</li>
+                            <li>Formación y capacitación</li>
+                            <li>Adopción de nuevas tecnologías</li>
+                            <li>Comunicación del cambio</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>Implementación de IA</h3>
+                        <ul>
+                            <li>Estrategias de IA</li>
+                            <li>Integración de modelos</li>
+                            <li>Automatización inteligente</li>
+                            <li>Optimización con IA</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECCIÓN 6: INNOVACIÓN & EMPRENDIMIENTO -->
+            <section class="section-title">
+                <h1>Innovación & Emprendimiento</h1>
+            </section>
+
+            <section>
+                <h1>Ecosistemas de Innovación</h1>
+                <p>Ayudamos a las organizaciones a trabajar en nuevas soluciones y proyectos innovadores que beneficien a la comunidad. Promoviendo la creación de un ecosistema que favorezca el emprendimiento y la innovación.</p>
+                <div class="capabilities-grid">
+                    <div class="capability-card">
+                        <h3>🚀 Incubación de Startups</h3>
+                        <ul>
+                            <li>Programas de incubación</li>
+                            <li>Mentoría especializada</li>
+                            <li>Acceso a recursos</li>
+                            <li>Seguimiento y aceleración</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>🌍 Internacionalización</h3>
+                        <ul>
+                            <li>Estrategias de expansión</li>
+                            <li>Análisis de mercados</li>
+                            <li>Networking internacional</li>
+                            <li>Apoyo en la expansión</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>💰 Atracción de Inversión</h3>
+                        <ul>
+                            <li>Preparación para inversión</li>
+                            <li>Pitch decks y presentaciones</li>
+                            <li>Conexión con inversores</li>
+                            <li>Due diligence support</li>
+                        </ul>
+                    </div>
+                    <div class="capability-card">
+                        <h3>💡 Innovación de Alto Impacto</h3>
+                        <ul>
+                            <li>Proyectos innovadores</li>
+                            <li>Metodologías ágiles</li>
+                            <li>Innovación abierta</li>
+                            <li>Design thinking</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ANEXO: CAPACIDADES DE IT -->
+            <section class="section-title">
+                <h1>Anexo</h1>
+                <h2 style="color: white; margin-top: 1em;">Capacidades de IT</h2>
+            </section>
+
+            <section>
+                <h1>Capacidades Técnicas Completas</h1>
+                <p>Lista exhaustiva de nuestras capacidades técnicas en desarrollo, infraestructura y tecnología.</p>
+                <div class="two-column">
+                    <div>
+                        <h3>Desarrollo (1-25)</h3>
+                        <ul class="compact-list">
+                            <li>1. Arquitectura de software (microservicios, serverless)</li>
+                            <li>2. Backend (Node.js, Python, Go, Java)</li>
+                            <li>3. Frontend (React, Vue, Angular, Next.js)</li>
+                            <li>4. APIs REST y GraphQL</li>
+                            <li>5. Bases de datos (Postgres, MySQL, MongoDB)</li>
+                            <li>6. Caching (Redis, Memcached)</li>
+                            <li>7. Desarrollo móvil (Flutter/React Native)</li>
+                            <li>8. Desarrollo de escritorio (Electron/.NET)</li>
+                            <li>9. Integraciones con terceros</li>
+                            <li>10. Middleware y ESB</li>
+                            <li>11. Desarrollo de producto MVP</li>
+                            <li>12. Discovery técnico</li>
+                            <li>13. Roadmap técnico</li>
+                            <li>14. Gestión de requisitos</li>
+                            <li>15. Diseño UX/UI</li>
+                            <li>16. Design Systems</li>
+                            <li>17. Prototipado (Figma)</li>
+                            <li>18. Accesibilidad (WCAG)</li>
+                            <li>19. Performance web</li>
+                            <li>20. Refactorización legacy</li>
+                            <li>21. Migraciones tecnológicas</li>
+                            <li>22. Migraciones de bases de datos</li>
+                            <li>23. Modelado de datos</li>
+                            <li>24. Optimización de queries</li>
+                            <li>25. Data pipelines (ETL/ELT)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>Infraestructura y Datos (26-50)</h3>
+                        <ul class="compact-list">
+                            <li>26. Integración de datos (CDP, DWH)</li>
+                            <li>27. Data Warehouse (BigQuery, Snowflake)</li>
+                            <li>28. Lakehouse (Delta/Iceberg)</li>
+                            <li>29. BI y reporting</li>
+                            <li>30. Analítica de producto</li>
+                            <li>31. Instrumentación</li>
+                            <li>32. Observabilidad</li>
+                            <li>33. DevOps: CI/CD</li>
+                            <li>34. Infraestructura como código</li>
+                            <li>35. Contenerización (Docker)</li>
+                            <li>36. Orquestación (Kubernetes)</li>
+                            <li>37. Gestión de secretos</li>
+                            <li>38. Cloud architecture</li>
+                            <li>39. Cloud cost optimization</li>
+                            <li>40. Redes y seguridad</li>
+                            <li>41. Gestión de entornos</li>
+                            <li>42. Automatización de despliegues</li>
+                            <li>43. SRE y mejora de fiabilidad</li>
+                            <li>44. Gestión de incidentes</li>
+                            <li>45. Backups y recuperación</li>
+                            <li>46. Alta disponibilidad</li>
+                            <li>47. Balanceo de carga</li>
+                            <li>48. Seguridad de aplicaciones</li>
+                            <li>49. Pentesting coordinado</li>
+                            <li>50. Seguridad de identidades</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>Seguridad y Cumplimiento (51-70)</h2>
+                <div class="two-column">
+                    <div>
+                        <ul class="compact-list">
+                            <li>51. Zero Trust y control de accesos</li>
+                            <li>52. Cumplimiento (GDPR, ISO27001)</li>
+                            <li>53. Arquitectura multi-tenant (SaaS)</li>
+                            <li>54. Facturación y suscripciones</li>
+                            <li>55. Gestión de roles y permisos</li>
+                            <li>56. Automatización de procesos</li>
+                            <li>57. Integración de IA (LLMs, RAG)</li>
+                            <li>58. MLOps básico</li>
+                            <li>59. Chatbots y asistentes</li>
+                            <li>60. QA manual</li>
+                            <li>61. QA automatizado</li>
+                            <li>62. Testing de carga</li>
+                            <li>63. Seguridad en SDLC</li>
+                            <li>64. Revisión de código</li>
+                            <li>65. Documentación técnica</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <ul class="compact-list">
+                            <li>66. Gestión de repos</li>
+                            <li>67. Gestión de releases</li>
+                            <li>68. Gestión de dependencias</li>
+                            <li>69. Soporte evolutivo</li>
+                            <li>70. Mantenimiento correctivo</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>IA y LLMs Avanzados (71-90)</h2>
+                <div class="two-column">
+                    <div>
+                        <ul class="compact-list">
+                            <li>71. Diseño e implementación de RAG</li>
+                            <li>72. Pipelines de ingestión</li>
+                            <li>73. Chunking y normalización</li>
+                            <li>74. Evaluación de calidad</li>
+                            <li>75. Re-ranking y calibración</li>
+                            <li>76. Generación de embeddings</li>
+                            <li>77. Vector DB setup y tuning</li>
+                            <li>78. Caching semántico</li>
+                            <li>79. Guardrails de LLM</li>
+                            <li>80. Observabilidad LLM</li>
+                            <li>81. Gestión industrial de prompts</li>
+                            <li>82. Fine-tuning</li>
+                            <li>83. Distillation y cuantización</li>
+                            <li>84. Serving de modelos</li>
+                            <li>85. Arquitectura de agentes</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <ul class="compact-list">
+                            <li>86. Orquestación de flujos LLM</li>
+                            <li>87. Implementación de herramientas</li>
+                            <li>88. Human-in-the-loop</li>
+                            <li>89. Evaluación LLM</li>
+                            <li>90. Detección de alucinaciones</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ANEXO: CAPACIDADES DE MARKETING -->
+            <section class="section-title">
+                <h1>Anexo</h1>
+                <h2 style="color: white; margin-top: 1em;">Capacidades de Marketing Digital</h2>
+            </section>
+
+            <section>
+                <h1>Capacidades de Marketing Digital</h1>
+                <div class="two-column">
+                    <div>
+                        <h3>Estrategia y Branding (1-15)</h3>
+                        <ul class="compact-list">
+                            <li>1. Estrategia de marca</li>
+                            <li>2. Naming</li>
+                            <li>3. Identidad visual</li>
+                            <li>4. Brand guidelines</li>
+                            <li>5. Arquitectura de mensaje</li>
+                            <li>6. Investigación de mercado</li>
+                            <li>7. Definición de ICP</li>
+                            <li>8. Segmentación</li>
+                            <li>9. Customer journey mapping</li>
+                            <li>10. Estrategia go-to-market</li>
+                            <li>11. Estrategia de lanzamiento</li>
+                            <li>12. Copywriting</li>
+                            <li>13. Storytelling</li>
+                            <li>14. Producción de contenido</li>
+                            <li>15. Contenido SEO</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3>SEO y CRO (16-25)</h3>
+                        <ul class="compact-list">
+                            <li>16. Keyword research</li>
+                            <li>17. SEO on-page</li>
+                            <li>18. SEO técnico</li>
+                            <li>19. SEO off-page</li>
+                            <li>20. Local SEO</li>
+                            <li>21. CRO</li>
+                            <li>22. Auditoría de funnels</li>
+                            <li>23. Landing pages</li>
+                            <li>24. A/B testing</li>
+                            <li>25. Analítica (GA4)</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section>
+                <h2>Paid Media y Growth (26-49)</h2>
+                <div class="two-column">
+                    <div>
+                        <ul class="compact-list">
+                            <li>26. Dashboards</li>
+                            <li>27. Tag management (GTM)</li>
+                            <li>28. Attribution</li>
+                            <li>29. Estrategia de pricing</li>
+                            <li>30. Investigación de pricing</li>
+                            <li>31. Growth strategy</li>
+                            <li>32. Demand generation</li>
+                            <li>33. Lead generation</li>
+                            <li>34. Paid Search (Google Ads)</li>
+                            <li>35. Paid Social (Meta, LinkedIn)</li>
+                            <li>36. Programmatic</li>
+                            <li>37. Media planning</li>
+                            <li>38. Creatividad de performance</li>
+                            <li>39. Producción creativa</li>
+                            <li>40. Gestión de campañas</li>
+                            <li>41. Optimización de campañas</li>
+                            <li>42. Retargeting</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <ul class="compact-list">
+                            <li>43. ABM</li>
+                            <li>44. Estrategia LinkedIn orgánica</li>
+                            <li>45. Community building</li>
+                            <li>46. Social media management</li>
+                            <li>47. Influencer marketing</li>
+                            <li>48. PR y comunicación</li>
+                            <li>49. Brand partnerships</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Slide final -->
+            <section class="hero-slide">
+                <h1>Gracias</h1>
+                <p style="font-size: 2em; margin-top: 1em;">Subdiagonal</p>
+                <p style="font-size: 1.3em; margin-top: 2em;">De un punto a otro de la forma más eficiente</p>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/reveal.js@4.3.1/dist/reveal.js"></script>
+    <script>
+        Reveal.initialize({
+            hash: true,
+            controls: true,
+            progress: true,
+            center: true,
+            touch: true,
+            loop: false,
+            transition: 'slide',
+            transitionSpeed: 'default',
+            backgroundTransition: 'fade',
+            width: 1200,
+            height: 800,
+            margin: 0.1,
+            minScale: 0.2,
+            maxScale: 1.5
+        });
+    </script>
+</body>
+</html>

@@ -40,7 +40,12 @@ const collections: Collection[] = [
   },
 ];
 
-export function CollectionShowcase() {
+interface CollectionShowcaseProps {
+  onCollectionClick?: (collectionId: number) => void;
+  onViewAllClick?: () => void;
+}
+
+export function CollectionShowcase({ onCollectionClick, onViewAllClick }: CollectionShowcaseProps = {}) {
   return (
     <section className="py-20 bg-gradient-to-b from-white to-stone-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -59,7 +64,14 @@ export function CollectionShowcase() {
         </div>
 
         {/* Large Featured Collection */}
-        <div className="mb-8 group relative rounded-3xl overflow-hidden h-[500px] cursor-pointer">
+        <div 
+          onClick={() => {
+            if (onCollectionClick) {
+              onCollectionClick(collections[0].id);
+            }
+          }}
+          className="mb-8 group relative rounded-3xl overflow-hidden h-[500px] cursor-pointer"
+        >
           <img
             src={collections[0].image}
             alt={collections[0].title}
@@ -84,7 +96,15 @@ export function CollectionShowcase() {
               <p className="text-lg sm:text-xl text-white/90 mb-6 max-w-xl">
                 {collections[0].description}
               </p>
-              <button className="inline-flex items-center gap-3 bg-white text-stone-900 px-8 py-4 rounded-xl hover:bg-stone-100 transition-all duration-300 group-hover:shadow-2xl">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onCollectionClick) {
+                    onCollectionClick(collections[0].id);
+                  }
+                }}
+                className="inline-flex items-center gap-3 bg-white text-stone-900 px-8 py-4 rounded-xl hover:bg-stone-100 transition-all duration-300 group-hover:shadow-2xl"
+              >
                 <span className="font-medium">Explorar colección</span>
                 <div className="w-6 h-6 bg-stone-900 text-white rounded-full flex items-center justify-center transition-transform group-hover:translate-x-1">
                   <ArrowRight className="h-4 w-4" />
@@ -104,6 +124,11 @@ export function CollectionShowcase() {
           {collections.slice(1).map((collection) => (
             <div
               key={collection.id}
+              onClick={() => {
+                if (onCollectionClick) {
+                  onCollectionClick(collection.id);
+                }
+              }}
               className="group relative rounded-3xl overflow-hidden h-[400px] cursor-pointer"
             >
               <img
@@ -129,7 +154,15 @@ export function CollectionShowcase() {
                 <p className="text-base text-white/90 mb-4">
                   {collection.description}
                 </p>
-                <button className="inline-flex items-center gap-2 text-white font-medium group-hover:gap-4 transition-all duration-300">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onCollectionClick) {
+                      onCollectionClick(collection.id);
+                    }
+                  }}
+                  className="inline-flex items-center gap-2 text-white font-medium group-hover:gap-4 transition-all duration-300"
+                >
                   <span>Ver más</span>
                   <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                 </button>
@@ -143,7 +176,10 @@ export function CollectionShowcase() {
 
         {/* Bottom CTA */}
         <div className="mt-12 text-center">
-          <button className="group relative px-8 py-4 bg-gradient-to-r from-stone-900 to-stone-800 text-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105">
+          <button 
+            onClick={onViewAllClick}
+            className="group relative px-8 py-4 bg-gradient-to-r from-stone-900 to-stone-800 text-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105"
+          >
             <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <div className="relative flex items-center gap-2">
               <span className="font-medium">Ver todas las colecciones</span>

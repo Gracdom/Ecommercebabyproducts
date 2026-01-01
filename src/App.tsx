@@ -28,122 +28,121 @@ import { InstagramFeed } from './components/InstagramFeed';
 import { CollectionShowcase } from './components/CollectionShowcase';
 import { GenderPredictor } from './components/GenderPredictor';
 import { GenderPredictorBanner } from './components/GenderPredictorBanner';
+import { BigBuyAdmin } from './components/BigBuyAdmin';
 import { useWishlist } from './components/WishlistManager';
+import { useAuth } from './hooks/useAuth';
+import { LoginModal } from './components/LoginModal';
+import { SignUpModal } from './components/SignUpModal';
+import { UserProfile } from './components/UserProfile';
 import { toast } from 'sonner@2.0.3';
 import { Product } from './types';
+import { fetchCatalogProducts } from './utils/bigbuy/catalog';
 
-type View = 'home' | 'category' | 'product' | 'wishlist' | 'checkout' | 'confirmation' | 'gender-predictor';
-
-// Mock products for search and recently viewed
-const allProducts: Product[] = [
-  {
-    id: 1,
-    name: 'Sensory book Animals laurel green/warm linen',
-    price: 19.95,
-    image: 'https://images.unsplash.com/photo-1671469627397-2bfdab72070d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWJ5JTIwdGVldGhpbmclMjB0b3l8ZW58MXx8fHwxNzY2NTU2ODMyfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    badge: 'New',
-    category: 'toys',
-    rating: 4.8,
-    reviews: 156
-  },
-  {
-    id: 2,
-    name: 'Activity cube Animals laurel green/warm linen',
-    price: 19.95,
-    image: 'https://images.unsplash.com/photo-1683276700110-6e7aba8170a3?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWJ5JTIwcmF0dGxlJTIwdG95fGVufDF8fHx8MTc2NjU0OTU0M3ww&ixlib=rb-4.1.0&q=80&w=1080',
-    badge: 'New',
-    category: 'toys',
-    rating: 4.5,
-    reviews: 89
-  },
-  {
-    id: 3,
-    name: 'Activity spiral Animals laurel green/warm linen',
-    price: 24.95,
-    image: 'https://images.unsplash.com/photo-1518036456775-3016c91dd75d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWJ5JTIwY3VkZGxlJTIwY2xvdGh8ZW58MXx8fHwxNzY2NjU4MjgxfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    badge: 'New',
-    category: 'toys',
-    rating: 4.9,
-    reviews: 234
-  },
-  {
-    id: 4,
-    name: 'Cuddle cloth Animals laurel green/warm linen',
-    price: 19.95,
-    image: 'https://images.unsplash.com/photo-1760853382088-c3168c4b9ccc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWJ5JTIwc29mdCUyMHRveXxlbnwxfHx8fDE3NjY2NTgyODN8MA&ixlib=rb-4.1.0&q=80&w=1080',
-    badge: 'New',
-    category: 'toys',
-    rating: 4.7,
-    reviews: 112
-  },
-  {
-    id: 5,
-    name: 'Wooden stacking toy Natural',
-    price: 29.95,
-    image: 'https://images.unsplash.com/photo-1761891953816-c45849393b32?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx3b29kZW4lMjBiYWJ5JTIwdG95fGVufDF8fHx8MTc2NjY1ODI4Mnww&ixlib=rb-4.1.0&q=80&w=1080',
-    category: 'toys',
-    rating: 4.6,
-    reviews: 98
-  },
-  {
-    id: 6,
-    name: 'Music box Elephant Lily white',
-    price: 34.95,
-    image: 'https://images.unsplash.com/photo-1617300040847-369dee9d35f1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWJ5JTIwbXVzaWMlMjBtb2JpbGV8ZW58MXx8fHwxNzY2NjU4MjgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    category: 'toys',
-    rating: 4.8,
-    reviews: 176
-  },
-  {
-    id: 7,
-    name: 'Activity mat Forest friends',
-    price: 89.95,
-    image: 'https://images.unsplash.com/photo-1619490742958-50b38a5846b8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWJ5JTIwYWN0aXZpdHklMjBtYXR8ZW58MXx8fHwxNzY2NjU4MjgyfDA&ixlib=rb-4.1.0&q=80&w=1080',
-    category: 'toys',
-    rating: 4.9,
-    reviews: 245
-  },
-  {
-    id: 8,
-    name: 'Puzzle blocks Pastel',
-    price: 24.95,
-    image: 'https://images.unsplash.com/photo-1707353485825-69671262a2b0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWJ5JTIwcHV6emxlJTIwdG95fGVufDF8fHx8MTc2NjY1ODI4M3ww&ixlib=rb-4.1.0&q=80&w=1080',
-    category: 'toys',
-    rating: 4.7,
-    reviews: 134
-  },
-  {
-    id: 9,
-    name: 'Body de algodón orgánico',
-    price: 15.95,
-    originalPrice: 19.95,
-    image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400',
-    category: 'clothing',
-    rating: 4.8,
-    reviews: 203
-  },
-  {
-    id: 10,
-    name: 'Manta suave de punto',
-    price: 39.95,
-    image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400',
-    category: 'textiles',
-    rating: 4.9,
-    reviews: 189
-  }
-];
+type View = 'home' | 'category' | 'product' | 'wishlist' | 'checkout' | 'confirmation' | 'gender-predictor' | 'admin' | 'login' | 'signup' | 'profile';
 
 export default function App() {
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [cartItems, setCartItems] = useState<Product[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [currentView, setCurrentView] = useState<View>('home');
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [recentlyViewed, setRecentlyViewed] = useState<Product[]>([]);
   const [orderData, setOrderData] = useState<OrderData | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showSignUpModal, setShowSignUpModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false);
   
   // Wishlist integration
   const { wishlist, addToWishlist, removeFromWishlist, isInWishlist, wishlistCount } = useWishlist();
+  
+  // Auth integration
+  const { user, isAdmin, loading: authLoading } = useAuth();
+
+  // Load catalog from Supabase (BigBuy import)
+  useEffect(() => {
+    let cancelled = false;
+    fetchCatalogProducts()
+      .then((products) => {
+        if (!cancelled) {
+          // Products are already sorted by ML score DESC from fetchCatalogProducts
+          // But ensure they're sorted just in case
+          const sorted = [...products].sort((a, b) => (b.mlScore ?? 0) - (a.mlScore ?? 0));
+          setAllProducts(sorted);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error('No se pudo cargar el catálogo', {
+          description: err?.message || 'Revisa la sincronización de BigBuy/Supabase',
+          duration: 5000,
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Hash-based navigation (/#admin, #product/..., #category, etc.)
+  useEffect(() => {
+    const applyHash = () => {
+      const hash = window.location.hash;
+      
+      // Admin route
+      if (hash === '#admin') {
+        if (isAdmin) {
+          setCurrentView('admin');
+        } else {
+          toast.error('Acceso denegado', {
+            description: 'Necesitas permisos de administrador para acceder al panel.',
+          });
+          window.location.hash = '';
+          setShowLoginModal(true);
+        }
+        return;
+      }
+      
+      // Product route (#product/sku or #product/product-id)
+      if (hash.startsWith('#product/')) {
+        const productSlug = hash.replace('#product/', '');
+        // Try to find product by SKU or ID
+        const product = allProducts.find(p => 
+          p.sku === productSlug || 
+          p.id.toString() === productSlug ||
+          `product-${p.id}` === productSlug
+        );
+        if (product) {
+          setSelectedProduct(product);
+          setCurrentView('product');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        return;
+      }
+      
+      // Category route
+      if (hash === '#category') {
+        setCurrentView('category');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      
+      // Home route (empty hash or #home)
+      if (!hash || hash === '#home') {
+        setCurrentView('home');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    };
+    
+    applyHash();
+    window.addEventListener('hashchange', applyHash);
+    window.addEventListener('popstate', applyHash);
+    return () => {
+      window.removeEventListener('hashchange', applyHash);
+      window.removeEventListener('popstate', applyHash);
+    };
+  }, [isAdmin, allProducts]);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -166,22 +165,52 @@ export default function App() {
     }
   }, []);
 
+  const normalizeCartItem = (product: Product): Product => {
+    // If the product already targets a specific variant, keep it.
+    if (product.variantId && product.variantSku) {
+      return {
+        ...product,
+        productId: product.productId ?? product.id,
+        id: product.variantId,
+      };
+    }
+
+    // If the product has variants, pick the first in-stock variant (or the first one).
+    const variants = product.variants ?? [];
+    if (variants.length) {
+      const chosen = variants.find(v => v.stock > 0) ?? variants[0];
+      return {
+        ...product,
+        productId: product.id,
+        id: chosen.id,
+        price: chosen.price ?? product.price,
+        variantId: chosen.id,
+        variantSku: chosen.sku,
+      };
+    }
+
+    return product;
+  };
+
   const addToCart = (product: Product) => {
+    const cartItem = normalizeCartItem(product);
+    const qtyToAdd = cartItem.quantity || 1;
+
     setCartItems(prev => {
-      const existing = prev.find(item => item.id === product.id);
+      const existing = prev.find(item => item.id === cartItem.id);
       if (existing) {
         return prev.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: (item.quantity || 1) + 1 }
+          item.id === cartItem.id
+            ? { ...item, quantity: (item.quantity || 1) + qtyToAdd }
             : item
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...cartItem, quantity: qtyToAdd }];
     });
     
     // Show toast notification
-    toast.success(`${product.name} añadido al carrito`, {
-      description: `Cantidad: ${(product.quantity || 1)} - Total: €${product.price.toFixed(2)}`,
+    toast.success(`${cartItem.name} añadido al carrito`, {
+      description: `Cantidad: ${qtyToAdd} - Total: €${(cartItem.price * qtyToAdd).toFixed(2)}`,
       duration: 3000,
     });
     
@@ -212,7 +241,13 @@ export default function App() {
 
   const handleProductClick = (product: Product) => {
     addToRecentlyViewed(product);
+    setSelectedProduct(product);
     setCurrentView('product');
+    // Update URL without page reload
+    const productSlug = product.sku || `product-${product.id}`;
+    window.history.pushState({ view: 'product', productId: product.id }, '', `#product/${productSlug}`);
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const addToRecentlyViewed = (product: Product) => {
@@ -236,25 +271,90 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-neutral-50">
-      <Header 
-        cartCount={cartCount} 
-        wishlistCount={wishlistCount}
-        onCartClick={() => setIsCartOpen(true)}
-        onWishlistClick={() => setCurrentView('wishlist')}
-        products={allProducts}
-        onProductClick={handleProductClick}
-      />
+          <Header
+            cartCount={cartCount}
+            wishlistCount={wishlistCount}
+            onCartClick={() => setIsCartOpen(true)}
+            onWishlistClick={() => setCurrentView('wishlist')}
+            onUserClick={() => {
+              if (user) {
+                setShowProfileModal(true);
+              } else {
+                setShowLoginModal(true);
+              }
+            }}
+            onLogoClick={() => {
+              // Navigate to home and update URL
+              window.history.pushState({ view: 'home' }, '', window.location.pathname);
+              setCurrentView('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            products={allProducts}
+            onProductClick={handleProductClick}
+          />
       
       {currentView === 'home' ? (
         <>
-          <Hero />
+          <Hero 
+            onGenderPredictorClick={() => setCurrentView('gender-predictor')}
+            onExploreClick={() => {
+              window.history.pushState({ view: 'category' }, '', '#category');
+              setCurrentView('category');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onOffersClick={() => {
+              window.history.pushState({ view: 'category' }, '', '#category');
+              setCurrentView('category');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
           <GenderPredictorBanner onClick={() => setCurrentView('gender-predictor')} />
           <TrustBadges />
-          <FeaturedProducts />
-          <CollectionShowcase />
+          <FeaturedProducts 
+            onProductClick={handleProductClick}
+            onAddToCart={addToCart}
+            onToggleWishlist={addToWishlist}
+            isInWishlist={isInWishlist}
+            onViewAllClick={() => {
+              window.history.pushState({ view: 'category' }, '', '#category');
+              setCurrentView('category');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+          <CollectionShowcase 
+            onCollectionClick={(collectionId) => {
+              window.history.pushState({ view: 'category' }, '', '#category');
+              setCurrentView('category');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              // Could filter by collection in the future
+            }}
+            onViewAllClick={() => {
+              window.history.pushState({ view: 'category' }, '', '#category');
+              setCurrentView('category');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
           <Testimonials />
-          <CategoryDirectory onCategoryClick={() => setCurrentView('category')} />
-          <QuickShop />
+          <CategoryDirectory 
+            onCategoryClick={(categoryName) => {
+              window.history.pushState({ view: 'category' }, '', '#category');
+              setCurrentView('category');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+              // Could filter by category in the future
+            }} 
+          />
+          <QuickShop 
+            products={allProducts}
+            onProductClick={handleProductClick}
+            onAddToCart={addToCart}
+            onToggleWishlist={addToWishlist}
+            isInWishlist={isInWishlist}
+            onViewAllClick={() => {
+              window.history.pushState({ view: 'category' }, '', '#category');
+              setCurrentView('category');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
           <InstagramFeed />
           <RecommendedProducts 
             recentlyViewed={recentlyViewed}
@@ -269,9 +369,14 @@ export default function App() {
       ) : currentView === 'category' ? (
         <>
           <CategoryPage 
+            products={allProducts}
             onAddToCart={addToCart}
-            onBack={() => setCurrentView('home')}
-            onProductClick={() => setCurrentView('product')}
+            onBack={() => {
+              window.history.pushState({ view: 'home' }, '', window.location.pathname);
+              setCurrentView('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onProductClick={handleProductClick}
             onQuickView={handleQuickView}
             onToggleWishlist={addToWishlist}
             isInWishlist={isInWishlist}
@@ -293,8 +398,14 @@ export default function App() {
       ) : currentView === 'product' ? (
         <>
           <ProductPage 
+            product={selectedProduct}
+            allProducts={allProducts}
             onAddToCart={addToCart}
-            onBack={() => setCurrentView('category')}
+            onBack={() => {
+              window.history.pushState({ view: 'category' }, '', '#category');
+              setCurrentView('category');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             onToggleWishlist={addToWishlist}
             isInWishlist={isInWishlist}
           />
@@ -305,8 +416,10 @@ export default function App() {
         <CheckoutPage
           items={cartItems}
           onBack={() => {
+            window.history.pushState({ view: 'home' }, '', window.location.pathname);
             setCurrentView('home');
             setIsCartOpen(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           onComplete={(data) => {
             setOrderData(data);
@@ -326,7 +439,9 @@ export default function App() {
         <GenderPredictor
           onComplete={(gender) => {
             // Redirect to category page filtered by gender
+            window.history.pushState({ view: 'category' }, '', '#category');
             setCurrentView('category');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
             toast.success(`¡Descubre productos perfectos para tu ${gender === 'boy' ? 'niño' : 'niña'}!`, {
               description: 'Usa el código BABYBOY15 o BABYGIRL15 para tu descuento',
               duration: 5000,
@@ -334,7 +449,63 @@ export default function App() {
           }}
           onBack={() => setCurrentView('home')}
         />
+      ) : currentView === 'admin' ? (
+        isAdmin ? (
+          <BigBuyAdmin
+            onBack={() => {
+              window.history.pushState({ view: 'home' }, '', window.location.pathname);
+              setCurrentView('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        ) : (
+          <div className="min-h-screen flex items-center justify-center">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-stone-900 mb-4">Acceso denegado</h2>
+              <p className="text-stone-600 mb-6">Necesitas permisos de administrador para acceder al panel.</p>
+              <button
+                onClick={() => {
+                  window.history.pushState({ view: 'home' }, '', window.location.pathname);
+                  setCurrentView('home');
+                  setShowLoginModal(true);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                className="px-6 py-3 bg-stone-900 text-white rounded-lg hover:bg-stone-800"
+              >
+                Iniciar sesión
+              </button>
+            </div>
+          </div>
+        )
       ) : null}
+
+      {/* Auth Modals */}
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
+        onSwitchToSignUp={() => {
+          setShowLoginModal(false);
+          setShowSignUpModal(true);
+        }}
+      />
+      <SignUpModal
+        isOpen={showSignUpModal}
+        onClose={() => setShowSignUpModal(false)}
+        onSwitchToLogin={() => {
+          setShowSignUpModal(false);
+          setShowLoginModal(true);
+        }}
+      />
+      <UserProfile
+        isOpen={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        onAdminClick={() => {
+          if (isAdmin) {
+            setCurrentView('admin');
+            window.location.hash = '#admin';
+          }
+        }}
+      />
       
       <Cart
         isOpen={isCartOpen}
@@ -369,8 +540,16 @@ export default function App() {
       <MobileBottomNav
         cartCount={cartCount}
         currentView={currentView}
-        onHomeClick={() => setCurrentView('home')}
-        onCategoriesClick={() => setCurrentView('category')}
+        onHomeClick={() => {
+          window.history.pushState({ view: 'home' }, '', window.location.pathname);
+          setCurrentView('home');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onCategoriesClick={() => {
+          window.history.pushState({ view: 'category' }, '', '#category');
+          setCurrentView('category');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
         onCartClick={() => setIsCartOpen(true)}
       />
 

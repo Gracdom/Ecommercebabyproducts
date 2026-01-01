@@ -9,7 +9,9 @@ interface OrderConfirmationProps {
 
 export function OrderConfirmation({ orderData, onBackToHome }: OrderConfirmationProps) {
   const estimatedDeliveryDate = new Date();
-  estimatedDeliveryDate.setDate(estimatedDeliveryDate.getDate() + 4);
+  const delayStr = orderData.shippingOption?.delay ?? '';
+  const delayDays = delayStr ? parseInt((delayStr.match(/\d+/)?.[0] ?? '4'), 10) : 4;
+  estimatedDeliveryDate.setDate(estimatedDeliveryDate.getDate() + (Number.isFinite(delayDays) ? delayDays : 4));
 
   return (
     <div className="min-h-screen bg-stone-50">
@@ -35,6 +37,16 @@ export function OrderConfirmation({ orderData, onBackToHome }: OrderConfirmation
                 <h3 className="text-sm text-stone-600">Número de pedido</h3>
               </div>
               <p className="text-lg text-stone-900">{orderData.orderId}</p>
+              {orderData.bigbuyOrderIds && orderData.bigbuyOrderIds.length > 0 && (
+                <div className="mt-3 text-sm text-stone-600">
+                  <div className="font-medium text-stone-900">Pedidos BigBuy</div>
+                  <div className="mt-1 space-y-1">
+                    {orderData.bigbuyOrderIds.map((id) => (
+                      <div key={id}>#{id}</div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <div className="flex items-center gap-2 mb-3">
@@ -48,6 +60,12 @@ export function OrderConfirmation({ orderData, onBackToHome }: OrderConfirmation
                   month: 'long' 
                 })}
               </p>
+              {orderData.shippingOption?.serviceName && (
+                <p className="text-sm text-stone-600 mt-1">
+                  Envío: {orderData.shippingOption.serviceName}
+                  {orderData.shippingOption.cost !== undefined ? ` (€${Number(orderData.shippingOption.cost).toFixed(2)})` : ''}
+                </p>
+              )}
             </div>
           </div>
 

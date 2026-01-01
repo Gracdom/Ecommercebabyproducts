@@ -3,9 +3,11 @@ import { ArrowRight, Sparkles, Star, TrendingUp, Baby } from 'lucide-react';
 
 interface HeroProps {
   onGenderPredictorClick?: () => void;
+  onExploreClick?: () => void;
+  onOffersClick?: () => void;
 }
 
-export function Hero({ onGenderPredictorClick }: HeroProps = {}) {
+export function Hero({ onGenderPredictorClick, onExploreClick, onOffersClick }: HeroProps = {}) {
   const [scrollY, setScrollY] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
 
@@ -119,7 +121,10 @@ export function Hero({ onGenderPredictorClick }: HeroProps = {}) {
 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <button className="group relative px-8 py-4 bg-foreground text-background rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/20">
+              <button 
+                onClick={onExploreClick}
+                className="group relative px-8 py-4 bg-foreground text-background rounded-xl overflow-hidden transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-primary/20"
+              >
                 <div className="absolute inset-0 bg-gradient-to-r from-secondary to-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 <div className="relative flex items-center justify-center gap-2 group-hover:text-foreground">
                   <span className="font-medium">Explorar Colección</span>
@@ -127,7 +132,10 @@ export function Hero({ onGenderPredictorClick }: HeroProps = {}) {
                 </div>
               </button>
               
-              <button className="px-8 py-4 border-2 border-foreground text-foreground rounded-xl hover:bg-foreground hover:text-background transition-all duration-300 hover:scale-105">
+              <button 
+                onClick={onOffersClick}
+                className="px-8 py-4 border-2 border-foreground text-foreground rounded-xl hover:bg-foreground hover:text-background transition-all duration-300 hover:scale-105"
+              >
                 Ver Ofertas
               </button>
             </div>

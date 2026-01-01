@@ -1,71 +1,57 @@
 import { useState } from 'react';
 import { Heart, ShoppingCart, Star, Zap, TrendingUp, Clock, Flame } from 'lucide-react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { Product } from '@/types';
+import { ProductBadge } from './ProductBadge';
 
-const products = [
-  {
-    id: 1,
-    name: 'Set regalo premium recién nacido',
-    price: 89.95,
-    originalPrice: 129.95,
-    image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=500&q=80',
-    badge: 'Oferta Flash',
-    rating: 4.9,
-    reviews: 342,
-    tag: 'hot',
-    timeLeft: '2h 34m',
-  },
-  {
-    id: 2,
-    name: 'Manta muselina orgánica XL',
-    price: 49.95,
-    image: 'https://images.unsplash.com/photo-1519689373023-dd07c7988603?w=500&q=80',
-    badge: 'Más vendido',
-    rating: 4.8,
-    reviews: 256,
-    tag: 'trending',
-  },
-  {
-    id: 3,
-    name: 'Juguete sensorial Montessori',
-    price: 34.95,
-    originalPrice: 44.95,
-    image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=500&q=80',
-    badge: 'Nuevo',
-    rating: 4.9,
-    reviews: 189,
-    tag: 'new',
-  },
-  {
-    id: 4,
-    name: 'Body set algodón (5 pack)',
-    price: 59.95,
-    image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=500&q=80',
-    badge: 'Recomendado',
-    rating: 4.7,
-    reviews: 423,
-  },
-];
+interface QuickShopProps {
+  products?: Product[];
+  onProductClick?: (product: Product) => void;
+  onAddToCart?: (product: Product) => void;
+  onToggleWishlist?: (product: Product) => void;
+  isInWishlist?: (productId: number) => boolean;
+  onViewAllClick?: () => void;
+}
 
-export function QuickShop() {
+export function QuickShop({ 
+  products: propProducts, 
+  onProductClick,
+  onAddToCart,
+  onToggleWishlist,
+  isInWishlist,
+  onViewAllClick
+}: QuickShopProps = {}) {
   const [hoveredId, setHoveredId] = useState<number | null>(null);
+  
+  // Use provided products or empty array (will be populated from App.tsx)
+  const products = propProducts || [];
+  
+  // Get top 4 products by ML score
+  const displayProducts = products
+    .filter(p => p.mlScore !== undefined && p.mlScore > 0)
+    .sort((a, b) => (b.mlScore ?? 0) - (a.mlScore ?? 0))
+    .slice(0, 4);
 
-  const getBadgeIcon = (tag?: string) => {
-    switch (tag) {
-      case 'hot': return <Flame className="h-3 w-3" />;
-      case 'new': return <Zap className="h-3 w-3" />;
-      case 'trending': return <TrendingUp className="h-3 w-3" />;
-      default: return <Star className="h-3 w-3" />;
-    }
+  const getBadgeIcon = (mlScore?: number) => {
+    if (!mlScore) return <Star className="h-3 w-3" />;
+    if (mlScore >= 70) return <Flame className="h-3 w-3" />;
+    if (mlScore >= 50) return <Zap className="h-3 w-3" />;
+    return <TrendingUp className="h-3 w-3" />;
   };
 
-  const getBadgeColor = (tag?: string) => {
-    switch (tag) {
-      case 'hot': return 'from-destructive to-accent';
-      case 'new': return 'from-primary to-[#7a8f85]';
-      case 'trending': return 'from-secondary to-[#d6ccc2]';
-      default: return 'from-stone-500 to-stone-600';
-    }
+  const getBadgeColor = (mlScore?: number) => {
+    if (!mlScore) return 'from-stone-500 to-stone-600';
+    if (mlScore >= 70) return 'from-destructive to-accent';
+    if (mlScore >= 50) return 'from-primary to-[#7a8f85]';
+    return 'from-secondary to-[#d6ccc2]';
+  };
+
+  const getBadgeText = (mlScore?: number, hasOriginalPrice?: boolean) => {
+    if (hasOriginalPrice) return 'Oferta Flash';
+    if (!mlScore) return 'Recomendado';
+    if (mlScore >= 70) return 'Destacado';
+    if (mlScore >= 50) return 'Popular';
+    return 'Recomendado';
   };
 
   return (
@@ -92,67 +78,95 @@ export function QuickShop() {
         </div>
 
         {/* Products Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {products.map((product) => (
-            <div
-              key={product.id}
-              className="group relative"
-              onMouseEnter={() => setHoveredId(product.id)}
-              onMouseLeave={() => setHoveredId(null)}
-            >
-              {/* Product Card */}
-              <div className="relative bg-white rounded-2xl overflow-hidden border-2 border-stone-200 hover:border-stone-300 transition-all duration-500 hover:shadow-2xl hover:-translate-y-1">
-                {/* Image */}
-                <div className="relative aspect-square bg-stone-50 overflow-hidden">
-                  <ImageWithFallback
-                    src={product.image}
-                    alt={product.name}
-                    className={`w-full h-full object-cover transition-all duration-700 ${
-                      hoveredId === product.id ? 'scale-110 rotate-2' : 'scale-100 rotate-0'
-                    }`}
-                  />
+        {displayProducts.length === 0 ? (
+          <div className="text-center py-12 text-stone-600">
+            No hay productos disponibles en este momento
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {displayProducts.map((product) => {
+              const badgeText = getBadgeText(product.mlScore, !!product.originalPrice);
+              return (
+                <div
+                  key={product.id}
+                  className="group relative"
+                  onMouseEnter={() => setHoveredId(product.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  onClick={() => {
+                    if (onProductClick) {
+                      onProductClick(product);
+                    }
+                  }}
+                >
+                  {/* Product Card */}
+                  <div className="relative bg-white rounded-2xl overflow-hidden border-2 border-stone-200 hover:border-stone-300 transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
+                    {/* Image */}
+                    <div className="relative aspect-square bg-stone-50 overflow-hidden">
+                      <ImageWithFallback
+                        src={product.image}
+                        alt={product.name}
+                        className={`w-full h-full object-cover transition-all duration-700 ${
+                          hoveredId === product.id ? 'scale-110 rotate-2' : 'scale-100 rotate-0'
+                        }`}
+                      />
 
-                  {/* Gradient overlay on hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-t from-black/30 to-transparent transition-opacity duration-300 ${
-                    hoveredId === product.id ? 'opacity-100' : 'opacity-0'
-                  }`} />
+                      {/* Gradient overlay on hover */}
+                      <div className={`absolute inset-0 bg-gradient-to-t from-black/30 to-transparent transition-opacity duration-300 ${
+                        hoveredId === product.id ? 'opacity-100' : 'opacity-0'
+                      }`} />
 
-                  {/* Badge */}
-                  <div className={`absolute top-4 left-4 px-3 py-1.5 bg-gradient-to-r ${getBadgeColor(product.tag)} text-white text-xs font-medium rounded-full flex items-center gap-1 shadow-lg`}>
-                    {getBadgeIcon(product.tag)}
-                    <span>{product.badge}</span>
-                  </div>
+                      {/* Badge */}
+                      <div className="absolute top-4 left-4">
+                        <ProductBadge mlScore={product.mlScore} />
+                      </div>
+                      {product.originalPrice && badgeText === 'Oferta Flash' && (
+                        <div className={`absolute top-4 left-20 px-3 py-1.5 bg-gradient-to-r ${getBadgeColor(product.mlScore)} text-white text-xs font-medium rounded-full flex items-center gap-1 shadow-lg`}>
+                          <span>{badgeText}</span>
+                        </div>
+                      )}
 
-                  {/* Discount */}
-                  {product.originalPrice && (
-                    <div className="absolute top-4 right-4 w-14 h-14 bg-gradient-to-br from-destructive to-accent text-white rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                      <div className="text-center leading-tight">
-                        <div className="text-sm font-bold">-{Math.round((1 - product.price / product.originalPrice) * 100)}%</div>
+                      {/* Discount */}
+                      {product.originalPrice && (
+                        <div className="absolute top-4 right-4 w-14 h-14 bg-gradient-to-br from-destructive to-accent text-white rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                          <div className="text-center leading-tight">
+                            <div className="text-sm font-bold">-{Math.round((1 - product.price / product.originalPrice) * 100)}%</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Quick Actions */}
+                      <div className={`absolute inset-x-4 bottom-4 flex gap-2 transition-all duration-300 ${
+                        hoveredId === product.id ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+                      }`}>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onAddToCart) {
+                              onAddToCart(product);
+                            }
+                          }}
+                          className="flex-1 bg-white/95 backdrop-blur-sm hover:bg-stone-900 text-stone-900 hover:text-white px-4 py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg group/btn"
+                        >
+                          <ShoppingCart className="h-4 w-4 transition-transform group-hover/btn:scale-110" />
+                          <span className="text-sm font-medium">Añadir</span>
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onToggleWishlist) {
+                              onToggleWishlist(product);
+                            }
+                          }}
+                          className={`bg-white/95 backdrop-blur-sm hover:bg-accent text-stone-900 hover:text-white p-2.5 rounded-xl transition-all duration-300 shadow-lg group/heart ${
+                            isInWishlist && isInWishlist(product.id) ? 'bg-red-50 hover:bg-red-100' : ''
+                          }`}
+                        >
+                          <Heart className={`h-4 w-4 transition-transform group-hover/heart:scale-110 ${
+                            isInWishlist && isInWishlist(product.id) ? 'fill-red-500 text-red-500' : ''
+                          }`} />
+                        </button>
                       </div>
                     </div>
-                  )}
-
-                  {/* Timer for flash sale */}
-                  {product.timeLeft && (
-                    <div className="absolute bottom-4 left-4 right-4 bg-black/80 backdrop-blur-sm text-white px-3 py-2 rounded-lg flex items-center justify-center gap-2">
-                      <Clock className="h-4 w-4 text-accent" />
-                      <span className="text-xs font-medium">Termina en {product.timeLeft}</span>
-                    </div>
-                  )}
-
-                  {/* Quick Actions */}
-                  <div className={`absolute inset-x-4 ${product.timeLeft ? 'bottom-16' : 'bottom-4'} flex gap-2 transition-all duration-300 ${
-                    hoveredId === product.id ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-                  }`}>
-                    <button className="flex-1 bg-white/95 backdrop-blur-sm hover:bg-stone-900 text-stone-900 hover:text-white px-4 py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg group/btn">
-                      <ShoppingCart className="h-4 w-4 transition-transform group-hover/btn:scale-110" />
-                      <span className="text-sm font-medium">Añadir</span>
-                    </button>
-                    <button className="bg-white/95 backdrop-blur-sm hover:bg-accent text-stone-900 hover:text-white p-2.5 rounded-xl transition-all duration-300 shadow-lg group/heart">
-                      <Heart className="h-4 w-4 transition-transform group-hover/heart:scale-110" />
-                    </button>
-                  </div>
-                </div>
 
                 {/* Product Info */}
                 <div className="p-5 space-y-3">
@@ -204,17 +218,22 @@ export function QuickShop() {
                   </div>
                 </div>
 
-                {/* Glow effect on hover */}
-                <div className={`absolute -inset-0.5 bg-gradient-to-r ${getBadgeColor(product.tag)} rounded-2xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-500 -z-10`} />
-              </div>
-            </div>
-          ))}
-        </div>
+                    {/* Glow effect on hover */}
+                    <div className={`absolute -inset-0.5 bg-gradient-to-r ${getBadgeColor(product.mlScore)} rounded-2xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-500 -z-10`} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Bottom CTA */}
         <div className="text-center mt-12">
           <p className="text-stone-600 mb-4">¿No encuentras lo que buscas?</p>
-          <button className="px-8 py-4 border-2 border-stone-900 text-stone-900 rounded-xl hover:bg-stone-900 hover:text-white transition-all duration-300 hover:scale-105 hover:shadow-xl">
+          <button 
+            onClick={onViewAllClick}
+            className="px-8 py-4 border-2 border-stone-900 text-stone-900 rounded-xl hover:bg-stone-900 hover:text-white transition-all duration-300 hover:scale-105 hover:shadow-xl"
+          >
             Explorar todos los productos
           </button>
         </div>

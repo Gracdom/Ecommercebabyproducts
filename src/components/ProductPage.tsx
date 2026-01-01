@@ -1,73 +1,155 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Heart, ShoppingCart, Star, Truck, Shield, RefreshCw, Share2, ChevronRight, Check, Info, Package, Award, ChevronLeft } from 'lucide-react';
 import { Product } from '../types';
+import { useProductAnalytics } from '../hooks/useProductAnalytics';
 
 interface ProductPageProps {
+  product: Product | null;
+  allProducts?: Product[];
   onAddToCart: (product: Product) => void;
   onBack: () => void;
   onToggleWishlist: (product: Product) => void;
   isInWishlist: (productId: number) => boolean;
 }
 
-const product = {
-  id: 1,
-  name: 'Libro sensorial Animals laurel green',
-  price: 19.95,
-  originalPrice: 24.95,
-  rating: 4.9,
-  reviews: 342,
-  description: 'Libro sensorial de alta calidad hecho con algodón 100% orgánico certificado GOTS. Perfecto para estimular los sentidos de tu bebé y promover el desarrollo cognitivo temprano.',
-  features: [
-    'Algodón 100% orgánico certificado GOTS',
-    'Libre de químicos y tóxicos',
-    'Diferentes texturas y sonidos',
-    'Lavable a máquina 30°C',
-    'Diseño ergonómico y seguro',
-    'Colores seguros para bebés',
-  ],
-  images: [
-    'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=800&q=80',
-    'https://images.unsplash.com/photo-1519689373023-dd07c7988603?w=800&q=80',
-    'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&q=80',
-    'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=800&q=80',
-  ],
-  stock: 12,
-  sku: 'BOK-LG-001',
-  category: 'Juguetes sensoriales',
-};
-
-const relatedProducts = [
-  {
-    id: 2,
-    name: 'Cubo de actividades premium',
-    price: 29.95,
-    image: 'https://images.unsplash.com/photo-1519689373023-dd07c7988603?w=400&q=80',
-    rating: 4.8,
-  },
-  {
-    id: 3,
-    name: 'Espiral de actividades',
-    price: 24.95,
-    image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400&q=80',
-    rating: 4.9,
-  },
-  {
-    id: 4,
-    name: 'Manta de apego suave',
-    price: 19.95,
-    image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400&q=80',
-    rating: 4.7,
-  },
-];
-
-export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlist }: ProductPageProps) {
+export function ProductPage({ product, allProducts = [], onAddToCart, onBack, onToggleWishlist, isInWishlist }: ProductPageProps) {
+  const { trackView, trackTimeOnPage, trackClick, trackCartAdd } = useProductAnalytics();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedTab, setSelectedTab] = useState<'description' | 'features' | 'reviews'>('description');
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(null);
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, string>>({});
+
+  const images = useMemo(() => {
+    if (!product) return [];
+    const list = (product.images && product.images.length ? product.images : [product.image]).filter(Boolean);
+    return list;
+  }, [product]);
+
+  const variants = product?.variants ?? [];
+  const optionGroups = useMemo(() => {
+    const groups = new Map<string, Set<string>>();
+    for (const v of variants) {
+      for (const a of v.attributes ?? []) {
+        if (!groups.has(a.group_name)) groups.set(a.group_name, new Set());
+        groups.get(a.group_name)!.add(a.attribute_name);
+      }
+    }
+    return Array.from(groups.entries()).map(([group, values]) => ({
+      group,
+      values: Array.from(values).sort(),
+    }));
+  }, [variants]);
+
+  const selectedVariant = useMemo(() => {
+    if (!variants.length) return null;
+    return variants.find(v => v.id === selectedVariantId) ?? null;
+  }, [variants, selectedVariantId]);
+
+  // Track product view
+  useEffect(() => {
+    if (product?.id) {
+      trackView(product.id);
+    }
+    return () => {
+      // Track time on page when component unmounts
+      if (product?.id) {
+        trackTimeOnPage(product.id);
+      }
+    };
+  }, [product?.id, trackView, trackTimeOnPage]);
+
+  useEffect(() => {
+    setSelectedImage(0);
+    setQuantity(1);
+    setSelectedTab('description');
+
+    if (!variants.length) {
+      setSelectedVariantId(null);
+      setSelectedOptions({});
+      return;
+    }
+    const defaultVariant = variants.find(v => v.stock > 0) ?? variants[0];
+    setSelectedVariantId(defaultVariant?.id ?? null);
+    const next: Record<string, string> = {};
+    for (const a of defaultVariant?.attributes ?? []) {
+      next[a.group_name] = a.attribute_name;
+    }
+    setSelectedOptions(next);
+  }, [product?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const displayedPrice = selectedVariant?.price ?? product?.price ?? 0;
+  const displayedSku = selectedVariant?.sku ?? product?.sku;
+  const displayedStock = selectedVariant?.stock ?? (product?.inStock ? 1 : 0);
+  const displayedRating = product.rating ?? 5;
+  const displayedReviews = product.reviews ?? 0;
+
+  const relatedProducts = useMemo(() => {
+    if (!product) return [];
+    return allProducts
+      .filter(p => p.category === product.category && p.id !== product.id)
+      .slice(0, 3);
+  }, [allProducts, product]);
+
+  const isValueAvailable = (group: string, value: string) => {
+    if (!variants.length) return true;
+    const next = { ...selectedOptions, [group]: value };
+    const matches = variants.filter(v =>
+      optionGroups.every(({ group }) => {
+        const wanted = next[group];
+        if (!wanted) return true;
+        const got = v.attributes?.find(a => a.group_name === group)?.attribute_name;
+        return got === wanted;
+      })
+    );
+    return matches.some(v => v.stock > 0);
+  };
+
+  const setOption = (group: string, value: string) => {
+    const next = { ...selectedOptions, [group]: value };
+    setSelectedOptions(next);
+    if (!variants.length) return;
+    const matches = variants.filter(v =>
+      optionGroups.every(({ group }) => {
+        const wanted = next[group];
+        if (!wanted) return true;
+        const got = v.attributes?.find(a => a.group_name === group)?.attribute_name;
+        return got === wanted;
+      })
+    );
+    const best = matches.find(v => v.stock > 0) ?? matches[0];
+    if (best) setSelectedVariantId(best.id);
+  };
 
   const handleAddToCart = () => {
-    onAddToCart({ ...product, quantity });
+    if (!product) return;
+    trackCartAdd(product.id);
+    onAddToCart({
+      ...product,
+      quantity,
+      price: displayedPrice,
+      variantId: selectedVariant?.id,
+      variantSku: selectedVariant?.sku,
+    });
   };
+
+  if (!product) {
+    return (
+      <div className="min-h-screen bg-white">
+        <div className="border-b border-stone-200 sticky top-0 bg-white/95 backdrop-blur-md z-30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <button onClick={onBack} className="text-stone-600 hover:text-stone-900 transition-colors flex items-center gap-1">
+              <ChevronLeft className="h-4 w-4" />
+              Volver
+            </button>
+          </div>
+        </div>
+        <div className="max-w-3xl mx-auto px-4 py-16 text-center text-stone-600">
+          Selecciona un producto para ver el detalle.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -94,7 +176,7 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
             {/* Main Image */}
             <div className="relative aspect-square bg-stone-50 rounded-3xl overflow-hidden group">
               <img
-                src={product.images[selectedImage]}
+                src={images[selectedImage] || product.image}
                 alt={product.name}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
@@ -129,7 +211,7 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
 
             {/* Thumbnails */}
             <div className="grid grid-cols-4 gap-3">
-              {product.images.map((image, index) => (
+              {images.map((image, index) => (
                 <button
                   key={index}
                   onClick={() => setSelectedImage(index)}
@@ -150,7 +232,7 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
             {/* Category & SKU */}
             <div className="flex items-center justify-between">
               <span className="text-sm text-stone-600 uppercase tracking-wider">{product.category}</span>
-              <span className="text-sm text-stone-500">SKU: {product.sku}</span>
+              {displayedSku && <span className="text-sm text-stone-500">SKU: {displayedSku}</span>}
             </div>
 
             {/* Title */}
@@ -165,21 +247,21 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
                   <Star
                     key={i}
                     className={`h-5 w-5 ${
-                      i < Math.floor(product.rating)
+                      i < Math.floor(displayedRating)
                         ? 'fill-[#dccf9d] text-[#dccf9d]'
                         : 'text-stone-300'
                     }`}
                   />
                 ))}
               </div>
-              <span className="text-stone-900 font-medium">{product.rating}</span>
-              <span className="text-stone-600">({product.reviews} reseñas)</span>
+              <span className="text-stone-900 font-medium">{displayedRating.toFixed(1)}</span>
+              <span className="text-stone-600">({displayedReviews} reseñas)</span>
             </div>
 
             {/* Price */}
             <div className="flex items-baseline gap-4 py-4 border-y border-stone-200">
               <span className="text-5xl text-stone-900 font-medium">
-                €{product.price.toFixed(2)}
+                €{displayedPrice.toFixed(2)}
               </span>
               {product.originalPrice && (
                 <>
@@ -195,11 +277,11 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
 
             {/* Stock */}
             <div className="flex items-center gap-2">
-              {product.stock > 0 ? (
+              {displayedStock > 0 ? (
                 <>
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                   <span className="text-sm text-green-700 font-medium">
-                    En stock - {product.stock} unidades disponibles
+                    En stock
                   </span>
                 </>
               ) : (
@@ -212,8 +294,42 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
 
             {/* Description */}
             <p className="text-lg text-stone-700 leading-relaxed">
-              {product.description}
+              {product.description || 'Descripción no disponible.'}
             </p>
+
+            {/* Variant selector */}
+            {optionGroups.length > 0 && (
+              <div className="space-y-4">
+                {optionGroups.map(({ group, values }) => (
+                  <div key={group} className="space-y-2">
+                    <label className="text-sm font-medium text-stone-900">{group}</label>
+                    <div className="flex flex-wrap gap-2">
+                      {values.map((value) => {
+                        const selected = selectedOptions[group] === value;
+                        const available = isValueAvailable(group, value);
+                        return (
+                          <button
+                            key={value}
+                            type="button"
+                            onClick={() => setOption(group, value)}
+                            disabled={!available}
+                            className={`px-3 py-2 rounded-lg border text-sm transition-all ${
+                              selected
+                                ? 'border-stone-900 bg-stone-900 text-white'
+                                : available
+                                  ? 'border-stone-200 bg-white text-stone-900 hover:border-stone-400'
+                                  : 'border-stone-200 bg-stone-50 text-stone-400 cursor-not-allowed'
+                            }`}
+                          >
+                            {value}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
 
             {/* Quantity Selector */}
             <div className="space-y-2">
@@ -227,7 +343,7 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
                 </button>
                 <span className="w-12 text-center text-lg font-medium">{quantity}</span>
                 <button
-                  onClick={() => setQuantity(Math.min(product.stock, quantity + 1))}
+                  onClick={() => setQuantity(Math.min(Math.max(1, displayedStock), quantity + 1))}
                   className="w-10 h-10 rounded-lg bg-white hover:bg-stone-900 hover:text-white transition-all duration-300 flex items-center justify-center"
                 >
                   +
@@ -239,10 +355,11 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
             <div className="space-y-3 pt-4">
               <button
                 onClick={handleAddToCart}
+                disabled={displayedStock <= 0}
                 className="w-full bg-stone-900 hover:bg-primary text-white py-5 rounded-xl transition-all duration-300 hover:shadow-2xl hover:scale-[1.02] flex items-center justify-center gap-3 group"
               >
                 <ShoppingCart className="h-5 w-5 transition-transform group-hover:scale-110" />
-                <span className="text-lg font-medium">Añadir al carrito - €{(product.price * quantity).toFixed(2)}</span>
+                <span className="text-lg font-medium">Añadir al carrito - €{(displayedPrice * quantity).toFixed(2)}</span>
               </button>
               
               <button className="w-full border-2 border-stone-900 text-stone-900 py-4 rounded-xl hover:bg-stone-900 hover:text-white transition-all duration-300">
@@ -322,20 +439,25 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
             {selectedTab === 'description' && (
               <div className="prose prose-lg max-w-none">
                 <p className="text-stone-700 leading-relaxed text-lg">
-                  {product.description}
+                  {product.description || 'Descripción no disponible.'}
                 </p>
                 <p className="text-stone-700 leading-relaxed">
-                  Este libro sensorial está diseñado para estimular todos los sentidos de tu bebé. Con diferentes texturas, sonidos y colores, ayuda en el desarrollo cognitivo y motor desde los primeros meses.
+                  Este producto se sincroniza desde BigBuy y puede incluir variaciones (talla, color, etc.). Selecciona la combinación que quieras antes de añadir al carrito.
                 </p>
                 <p className="text-stone-700 leading-relaxed">
-                  Fabricado con los más altos estándares de calidad y seguridad, utilizando únicamente materiales orgánicos certificados. Perfecto para bebés desde el nacimiento.
+                  Si algún atributo aparece como no disponible, significa que esa combinación no tiene stock.
                 </p>
               </div>
             )}
 
             {selectedTab === 'features' && (
               <div className="grid sm:grid-cols-2 gap-4">
-                {product.features.map((feature, index) => (
+                {[
+                  displayedSku ? `SKU: ${displayedSku}` : null,
+                  `Precio: €${displayedPrice.toFixed(2)}`,
+                  displayedStock > 0 ? 'Stock disponible' : 'Sin stock',
+                  ...Object.entries(selectedOptions).map(([k, v]) => `${k}: ${v}`),
+                ].filter(Boolean).map((feature, index) => (
                   <div key={index} className="flex items-start gap-3 p-4 bg-stone-50 rounded-xl">
                     <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
                       <Check className="h-4 w-4 text-white" />
@@ -351,13 +473,13 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
                 {/* Review Summary */}
                 <div className="flex items-center gap-12 p-8 bg-stone-50 rounded-2xl">
                   <div className="text-center">
-                    <div className="text-6xl font-bold text-stone-900 mb-2">{product.rating}</div>
+                  <div className="text-6xl font-bold text-stone-900 mb-2">{displayedRating.toFixed(1)}</div>
                     <div className="flex items-center gap-1 justify-center mb-2">
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} className="h-5 w-5 fill-[#dccf9d] text-[#dccf9d]" />
                       ))}
                     </div>
-                    <div className="text-sm text-stone-600">{product.reviews} reseñas</div>
+                    <div className="text-sm text-stone-600">{displayedReviews} reseñas</div>
                   </div>
                   
                   <div className="flex-1 space-y-2">
@@ -437,7 +559,7 @@ export function ProductPage({ onAddToCart, onBack, onToggleWishlist, isInWishlis
                     {[...Array(5)].map((_, i) => (
                       <Star key={i} className="h-3 w-3 fill-[#dccf9d] text-[#dccf9d]" />
                     ))}
-                    <span className="text-xs text-stone-600 ml-1">{item.rating}</span>
+                    <span className="text-xs text-stone-600 ml-1">{item.rating ?? 5}</span>
                   </div>
                   <div className="text-2xl text-stone-900 font-medium">€{item.price.toFixed(2)}</div>
                 </div>

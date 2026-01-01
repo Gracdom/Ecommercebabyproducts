@@ -1,11 +1,13 @@
 import { Heart, TrendingUp, Flame, Eye } from 'lucide-react';
 import { Product } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
+import { useProductAnalytics } from '../hooks/useProductAnalytics';
+import { ProductBadge } from './ProductBadge';
 
 interface ProductGridProps {
   products: Product[];
   onAddToCart: (product: Product) => void;
-  onProductClick?: () => void;
+  onProductClick?: (product: Product) => void;
   onQuickView?: (product: Product) => void;
   onToggleWishlist?: (product: Product) => void;
   isInWishlist?: (productId: number) => boolean;
@@ -22,6 +24,15 @@ export function ProductGrid({
   onToggleWishlist,
   isInWishlist 
 }: ProductGridProps) {
+  const { trackClick } = useProductAnalytics();
+
+  const handleProductClick = (product: Product) => {
+    trackClick(product.id);
+    if (onProductClick) {
+      onProductClick(product);
+    }
+  };
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
       {products.map((product) => {
@@ -31,7 +42,7 @@ export function ProductGrid({
         return (
           <div key={product.id} className="group">
             <div 
-              onClick={onProductClick}
+              onClick={() => handleProductClick(product)}
               className="w-full text-left cursor-pointer"
             >
               <div className="relative aspect-square mb-3 bg-stone-50 rounded-lg overflow-hidden">
@@ -43,6 +54,7 @@ export function ProductGrid({
                 
                 {/* Badges */}
                 <div className="absolute top-3 left-3 flex flex-col gap-2">
+                  <ProductBadge mlScore={product.mlScore} />
                   {product.badge && (
                     <span className="bg-white px-2 py-1 rounded text-xs text-stone-700">
                       {product.badge}

@@ -116,6 +116,197 @@ app.get("/make-server-335110ef/bigbuy/taxonomies", requireSyncSecret(), async (c
   return c.json({ taxonomies });
 });
 
+// Sync BigBuy taxonomies into DB and backfill product taxonomy ids (category_id) for existing products.
+// This fixes "Sin categoría" in the admin panel by ensuring:
+// - `bigbuy_taxonomies` is populated (for name mapping)
+// - `bigbuy_products.category_id` stores BigBuy `taxonomy` (not `category`)
+app.post("/make-server-335110ef/bigbuy/fix/categories", requireSyncSecret(), async (c) => {
+  const startedAt = Date.now();
+  try {
+    const supabase = getServiceSupabase();
+
+    const { data: config, error: cfgErr } = await supabase
+      .from("bigbuy_import_config")
+      .select("*")
+      .eq("id", 1)
+      .maybeSingle();
+    if (cfgErr) return c.json({ error: cfgErr.message }, 500);
+
+    const taxonomyIds: number[] = Array.isArray(config?.taxonomy_ids)
+      ? config.taxonomy_ids.map((t: any) => Number(t)).filter((n: number) => Number.isFinite(n))
+      : [];
+    if (!taxonomyIds.length) {
+      return c.json({ error: "No taxonomyIds configured. Set config first." }, 400);
+    }
+
+    // 1) Sync taxonomies (store ALL taxonomies so we can map both `category` and `taxonomy` ids)
+    let taxonomiesFetched = 0;
+    let taxonomiesUpserted = 0;
+    let taxonomiesUpsertErrors = 0;
+    let taxonomiesFirstUpsertError: string | null = null;
+    try {
+      const taxonomies = await bigbuyGetTaxonomies({ isoCode: "es" });
+      if (Array.isArray(taxonomies) && taxonomies.length > 0) {
+        taxonomiesFetched = taxonomies.length;
+
+        const nowIso = new Date().toISOString();
+        const upserts: any[] = [];
+        for (const tax of taxonomies) {
+          const id = Number(tax?.id);
+          if (!Number.isFinite(id)) continue;
+          const name = String(tax?.name || "").trim();
+          if (!name) continue;
+          const parentNum = Number(tax?.parentTaxonomy);
+          const parentId = Number.isFinite(parentNum) && parentNum !== 0 ? parentNum : null;
+          const urlRaw = tax?.url;
+          const url = typeof urlRaw === "string" && urlRaw.trim() ? urlRaw.trim() : null;
+          upserts.push({
+            id,
+            name,
+            parent_taxonomy_id: parentId,
+            iso_code: "es",
+            url,
+            updated_at: nowIso,
+          });
+        }
+
+        for (const batch of chunk(upserts, 500)) {
+          const { error: taxError } = await supabase
+            .from("bigbuy_taxonomies")
+            .upsert(batch, { onConflict: "id" });
+          if (taxError) {
+            console.error("Error upserting taxonomies:", taxError);
+            taxonomiesUpsertErrors += 1;
+            if (!taxonomiesFirstUpsertError) taxonomiesFirstUpsertError = taxError.message;
+          } else {
+            taxonomiesUpserted += batch.length;
+          }
+        }
+      } else {
+        console.warn("No taxonomies received from BigBuy API");
+      }
+    } catch (e) {
+      console.error("Error syncing taxonomies:", e);
+    }
+
+    // 2) Backfill bigbuy_products.category_id using BigBuy `taxonomy` field (only update existing products)
+    //
+    // IMPORTANT: Supabase/PostgREST applies a max-rows cap (often 1000). We must paginate here,
+    // otherwise we'll miss many existing product IDs and the backfill will no-op.
+    // NOTE: We cannot `upsert({ id, category_id })` because `bigbuy_products` has NOT NULL columns
+    // (sku, active, sale_price, currency, created_at, updated_at). Postgres validates NOT NULL on INSERT
+    // before conflict resolution. So we fetch the required columns and include them in the upsert payload.
+    const existingById = new Map<number, any>();
+    let existingProductsFetched = 0;
+    const existingPageSize = 1000;
+    let existingOffset = 0;
+    while (true) {
+      const { data: existingPage, error: existingErr } = await supabase
+        .from("bigbuy_products")
+        .select("id, sku, active, sale_price, currency, created_at, category_id")
+        .is("deleted_at", null)
+        .range(existingOffset, existingOffset + existingPageSize - 1);
+      if (existingErr) return c.json({ error: existingErr.message }, 500);
+      if (!existingPage || existingPage.length === 0) break;
+
+      for (const row of existingPage) {
+        const id = Number((row as any)?.id);
+        if (!Number.isFinite(id)) continue;
+        const sku = String((row as any)?.sku || "").trim();
+        if (!sku) continue;
+        existingById.set(id, {
+          id,
+          sku,
+          active: Boolean((row as any)?.active),
+          sale_price: (row as any)?.sale_price,
+          currency: String((row as any)?.currency || "EUR"),
+          created_at: (row as any)?.created_at,
+          category_id: Number.isFinite(Number((row as any)?.category_id))
+            ? Number((row as any)?.category_id)
+            : null,
+        });
+      }
+
+      existingProductsFetched += existingPage.length;
+      if (existingPage.length < existingPageSize) break;
+      existingOffset += existingPageSize;
+    }
+
+    let productsFetched = 0;
+    let productsUpdated = 0;
+    let productsUpdateErrors = 0;
+    let productsFirstUpdateError: string | null = null;
+    const pageSize = 100;
+    for (const parentTaxonomy of taxonomyIds) {
+      let page = 0;
+      while (true) {
+        const products = await bigbuyGetProducts({ parentTaxonomy, page, pageSize });
+        if (!Array.isArray(products) || products.length === 0) break;
+        productsFetched += products.length;
+
+        const nowIso = new Date().toISOString();
+        const updates = products
+          .map((p: any) => {
+            const id = Number(p?.id);
+            if (!Number.isFinite(id)) return null;
+            const existing = existingById.get(id);
+            if (!existing) return null;
+            const tax = Number(p?.taxonomy);
+            const taxonomyId = Number.isFinite(tax)
+              ? tax
+              : (Number.isFinite(Number(parentTaxonomy)) ? Number(parentTaxonomy) : null);
+            if (!taxonomyId) return null;
+            if (Number(existing?.category_id) === Number(taxonomyId)) return null; // already correct
+            return {
+              id,
+              sku: existing.sku,
+              active: existing.active,
+              sale_price: existing.sale_price,
+              currency: existing.currency,
+              created_at: existing.created_at,
+              category_id: taxonomyId,
+              updated_at: nowIso,
+            };
+          })
+          .filter(Boolean);
+
+        if (updates.length > 0) {
+          const { error: upErr } = await supabase
+            .from("bigbuy_products")
+            .upsert(updates as any[], { onConflict: "id" });
+          if (upErr) {
+            console.error("Error backfilling product taxonomies:", upErr);
+            productsUpdateErrors += 1;
+            if (!productsFirstUpdateError) productsFirstUpdateError = upErr.message;
+          } else {
+            productsUpdated += updates.length;
+          }
+        }
+
+        if (products.length < pageSize) break;
+        page += 1;
+      }
+    }
+
+    return c.json({
+      ok: true,
+      taxonomiesFetched,
+      taxonomiesUpserted,
+      taxonomiesUpsertErrors,
+      taxonomiesFirstUpsertError,
+      existingProductsFetched,
+      productsFetched,
+      productsUpdated,
+      productsUpdateErrors,
+      productsFirstUpdateError,
+      ms: Date.now() - startedAt,
+    });
+  } catch (e: any) {
+    console.error(e);
+    return c.json({ error: e?.message || "Internal error" }, 500);
+  }
+});
+
 // Debug helper (protected): test BigBuy catalog endpoints without running full sync
 app.get("/make-server-335110ef/bigbuy/debug/products", requireSyncSecret(), async (c) => {
   try {
@@ -684,7 +875,8 @@ app.post("/make-server-335110ef/bigbuy/sync", requireSyncSecret(), async (c) => 
         sku,
         source_parent_taxonomy_id: taxonomyId,
         manufacturer_id: p?.manufacturer ?? null,
-        category_id: p?.category ?? null,
+        // BigBuy provides both `category` and `taxonomy`. `taxonomy` is the category tree id we map to `bigbuy_taxonomies`.
+        category_id: Number.isFinite(Number(p?.taxonomy)) ? Number(p.taxonomy) : null,
         active: (p?.active ?? 1) === 1,
         condition: p?.condition ?? null,
         logistic_class: p?.logisticClass ?? null,
@@ -990,51 +1182,6 @@ app.post("/make-server-335110ef/bigbuy/sync/full", requireSyncSecret(), async (c
       throw new Error("No taxonomyIds configured. Set config first.");
     }
 
-    // Sync taxonomies (categories) from BigBuy API to database
-    try {
-      console.log("Syncing taxonomies from BigBuy API...");
-      const taxonomies = await bigbuyGetTaxonomies({ isoCode: "es" });
-      if (Array.isArray(taxonomies) && taxonomies.length > 0) {
-        const taxonomyUpserts = taxonomies
-          .map((tax: any) => {
-            const id = Number(tax?.id);
-            if (!Number.isFinite(id)) return null;
-            const name = String(tax?.name || "").trim();
-            if (!name) return null;
-            const parentId = Number.isFinite(Number(tax?.parentTaxonomy)) && Number(tax.parentTaxonomy) !== 0
-              ? Number(tax.parentTaxonomy)
-              : null;
-            return {
-              id,
-              name,
-              parent_taxonomy_id: parentId,
-              iso_code: "es",
-              url: tax?.url || null,
-              updated_at: new Date().toISOString(),
-            };
-          })
-          .filter(Boolean);
-
-        if (taxonomyUpserts.length > 0) {
-          // Upsert taxonomies in batches
-          for (const batch of chunk(taxonomyUpserts, 500)) {
-            const { error: taxError } = await supabase
-              .from("bigbuy_taxonomies")
-              .upsert(batch, { onConflict: "id" });
-            if (taxError) {
-              console.error("Error upserting taxonomies:", taxError);
-            }
-          }
-          console.log(`Synced ${taxonomyUpserts.length} taxonomies to database`);
-        }
-      } else {
-        console.warn("No taxonomies received from BigBuy API");
-      }
-    } catch (taxError) {
-      console.error("Error syncing taxonomies:", taxError);
-      // Don't fail the sync if taxonomy sync fails
-    }
-
     // Attribute dictionaries (ES) for variant selector
     let attributeGroups: any[] = [];
     let attributes: any[] = [];
@@ -1295,7 +1442,8 @@ app.post("/make-server-335110ef/bigbuy/sync/full", requireSyncSecret(), async (c
           sku,
           source_parent_taxonomy_id: taxonomyId,
           manufacturer_id: p?.manufacturer ?? null,
-          category_id: p?.category ?? null,
+          // BigBuy provides both `category` and `taxonomy`. `taxonomy` is the category tree id we map to `bigbuy_taxonomies`.
+          category_id: Number.isFinite(Number(p?.taxonomy)) ? Number(p.taxonomy) : null,
           active: (p?.active ?? 1) === 1,
           condition: p?.condition ?? null,
           logistic_class: p?.logisticClass ?? null,
@@ -1976,28 +2124,28 @@ app.get("/make-server-335110ef/bigbuy/admin/products", requireSyncSecret(), asyn
     const categoryId = c.req.query("categoryId");
     const sortBy = c.req.query("sortBy") || "ml_score"; // Default to ML score
     const sortOrder = c.req.query("sortOrder") === "asc" ? "asc" : "desc";
-    
-    // Get taxonomies from database to map category IDs to names
+
+    // Load taxonomies from DB to map category IDs -> names (and parent names)
     let taxonomiesMap = new Map<number, { name: string; parentId?: number }>();
     try {
       const { data: taxonomies, error: taxError } = await supabase
         .from("bigbuy_taxonomies")
         .select("id, name, parent_taxonomy_id")
         .eq("iso_code", "es");
-      
+
       if (taxError) {
         console.error("Error fetching taxonomies from database:", taxError);
       } else if (Array.isArray(taxonomies)) {
         for (const tax of taxonomies) {
-          const id = Number(tax?.id);
-          if (Number.isFinite(id) && tax?.name) {
-            taxonomiesMap.set(id, {
-              name: String(tax.name).trim(),
-              parentId: Number.isFinite(Number(tax?.parent_taxonomy_id)) ? Number(tax.parent_taxonomy_id) : undefined,
-            });
-          }
+          const id = Number((tax as any)?.id);
+          const name = String((tax as any)?.name ?? "").trim();
+          if (!Number.isFinite(id) || !name) continue;
+          const parentIdRaw = Number((tax as any)?.parent_taxonomy_id);
+          taxonomiesMap.set(id, {
+            name,
+            parentId: Number.isFinite(parentIdRaw) ? parentIdRaw : undefined,
+          });
         }
-        console.log(`Loaded ${taxonomiesMap.size} taxonomies from database`);
       }
     } catch (e) {
       console.error("Error loading taxonomies from database:", e);
@@ -2012,7 +2160,7 @@ app.get("/make-server-335110ef/bigbuy/admin/products", requireSyncSecret(), asyn
         `
         *,
         translations:bigbuy_product_translations!product_id(iso_code, name),
-        variants:bigbuy_variants!product_id(id, sku, stock, sale_price),
+        variants:bigbuy_variants!product_id(id, sku, stock),
         images:bigbuy_product_images(url, position),
         analytics:product_analytics_summary!product_id(
           total_views,
@@ -2126,18 +2274,13 @@ app.get("/make-server-335110ef/bigbuy/admin/products", requireSyncSecret(), asyn
         imageUrls = imagesByProductId.get(p.id) || [];
       }
 
-      // Get category info from map
+      // Category mapping (taxonomy names)
       const categoryInfo = p.category_id && taxonomiesMap.has(p.category_id)
         ? taxonomiesMap.get(p.category_id)!
         : null;
       const parentCategoryInfo = categoryInfo?.parentId && taxonomiesMap.has(categoryInfo.parentId)
         ? taxonomiesMap.get(categoryInfo.parentId)!
         : null;
-      
-      // Debug logging for products without category mapping
-      if (p.category_id && !categoryInfo) {
-        console.log(`Product ${p.sku} has category_id ${p.category_id} but not found in taxonomies map`);
-      }
 
       return {
         id: p.id,
@@ -2295,16 +2438,30 @@ app.get("/make-server-335110ef/bigbuy/admin/products", requireSyncSecret(), asyn
       });
     }
 
-    // Get unique categories for filter
-    const categories = Array.from(new Map(
-      products
-        .filter(p => p.categoryId && p.categoryName)
-        .map(p => [p.categoryId, { id: p.categoryId, name: p.categoryName, parentId: p.parentCategoryId, parentName: p.parentCategoryName }])
-    ).values());
-
     // Apply pagination
     const total = products.length;
     const paginatedProducts = products.slice(offset, offset + pageSize);
+
+    // Categories list for UI dropdown (based on current dataset)
+    const categories = Array.from(
+      new Map(
+        products
+          .filter((p: any) => p.categoryId && p.categoryName)
+          .map((p: any) => [
+            p.categoryId,
+            {
+              id: p.categoryId,
+              name: p.categoryName,
+              parentId: p.parentCategoryId || undefined,
+              parentName: p.parentCategoryName || undefined,
+            },
+          ]),
+      ).values(),
+    ).sort((a: any, b: any) => {
+      const aKey = `${a.parentName ?? ""} ${a.name}`.trim().toLowerCase();
+      const bKey = `${b.parentName ?? ""} ${b.name}`.trim().toLowerCase();
+      return aKey.localeCompare(bKey);
+    });
 
     return c.json({
       products: paginatedProducts,

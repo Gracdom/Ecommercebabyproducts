@@ -1,7 +1,7 @@
 import { ArrowRight, Sparkles, TrendingUp } from 'lucide-react';
 
 interface CategoryDirectoryProps {
-  onCategoryClick: () => void;
+  onCategoryClick: (categoryName?: string) => void;
 }
 
 const categories = [

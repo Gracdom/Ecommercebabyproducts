@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -8,6 +8,10 @@ interface Category {
     name: string;
     image: string;
   }[];
+}
+
+interface MegaMenuProps {
+  onCategoryClick?: (categoryName: string, subcategoryName?: string) => void;
 }
 
 const CATEGORIES: Category[] = [
@@ -58,26 +62,45 @@ const CATEGORIES: Category[] = [
   },
 ];
 
-export function MegaMenu() {
+export function MegaMenu({ onCategoryClick }: MegaMenuProps = {}) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
-  const [isHovering, setIsHovering] = useState(false);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const handleMouseEnter = (categoryName: string) => {
+    // Clear any pending timeout
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+    setActiveCategory(categoryName);
+  };
+
+  const handleMouseLeave = () => {
+    // Delay hiding to allow moving to dropdown
+    timeoutRef.current = setTimeout(() => {
+      setActiveCategory(null);
+    }, 150);
+  };
+
+  const handleDropdownMouseEnter = () => {
+    // Clear timeout when entering dropdown
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  };
+
+  const handleDropdownMouseLeave = () => {
+    setActiveCategory(null);
+  };
 
   return (
     <nav className="hidden lg:flex items-center gap-0 relative">
       {CATEGORIES.map((category) => (
         <div
           key={category.name}
-          onMouseEnter={() => {
-            setActiveCategory(category.name);
-            setIsHovering(true);
-          }}
-          onMouseLeave={() => {
-            setIsHovering(false);
-            // Delay hiding to allow moving to dropdown
-            setTimeout(() => {
-              if (!isHovering) setActiveCategory(null);
-            }, 100);
-          }}
+          onMouseEnter={() => handleMouseEnter(category.name)}
+          onMouseLeave={handleMouseLeave}
           className="relative"
         >
           <button
@@ -101,21 +124,22 @@ export function MegaMenu() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
-                onMouseEnter={() => setIsHovering(true)}
-                onMouseLeave={() => {
-                  setIsHovering(false);
-                  setActiveCategory(null);
-                }}
-                className="absolute top-full left-0 mt-0 w-screen max-w-4xl bg-white shadow-2xl rounded-b-lg border border-stone-200 z-50"
-                style={{ marginLeft: '-50%' }}
+                onMouseEnter={handleDropdownMouseEnter}
+                onMouseLeave={handleDropdownMouseLeave}
+                className="absolute top-full left-1/2 -translate-x-1/2 mt-0 w-screen max-w-4xl bg-white shadow-2xl rounded-b-lg border border-stone-200 z-50"
               >
                 <div className="p-8">
-                  <h3 className="text-lg text-stone-900 mb-6">{category.name}</h3>
+                  <h3 className="text-lg font-semibold text-stone-900 mb-6">{category.name}</h3>
                   <div className="grid grid-cols-4 gap-6">
                     {category.subcategories.map((sub) => (
                       <button
                         key={sub.name}
                         className="group text-left"
+                        onClick={() => {
+                          if (onCategoryClick) {
+                            onCategoryClick(category.name, sub.name);
+                          }
+                        }}
                       >
                         <div className="aspect-square bg-stone-50 rounded-lg overflow-hidden mb-3">
                           <img
@@ -124,7 +148,7 @@ export function MegaMenu() {
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                           />
                         </div>
-                        <p className="text-sm text-stone-700 group-hover:text-stone-900">
+                        <p className="text-sm font-medium text-stone-700 group-hover:text-stone-900 transition-colors">
                           {sub.name}
                         </p>
                       </button>
@@ -138,7 +162,14 @@ export function MegaMenu() {
       ))}
 
       {/* Sale/Outlet - highlighted */}
-      <button className="flex items-center gap-1 px-4 py-4 text-sm text-amber-600 hover:text-amber-700 whitespace-nowrap border-b-2 border-amber-600 transition-all">
+      <button 
+        onClick={() => {
+          if (onCategoryClick) {
+            onCategoryClick('Outlet');
+          }
+        }}
+        className="flex items-center gap-1 px-4 py-4 text-sm text-amber-600 hover:text-amber-700 whitespace-nowrap border-b-2 border-amber-600 transition-all"
+      >
         Outlet
         <span className="text-stone-400">›</span>
       </button>

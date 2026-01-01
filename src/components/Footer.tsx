@@ -140,9 +140,15 @@ export function Footer() {
               <ul className="space-y-3">
                 {['Juguetes', 'Textiles', 'Ropa', 'Accesorios', 'Nuevos productos', 'Ofertas', 'Gift Cards'].map((item) => (
                   <li key={item}>
-                    <a href="#" className="text-background/70 hover:text-white transition-colors text-sm">
+                    <button 
+                      onClick={() => {
+                        // Navigate to category page
+                        window.location.hash = '#category';
+                      }}
+                      className="text-background/70 hover:text-white transition-colors text-sm text-left w-full"
+                    >
                       {item}
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -154,9 +160,15 @@ export function Footer() {
               <ul className="space-y-3">
                 {['Centro de ayuda', 'Seguimiento de pedido', 'Envíos y entregas', 'Devoluciones', 'Tallas', 'Contacto', 'FAQs'].map((item) => (
                   <li key={item}>
-                    <a href="#" className="text-background/70 hover:text-white transition-colors text-sm">
+                    <button 
+                      onClick={() => {
+                        // Could open a modal or navigate to help page in the future
+                        console.log(`Navigate to help: ${item}`);
+                      }}
+                      className="text-background/70 hover:text-white transition-colors text-sm text-left w-full"
+                    >
                       {item}
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -168,9 +180,15 @@ export function Footer() {
               <ul className="space-y-3">
                 {['Sobre nosotros', 'Blog', 'Sostenibilidad', 'Prensa', 'Trabaja con nosotros', 'Afiliados', 'Programa B2B'].map((item) => (
                   <li key={item}>
-                    <a href="#" className="text-background/70 hover:text-white transition-colors text-sm">
+                    <button 
+                      onClick={() => {
+                        // Could navigate to company pages in the future
+                        console.log(`Navigate to company: ${item}`);
+                      }}
+                      className="text-background/70 hover:text-white transition-colors text-sm text-left w-full"
+                    >
                       {item}
-                    </a>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -227,18 +245,30 @@ export function Footer() {
               </div>
               
               <div className="flex items-center gap-6 text-sm">
-                <a href="#" className="text-background/70 hover:text-white transition-colors">
+                <button 
+                  onClick={() => console.log('Navigate to Privacy')}
+                  className="text-background/70 hover:text-white transition-colors"
+                >
                   Privacidad
-                </a>
-                <a href="#" className="text-background/70 hover:text-white transition-colors">
+                </button>
+                <button 
+                  onClick={() => console.log('Navigate to Terms')}
+                  className="text-background/70 hover:text-white transition-colors"
+                >
                   Términos
-                </a>
-                <a href="#" className="text-background/70 hover:text-white transition-colors">
+                </button>
+                <button 
+                  onClick={() => console.log('Navigate to Cookies')}
+                  className="text-background/70 hover:text-white transition-colors"
+                >
                   Cookies
-                </a>
-                <a href="#" className="text-background/70 hover:text-white transition-colors">
+                </button>
+                <button 
+                  onClick={() => console.log('Navigate to Legal')}
+                  className="text-background/70 hover:text-white transition-colors"
+                >
                   Accesibilidad
-                </a>
+                </button>
               </div>
             </div>
           </div>
