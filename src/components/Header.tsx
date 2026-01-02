@@ -3,6 +3,7 @@ import { SearchAutocomplete } from './SearchAutocomplete';
 import { MegaMenu } from './MegaMenu';
 import { Product } from '../types';
 import { useAuth } from '../hooks/useAuth';
+import type { CategoryInfo } from '@/utils/bigbuy/catalog';
 
 interface HeaderProps {
   cartCount: number;
@@ -13,6 +14,7 @@ interface HeaderProps {
   onLogoClick?: () => void;
   products?: Product[];
   onProductClick?: (product: Product) => void;
+  categories?: CategoryInfo[];
 }
 
 export function Header({ 
@@ -23,7 +25,8 @@ export function Header({
   onUserClick,
   onLogoClick,
   products = [], 
-  onProductClick 
+  onProductClick,
+  categories = []
 }: HeaderProps) {
   const { user } = useAuth();
   return (
@@ -129,14 +132,15 @@ export function Header({
       {/* Navigation with Mega Menu */}
       <div className="bg-background border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <MegaMenu onCategoryClick={(categoryName, subcategoryName) => {
-            // Navigate to category page
-            if (onProductClick && products.length > 0) {
-              // For now, just navigate to category view
-              // In the future, this could filter products by category
-              window.location.hash = '#category';
-            }
-          }} />
+          <MegaMenu 
+            categories={categories}
+            onCategoryClick={(categoryName, subcategoryName, categoryId, subcategoryId) => {
+              // Navigate to category page
+              // In the future, this could filter products by categoryId/subcategoryId
+              window.history.pushState({ view: 'category', categoryId, subcategoryId }, '', '#category');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }} 
+          />
           
           {/* Mobile horizontal scroll fallback */}
           <nav className="flex lg:hidden items-center gap-0 overflow-x-auto scrollbar-hide">

@@ -22,7 +22,7 @@ export function QuickShop({
   onViewAllClick
 }: QuickShopProps = {}) {
   const [hoveredId, setHoveredId] = useState<number | null>(null);
-  
+
   // Use provided products or empty array (will be populated from App.tsx)
   const products = propProducts || [];
   
@@ -83,61 +83,61 @@ export function QuickShop({
             No hay productos disponibles en este momento
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {displayProducts.map((product) => {
               const badgeText = getBadgeText(product.mlScore, !!product.originalPrice);
               return (
-                <div
-                  key={product.id}
-                  className="group relative"
-                  onMouseEnter={() => setHoveredId(product.id)}
-                  onMouseLeave={() => setHoveredId(null)}
+            <div
+              key={product.id}
+              className="group relative"
+              onMouseEnter={() => setHoveredId(product.id)}
+              onMouseLeave={() => setHoveredId(null)}
                   onClick={() => {
                     if (onProductClick) {
                       onProductClick(product);
                     }
                   }}
-                >
-                  {/* Product Card */}
+            >
+              {/* Product Card */}
                   <div className="relative bg-white rounded-2xl overflow-hidden border-2 border-stone-200 hover:border-stone-300 transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 cursor-pointer">
-                    {/* Image */}
-                    <div className="relative aspect-square bg-stone-50 overflow-hidden">
-                      <ImageWithFallback
-                        src={product.image}
-                        alt={product.name}
-                        className={`w-full h-full object-cover transition-all duration-700 ${
-                          hoveredId === product.id ? 'scale-110 rotate-2' : 'scale-100 rotate-0'
-                        }`}
-                      />
+                {/* Image */}
+                <div className="relative aspect-square bg-stone-50 overflow-hidden">
+                  <ImageWithFallback
+                    src={product.image}
+                    alt={product.name}
+                    className={`w-full h-full object-cover transition-all duration-700 ${
+                      hoveredId === product.id ? 'scale-110 rotate-2' : 'scale-100 rotate-0'
+                    }`}
+                  />
 
-                      {/* Gradient overlay on hover */}
-                      <div className={`absolute inset-0 bg-gradient-to-t from-black/30 to-transparent transition-opacity duration-300 ${
-                        hoveredId === product.id ? 'opacity-100' : 'opacity-0'
-                      }`} />
+                  {/* Gradient overlay on hover */}
+                  <div className={`absolute inset-0 bg-gradient-to-t from-black/30 to-transparent transition-opacity duration-300 ${
+                    hoveredId === product.id ? 'opacity-100' : 'opacity-0'
+                  }`} />
 
-                      {/* Badge */}
+                  {/* Badge */}
                       <div className="absolute top-4 left-4">
                         <ProductBadge mlScore={product.mlScore} />
                       </div>
                       {product.originalPrice && badgeText === 'Oferta Flash' && (
                         <div className={`absolute top-4 left-20 px-3 py-1.5 bg-gradient-to-r ${getBadgeColor(product.mlScore)} text-white text-xs font-medium rounded-full flex items-center gap-1 shadow-lg`}>
                           <span>{badgeText}</span>
-                        </div>
+                  </div>
                       )}
 
-                      {/* Discount */}
-                      {product.originalPrice && (
-                        <div className="absolute top-4 right-4 w-14 h-14 bg-gradient-to-br from-destructive to-accent text-white rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                          <div className="text-center leading-tight">
-                            <div className="text-sm font-bold">-{Math.round((1 - product.price / product.originalPrice) * 100)}%</div>
-                          </div>
-                        </div>
-                      )}
+                  {/* Discount */}
+                  {product.originalPrice && (
+                    <div className="absolute top-4 right-4 w-14 h-14 bg-gradient-to-br from-destructive to-accent text-white rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                      <div className="text-center leading-tight">
+                        <div className="text-sm font-bold">-{Math.round((1 - product.price / product.originalPrice) * 100)}%</div>
+                      </div>
+                    </div>
+                  )}
 
-                      {/* Quick Actions */}
+                  {/* Quick Actions */}
                       <div className={`absolute inset-x-4 bottom-4 flex gap-2 transition-all duration-300 ${
-                        hoveredId === product.id ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-                      }`}>
+                    hoveredId === product.id ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+                  }`}>
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
@@ -147,9 +147,9 @@ export function QuickShop({
                           }}
                           className="flex-1 bg-white/95 backdrop-blur-sm hover:bg-stone-900 text-stone-900 hover:text-white px-4 py-2.5 rounded-xl transition-all duration-300 flex items-center justify-center gap-2 shadow-lg group/btn"
                         >
-                          <ShoppingCart className="h-4 w-4 transition-transform group-hover/btn:scale-110" />
-                          <span className="text-sm font-medium">Añadir</span>
-                        </button>
+                      <ShoppingCart className="h-4 w-4 transition-transform group-hover/btn:scale-110" />
+                      <span className="text-sm font-medium">Añadir</span>
+                    </button>
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
@@ -164,9 +164,9 @@ export function QuickShop({
                           <Heart className={`h-4 w-4 transition-transform group-hover/heart:scale-110 ${
                             isInWishlist && isInWishlist(product.id) ? 'fill-red-500 text-red-500' : ''
                           }`} />
-                        </button>
-                      </div>
-                    </div>
+                    </button>
+                  </div>
+                </div>
 
                 {/* Product Info */}
                 <div className="p-5 space-y-3">
@@ -218,13 +218,13 @@ export function QuickShop({
                   </div>
                 </div>
 
-                    {/* Glow effect on hover */}
+                {/* Glow effect on hover */}
                     <div className={`absolute -inset-0.5 bg-gradient-to-r ${getBadgeColor(product.mlScore)} rounded-2xl opacity-0 group-hover:opacity-20 blur transition-opacity duration-500 -z-10`} />
-                  </div>
-                </div>
+              </div>
+            </div>
               );
             })}
-          </div>
+        </div>
         )}
 
         {/* Bottom CTA */}

@@ -214,14 +214,14 @@ export function CategoryPage({ products, onAddToCart, onBack, onProductClick, on
                       onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
                       className="w-full accent-primary"
                     />
-                    <input
-                      type="range"
+                  <input
+                    type="range"
                       min={priceBounds[0]}
                       max={priceBounds[1]}
-                      value={priceRange[1]}
+                    value={priceRange[1]}
                       onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                      className="w-full accent-primary"
-                    />
+                    className="w-full accent-primary"
+                  />
                   </div>
                   <div className="flex gap-2">
                     <input

@@ -36,12 +36,13 @@ import { SignUpModal } from './components/SignUpModal';
 import { UserProfile } from './components/UserProfile';
 import { toast } from 'sonner@2.0.3';
 import { Product } from './types';
-import { fetchCatalogProducts } from './utils/bigbuy/catalog';
+import { fetchCatalogProducts, fetchCategories, type CategoryInfo } from './utils/bigbuy/catalog';
 
 type View = 'home' | 'category' | 'product' | 'wishlist' | 'checkout' | 'confirmation' | 'gender-predictor' | 'admin' | 'login' | 'signup' | 'profile';
 
 export default function App() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [cartItems, setCartItems] = useState<Product[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [currentView, setCurrentView] = useState<View>('home');
@@ -78,6 +79,24 @@ export default function App() {
           description: err?.message || 'Revisa la sincronización de BigBuy/Supabase',
           duration: 5000,
         });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Load categories from BigBuy products
+  useEffect(() => {
+    let cancelled = false;
+    fetchCategories()
+      .then((cats) => {
+        if (!cancelled) {
+          setCategories(cats);
+        }
+      })
+      .catch((err) => {
+        console.error('Error loading categories:', err);
+        // Don't show error toast for categories, just log it
       });
     return () => {
       cancelled = true;
@@ -291,6 +310,7 @@ export default function App() {
             }}
             products={allProducts}
             onProductClick={handleProductClick}
+            categories={categories}
           />
       
       {currentView === 'home' ? (

@@ -245,3 +245,99 @@ export async function fetchFeaturedProducts(limit: number = 8, minMlScore: numbe
   });
 }
 
+export interface CategoryInfo {
+  id: number;
+  name: string;
+  parentId?: number | null;
+  parentName?: string | null;
+  productCount?: number;
+}
+
+/**
+ * Fetch real categories from BigBuy products using taxonomies
+ */
+export async function fetchCategories(): Promise<CategoryInfo[]> {
+  try {
+    // Get unique category IDs from products
+    const { data: products, error: productsError } = await supabase
+      .from("bigbuy_products")
+      .select("category_id")
+      .eq("has_stock", true)
+      .is("deleted_at", null)
+      .not("category_id", "is", null);
+
+    if (productsError) {
+      console.error("Error fetching product categories:", productsError);
+      return [];
+    }
+
+    // Count products per category
+    const categoryCounts = new Map<number, number>();
+    const categoryIds = new Set<number>();
+
+    for (const p of products || []) {
+      const catId = p.category_id;
+      if (!catId) continue;
+      categoryIds.add(catId);
+      categoryCounts.set(catId, (categoryCounts.get(catId) || 0) + 1);
+    }
+
+    if (categoryIds.size === 0) {
+      return [];
+    }
+
+    // Fetch taxonomy info for these categories
+    const { data: taxonomies, error: taxError } = await supabase
+      .from("bigbuy_taxonomies")
+      .select("id, name, parent_taxonomy_id")
+      .in("id", Array.from(categoryIds))
+      .eq("iso_code", "es");
+
+    if (taxError) {
+      console.error("Error fetching taxonomies:", taxError);
+      return [];
+    }
+
+    // Get parent taxonomy IDs
+    const parentIds = new Set<number>();
+    for (const tax of taxonomies || []) {
+      if (tax.parent_taxonomy_id) {
+        parentIds.add(tax.parent_taxonomy_id);
+      }
+    }
+
+    // Fetch parent taxonomy names
+    let parentMap = new Map<number, string>();
+    if (parentIds.size > 0) {
+      const { data: parentTaxonomies } = await supabase
+        .from("bigbuy_taxonomies")
+        .select("id, name")
+        .in("id", Array.from(parentIds))
+        .eq("iso_code", "es");
+
+      for (const pt of parentTaxonomies || []) {
+        parentMap.set(pt.id, pt.name);
+      }
+    }
+
+    // Build category info
+    const categories: CategoryInfo[] = [];
+    for (const tax of taxonomies || []) {
+      categories.push({
+        id: tax.id,
+        name: tax.name || "",
+        parentId: tax.parent_taxonomy_id || null,
+        parentName: tax.parent_taxonomy_id && parentMap.has(tax.parent_taxonomy_id)
+          ? parentMap.get(tax.parent_taxonomy_id)!
+          : null,
+        productCount: categoryCounts.get(tax.id) || 0,
+      });
+    }
+
+    return categories.filter(cat => cat.name);
+  } catch (err) {
+    console.error("Error in fetchCategories:", err);
+    return [];
+  }
+}
+

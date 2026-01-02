@@ -39,14 +39,14 @@ export function FeaturedProducts({
     if (!mlScore) return 'from-[#e6dfd9] to-[#d6ccc2]'; // Sand
     if (mlScore >= 70) return 'from-[#e08e8e] to-[#dcbaba]'; // Hot/Destacado
     if (mlScore >= 50) return 'from-[#8da399] to-[#7a8f85]'; // Trending
-    return 'from-[#a09085] to-[#8e7f75]'; // Taupe
+        return 'from-[#a09085] to-[#8e7f75]'; // Taupe
   };
 
   const getBadgeIcon = (mlScore?: number) => {
     if (!mlScore) return <Star className="h-3 w-3" />;
     if (mlScore >= 70) return <Zap className="h-3 w-3" />;
     if (mlScore >= 50) return <TrendingUp className="h-3 w-3" />;
-    return <Sparkles className="h-3 w-3" />;
+        return <Sparkles className="h-3 w-3" />;
   };
 
   const getBadgeText = (mlScore?: number) => {
@@ -99,55 +99,55 @@ export function FeaturedProducts({
             No hay productos destacados disponibles
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {products.map((product) => {
               const badgeText = getBadgeText(product.mlScore);
               return (
-                <div
-                  key={product.id}
-                  className="group relative"
-                  onMouseEnter={() => setHoveredId(product.id)}
-                  onMouseLeave={() => setHoveredId(null)}
+            <div
+              key={product.id}
+              className="group relative"
+              onMouseEnter={() => setHoveredId(product.id)}
+              onMouseLeave={() => setHoveredId(null)}
                   onClick={() => {
                     if (onProductClick) {
                       onProductClick(product);
                     }
                   }}
-                >
-                  {/* Product Card */}
+            >
+              {/* Product Card */}
                   <div className="relative bg-card rounded-2xl overflow-hidden transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 border border-border cursor-pointer">
-                    {/* Image Container */}
-                    <div className="relative aspect-square overflow-hidden bg-muted">
-                      <ImageWithFallback
-                        src={product.image}
-                        alt={product.name}
-                        className={`w-full h-full object-cover transition-all duration-700 ${
-                          hoveredId === product.id ? 'scale-110 rotate-2' : 'scale-100 rotate-0'
-                        }`}
-                      />
-                      
-                      {/* Gradient overlay */}
-                      <div className={`absolute inset-0 bg-gradient-to-t from-black/20 to-transparent transition-opacity duration-300 ${
-                        hoveredId === product.id ? 'opacity-100' : 'opacity-0'
-                      }`} />
+                {/* Image Container */}
+                <div className="relative aspect-square overflow-hidden bg-muted">
+                  <ImageWithFallback
+                    src={product.image}
+                    alt={product.name}
+                    className={`w-full h-full object-cover transition-all duration-700 ${
+                      hoveredId === product.id ? 'scale-110 rotate-2' : 'scale-100 rotate-0'
+                    }`}
+                  />
+                  
+                  {/* Gradient overlay */}
+                  <div className={`absolute inset-0 bg-gradient-to-t from-black/20 to-transparent transition-opacity duration-300 ${
+                    hoveredId === product.id ? 'opacity-100' : 'opacity-0'
+                  }`} />
 
-                      {/* Badge */}
+                  {/* Badge */}
                       {badgeText && (
                         <div className={`absolute top-4 left-4 px-3 py-1 bg-gradient-to-r ${getBadgeColor(product.mlScore)} text-white text-xs rounded-full flex items-center gap-1 shadow-lg`}>
                           {getBadgeIcon(product.mlScore)}
                           <span>{badgeText}</span>
-                        </div>
-                      )}
+                    </div>
+                  )}
 
-                      {/* Discount badge */}
-                      {product.originalPrice && (
-                        <div className="absolute top-4 right-4 w-14 h-14 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-lg transform rotate-12 border-2 border-background">
-                          <div className="text-center leading-tight">
-                            <div className="text-xs">-{Math.round((1 - product.price / product.originalPrice) * 100)}%</div>
-                            <div className="text-[10px]">OFF</div>
-                          </div>
-                        </div>
-                      )}
+                  {/* Discount badge */}
+                  {product.originalPrice && (
+                    <div className="absolute top-4 right-4 w-14 h-14 bg-destructive text-destructive-foreground rounded-full flex items-center justify-center shadow-lg transform rotate-12 border-2 border-background">
+                      <div className="text-center leading-tight">
+                        <div className="text-xs">-{Math.round((1 - product.price / product.originalPrice) * 100)}%</div>
+                        <div className="text-[10px]">OFF</div>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Quick actions */}
                   <div className={`absolute inset-x-4 bottom-4 flex gap-2 transition-all duration-300 ${
@@ -194,50 +194,50 @@ export function FeaturedProducts({
                   </div>
                 </div>
 
-                    {/* Product Info */}
-                    <div className="p-5 space-y-3">
-                      {/* Category */}
-                      <div className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
-                        {product.category}
-                      </div>
+                {/* Product Info */}
+                <div className="p-5 space-y-3">
+                  {/* Category */}
+                  <div className="text-xs text-muted-foreground uppercase tracking-wider font-medium">
+                    {product.category}
+                  </div>
 
-                      {/* Name */}
-                      <h3 className="text-base text-foreground line-clamp-2 min-h-[3rem] group-hover:text-primary transition-colors duration-300 font-medium">
-                        {product.name}
-                      </h3>
+                  {/* Name */}
+                  <h3 className="text-base text-foreground line-clamp-2 min-h-[3rem] group-hover:text-primary transition-colors duration-300 font-medium">
+                    {product.name}
+                  </h3>
 
                       {/* Rating - Show conversion rate if available */}
                       {product.analytics && product.analytics.conversionRate > 0 && (
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                             <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                            <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                               {product.analytics.conversionRate.toFixed(1)}% conversión
-                            </span>
-                          </div>
+                    </span>
+                  </div>
                         </div>
                       )}
 
-                      {/* Price */}
-                      <div className="flex items-center gap-2 pt-2">
-                        <span className="text-2xl text-foreground font-light">
-                          €{product.price.toFixed(2)}
-                        </span>
-                        {product.originalPrice && (
-                          <span className="text-sm text-muted-foreground line-through">
-                            €{product.originalPrice.toFixed(2)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Hover glow effect */}
-                    <div className={`absolute -inset-0.5 bg-gradient-to-r ${getBadgeColor(product.mlScore)} rounded-2xl opacity-0 group-hover:opacity-10 blur transition-opacity duration-500 -z-10`} />
+                  {/* Price */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <span className="text-2xl text-foreground font-light">
+                      €{product.price.toFixed(2)}
+                    </span>
+                    {product.originalPrice && (
+                      <span className="text-sm text-muted-foreground line-through">
+                        €{product.originalPrice.toFixed(2)}
+                      </span>
+                    )}
                   </div>
                 </div>
+
+                {/* Hover glow effect */}
+                    <div className={`absolute -inset-0.5 bg-gradient-to-r ${getBadgeColor(product.mlScore)} rounded-2xl opacity-0 group-hover:opacity-10 blur transition-opacity duration-500 -z-10`} />
+              </div>
+            </div>
               );
             })}
-          </div>
+        </div>
         )}
 
         {/* View All Button */}
