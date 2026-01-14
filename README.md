@@ -8,4 +8,6 @@
   Run `npm i` to install the dependencies.
 
   Run `npm run dev` to start the development server.
+
+By default it runs on `http://localhost:6556` (override with `VITE_PORT` or `PORT`).
   

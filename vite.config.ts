@@ -3,6 +3,9 @@
   import react from '@vitejs/plugin-react-swc';
   import path from 'path';
 
+  const DEFAULT_DEV_PORT = 6556;
+  const devPort = Number(process.env.VITE_PORT ?? process.env.PORT ?? DEFAULT_DEV_PORT);
+
   export default defineConfig({
     plugins: [react()],
     resolve: {
@@ -55,7 +58,8 @@
       outDir: 'build',
     },
     server: {
-      port: 5173,
+      port: devPort,
+      strictPort: true,
       open: true,
     },
   });
