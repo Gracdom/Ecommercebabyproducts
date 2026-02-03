@@ -33,6 +33,10 @@ yarn-error.log*
 *.tmp
 *.temp
 
+# Scripts with secrets (use environment variables instead)
+# generate_all_ai_descriptions.js
+# generate_all_ai_descriptions.mjs
+
 
 
 

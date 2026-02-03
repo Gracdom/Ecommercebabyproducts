@@ -3,9 +3,14 @@
  * Ejecutar: node generate_all_ai_descriptions.js
  */
 
-const SUPABASE_URL = 'https://qozeqcfavcnfwkexxbjm.supabase.co';
-const FUNCTION_NAME = 'make-server-335110ef';
-const SYNC_SECRET = '41f4208c52491c360620360a0ae4a9b2c12d37ad2cc53f1f';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://qozeqcfavcnfwkexxbjm.supabase.co';
+const FUNCTION_NAME = process.env.FUNCTION_NAME || 'make-server-335110ef';
+const SYNC_SECRET = process.env.BIGBUY_SYNC_SECRET || '';
+
+if (!SYNC_SECRET) {
+  console.error('❌ Error: BIGBUY_SYNC_SECRET no está configurado en las variables de entorno');
+  process.exit(1);
+}
 
 async function generateAllDescriptions() {
   const url = `${SUPABASE_URL}/functions/v1/${FUNCTION_NAME}/bigbuy/ai/descriptions/generate`;
