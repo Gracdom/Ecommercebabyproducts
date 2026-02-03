@@ -14,7 +14,7 @@
   --popover-foreground: #4a4541;
   
   /* Palette from image */
-  --color-sage: #8da399;   /* Juguetes sensoriales */
+  --color-sage: #83b5b6;   /* Juguetes sensoriales */
   --color-mauve: #c5a5a5;  /* Textiles orgánicos - Dusty Pink/Mauve */
   --color-taupe: #9d8e80;  /* Ropa de bebé - Warm Brown */
   --color-slate: #9cadb3;  /* Accesorios - Blueish Grey */
@@ -79,7 +79,7 @@
   --popover: #2c2a29;
   --popover-foreground: #f4f1ee;
   
-  --primary: #8da399;
+  --primary: #83b5b6;
   --primary-foreground: #ffffff;
   
   --secondary: #4a4541;
@@ -97,9 +97,9 @@
   --border: #4a4541;
   --input: #4a4541;
   
-  --ring: #8da399;
+  --ring: #83b5b6;
   
-  --chart-1: #8da399;
+  --chart-1: #83b5b6;
   --chart-2: #a09085;
   --chart-3: #9fb3b8;
   --chart-4: #e6dfd9;
@@ -107,12 +107,12 @@
   
   --sidebar: #2c2a29;
   --sidebar-foreground: #f4f1ee;
-  --sidebar-primary: #8da399;
+  --sidebar-primary: #83b5b6;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #4a4541;
   --sidebar-accent-foreground: #f4f1ee;
   --sidebar-border: #4a4541;
-  --sidebar-ring: #8da399;
+  --sidebar-ring: #83b5b6;
 }
 
 @theme inline {

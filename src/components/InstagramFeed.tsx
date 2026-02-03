@@ -71,19 +71,19 @@ export function InstagramFeed() {
             <span className="text-sm text-stone-900">Síguenos en Instagram</span>
           </div>
           <h2 className="text-4xl sm:text-5xl text-stone-900 mb-4">
-            #BabyOnlyMoments
+            #eBabyMoments
           </h2>
           <p className="text-lg text-stone-600 max-w-2xl mx-auto mb-8">
             Comparte tus momentos especiales y forma parte de nuestra comunidad
           </p>
           <a
-            href="https://instagram.com/babyonly"
+            href="https://instagram.com/ebaby"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary via-[#7a8f85] to-accent text-white rounded-xl hover:shadow-xl transition-all duration-300 hover:scale-105 group"
           >
             <Instagram className="h-5 w-5" />
-            <span>Seguir @babyonly</span>
+            <span>Seguir @ebaby</span>
             <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-1" />
           </a>
         </div>
@@ -146,7 +146,7 @@ export function InstagramFeed() {
           </p>
           <div className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-stone-100 to-stone-50 rounded-xl border border-stone-200">
             <Instagram className="h-5 w-5 text-accent" />
-            <span className="text-stone-900 font-medium">#BabyOnlyMoments</span>
+            <span className="text-stone-900 font-medium">#eBabyMoments</span>
           </div>
         </div>
       </div>

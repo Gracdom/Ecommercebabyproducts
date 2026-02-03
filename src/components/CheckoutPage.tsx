@@ -287,7 +287,7 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
               <span className="hidden sm:inline">Volver al carrito</span>
             </button>
             <div className="text-center">
-              <h1 className="text-2xl text-stone-900">BabyOnly</h1>
+              <h1 className="text-2xl text-stone-900">e-baby</h1>
               <p className="text-sm text-stone-600">Checkout seguro</p>
             </div>
             <div className="w-24" /> {/* Spacer for centering */}

@@ -11,8 +11,8 @@ export function Footer() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {/* Envío gratis */}
             <div className="flex items-center gap-4 group">
-              <div className="w-12 h-12 bg-[#8da399]/20 rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 duration-300">
-                <Truck className="h-6 w-6 text-[#8da399]" />
+              <div className="w-12 h-12 bg-[#83b5b6]/20 rounded-2xl flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-110 duration-300">
+                <Truck className="h-6 w-6 text-[#83b5b6]" />
               </div>
               <div>
                 <div className="text-base font-medium text-foreground">Envío gratis</div>
@@ -63,9 +63,22 @@ export function Footer() {
             {/* Brand Column */}
             <div className="lg:col-span-2 space-y-6">
               <div>
-                <h3 className="text-2xl font-bold mb-3 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                  BabyOnly
-                </h3>
+                <div className="mb-3 flex items-center min-h-[2.5rem]">
+                  <img
+                    src="/logo.png"
+                    alt="e-baby"
+                    className="h-10 w-auto shrink-0 object-contain"
+                    onError={(e) => {
+                      const target = e.currentTarget;
+                      target.style.display = 'none';
+                      const fallback = target.nextElementSibling as HTMLElement;
+                      if (fallback) fallback.style.display = 'block';
+                    }}
+                  />
+                  <span className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent hidden">
+                    e-baby
+                  </span>
+                </div>
                 <p className="text-background/70 leading-relaxed">
                   Productos premium de algodón orgánico, diseñados con amor para el confort y desarrollo de tu bebé. Calidad certificada y sostenible.
                 </p>
@@ -238,7 +251,7 @@ export function Footer() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex flex-col md:flex-row items-center justify-between gap-4">
               <div className="flex items-center gap-2 text-sm text-background/60">
-                <span>© {currentYear} BabyOnly.</span>
+                <span>© {currentYear} e-baby.</span>
                 <span>Hecho con</span>
                 <Heart className="h-4 w-4 text-secondary fill-secondary animate-pulse" />
                 <span>en España</span>

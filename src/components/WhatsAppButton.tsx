@@ -4,7 +4,7 @@ import { useState } from 'react';
 export function WhatsAppButton() {
   const [isOpen, setIsOpen] = useState(false);
   const whatsappNumber = '+34900123456'; // Replace with actual number
-  const message = encodeURIComponent('¡Hola! Tengo una consulta sobre los productos de BabyOnly.');
+  const message = encodeURIComponent('¡Hola! Tengo una consulta sobre los productos de e-baby.');
 
   return (
     <>
@@ -18,7 +18,7 @@ export function WhatsAppButton() {
                   <MessageCircle className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
-                  <h3 className="text-white">BabyOnly</h3>
+                  <h3 className="text-white">e-baby</h3>
                   <p className="text-xs text-green-100">Soporte al cliente</p>
                 </div>
               </div>

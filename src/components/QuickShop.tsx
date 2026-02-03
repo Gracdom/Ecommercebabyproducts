@@ -58,7 +58,7 @@ export function QuickShop({
     <section className="py-20 bg-gradient-to-b from-stone-50 to-white relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-gradient-to-br from-[#8da399]/40 to-[#9fb3b8]/40 rounded-full blur-3xl" />
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-gradient-to-br from-[#83b5b6]/40 to-[#9fb3b8]/40 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-gradient-to-br from-[#e6dfd9]/40 to-[#a09085]/40 rounded-full blur-3xl" />
       </div>
 

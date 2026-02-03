@@ -17,7 +17,7 @@ const collections: Collection[] = [
     subtitle: 'Certificado GOTS',
     description: 'Algodón 100% orgánico para la piel más delicada',
     image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=800&q=80',
-    gradient: 'from-[#8da399]/90 to-[#7a8f85]/90',
+    gradient: 'from-[#83b5b6]/90 to-[#7a8f85]/90',
     itemCount: 45,
   },
   {

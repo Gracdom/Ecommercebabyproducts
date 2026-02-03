@@ -12,7 +12,7 @@ const categories = [
     image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=600&q=80',
     count: '147 productos',
     badge: 'Popular',
-    gradient: 'from-[#8da399]/90 to-[#7a8f85]/90', // Sage
+    gradient: 'from-[#83b5b6]/90 to-[#7a8f85]/90', // Sage
   },
   {
     id: 2,
@@ -54,7 +54,7 @@ const categories = [
     description: 'Vajillas y biberones',
     image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600&q=80',
     count: '98 productos',
-    gradient: 'from-[#8da399]/80 to-[#9d8e80]/80', // Light Sage Mix
+    gradient: 'from-[#83b5b6]/80 to-[#9d8e80]/80', // Light Sage Mix
   },
 ];
 

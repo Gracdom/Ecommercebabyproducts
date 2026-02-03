@@ -111,7 +111,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
   // Landing Page
   if (step === 'landing') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#8da399]/10 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#83b5b6]/10 relative overflow-hidden">
         {/* Animated background */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-[#dcbaba] to-[#c8a8a8] rounded-full blur-3xl animate-pulse" />
@@ -224,7 +224,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
     const currentQ = questions[currentQuestion];
 
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#8da399]/10 relative overflow-hidden">
+      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#83b5b6]/10 relative overflow-hidden">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
           {/* Progress Bar */}
           <div className="mb-12">
@@ -298,7 +298,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
   // Email Capture
   if (step === 'email') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#8da399]/10 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#83b5b6]/10 flex items-center justify-center px-4">
         <div className="max-w-lg w-full">
           <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-2xl border-2 border-white/50 animate-in fade-in slide-in-from-bottom duration-500">
             <div className="text-center mb-8">
@@ -359,7 +359,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
   // Calculating
   if (step === 'calculating') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#8da399]/10 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#83b5b6]/10 flex items-center justify-center px-4">
         <div className="text-center">
           <div className="inline-flex items-center justify-center w-32 h-32 bg-white rounded-full shadow-2xl mb-8 animate-bounce">
             <Baby className="h-16 w-16 text-accent animate-pulse" />
@@ -486,7 +486,7 @@ export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
                 <button className="w-12 h-12 bg-white/80 backdrop-blur-sm hover:bg-[#dcbaba] hover:text-white rounded-xl flex items-center justify-center transition-all duration-300 border border-stone-200">
                   <Heart className="h-5 w-5" />
                 </button>
-                <button className="w-12 h-12 bg-white/80 backdrop-blur-sm hover:bg-[#8da399] hover:text-white rounded-xl flex items-center justify-center transition-all duration-300 border border-stone-200">
+                <button className="w-12 h-12 bg-white/80 backdrop-blur-sm hover:bg-[#83b5b6] hover:text-white rounded-xl flex items-center justify-center transition-all duration-300 border border-stone-200">
                   <Star className="h-5 w-5" />
                 </button>
               </div>

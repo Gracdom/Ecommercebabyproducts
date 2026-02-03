@@ -2,10 +2,10 @@ import { Heart, Award, Leaf, Shield, Users, TrendingUp } from 'lucide-react';
 
 export function AboutUs() {
   return (
-    <section className="py-20 bg-gradient-to-br from-[#fcfbf9] via-[#8da399]/20 to-[#e6dfd9]/20 relative overflow-hidden">
+    <section className="py-20 bg-gradient-to-br from-[#fcfbf9] via-[#83b5b6]/20 to-[#e6dfd9]/20 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-[#8da399] to-[#7a8f85] rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-[#83b5b6] to-[#7a8f85] rounded-full blur-3xl animate-pulse" />
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-[#e6dfd9] to-[#d6ccc2] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
@@ -17,7 +17,7 @@ export function AboutUs() {
             <span className="text-sm text-stone-900">Nuestra historia</span>
           </div>
           <h2 className="text-4xl sm:text-5xl text-stone-900 mb-6">
-            Por qué elegir BabyOnly
+            Por qué elegir e-baby
           </h2>
           <p className="text-xl text-stone-600 max-w-3xl mx-auto leading-relaxed">
             Somos una empresa familiar comprometida con la calidad, sostenibilidad y el bienestar de tu bebé. Cada producto es seleccionado con amor y cuidado.

@@ -38,7 +38,7 @@ export function FeaturedProducts({
   const getBadgeColor = (mlScore?: number) => {
     if (!mlScore) return 'from-[#e6dfd9] to-[#d6ccc2]'; // Sand
     if (mlScore >= 70) return 'from-[#e08e8e] to-[#dcbaba]'; // Hot/Destacado
-    if (mlScore >= 50) return 'from-[#8da399] to-[#7a8f85]'; // Trending
+    if (mlScore >= 50) return 'from-[#83b5b6] to-[#7a8f85]'; // Trending
         return 'from-[#a09085] to-[#8e7f75]'; // Taupe
   };
 

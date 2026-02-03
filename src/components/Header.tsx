@@ -58,20 +58,31 @@ export function Header({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Logo clicked, onLogoClick:', onLogoClick);
                   if (onLogoClick) {
                     onLogoClick();
                   } else {
-                    // Fallback: navigate to home if handler not provided
-                    console.log('No handler, using fallback');
                     window.location.hash = '';
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }
                 }}
-                className="text-2xl font-bold text-foreground hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0 outline-none focus:outline-none"
+                className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0 outline-none focus:outline-none"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
+                aria-label="e-baby - Inicio"
               >
-                Baby<span className="text-primary">Only</span>
+                <img
+                  src="/logo.png"
+                  alt="e-baby"
+                  className="h-10 w-auto shrink-0 object-contain"
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    target.style.display = 'none';
+                    const fallback = target.nextElementSibling as HTMLElement;
+                    if (fallback) fallback.style.display = 'inline';
+                  }}
+                />
+                <span className="text-2xl font-bold text-foreground hidden" style={{ fontFamily: 'inherit' }}>
+                  e-baby
+                </span>
               </button>
             </div>
 

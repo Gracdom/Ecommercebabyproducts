@@ -80,7 +80,7 @@ export function Testimonials() {
   };
 
   return (
-    <section className="py-20 bg-gradient-to-br from-[#fcfbf9] via-[#8da399]/10 to-[#e6dfd9]/20 relative overflow-hidden">
+    <section className="py-20 bg-gradient-to-br from-[#fcfbf9] via-[#83b5b6]/10 to-[#e6dfd9]/20 relative overflow-hidden">
       {/* Background decoration */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-br from-[#dcbaba] to-[#a09085] rounded-full blur-3xl animate-pulse" />

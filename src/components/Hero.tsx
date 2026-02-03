@@ -82,7 +82,7 @@ export function Hero({ onGenderPredictorClick, onExploreClick, onOffersClick }: 
               <span className="text-sm text-foreground font-medium">
                 Envío gratis en pedidos +50€
               </span>
-              <div className="w-2 h-2 bg-[#8da399] rounded-full animate-pulse" />
+              <div className="w-2 h-2 bg-[#83b5b6] rounded-full animate-pulse" />
             </div>
 
             {/* Main Headline */}
@@ -152,7 +152,7 @@ export function Hero({ onGenderPredictorClick, onExploreClick, onOffersClick }: 
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-1 text-2xl text-foreground font-semibold">
-                  <TrendingUp className="h-5 w-5 text-[#8da399]" />
+                  <TrendingUp className="h-5 w-5 text-[#83b5b6]" />
                   24h
                 </div>
                 <div className="text-xs text-muted-foreground">Envío express</div>
@@ -215,7 +215,7 @@ export function Hero({ onGenderPredictorClick, onExploreClick, onOffersClick }: 
               {/* Floating badge */}
               <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-sm px-4 py-3 rounded-2xl shadow-lg border border-border/50">
                 <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#8da399] to-[#7a8f85] rounded-xl flex items-center justify-center">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#83b5b6] to-[#7a8f85] rounded-xl flex items-center justify-center">
                     <Star className="h-5 w-5 text-white fill-white" />
                   </div>
                   <div>

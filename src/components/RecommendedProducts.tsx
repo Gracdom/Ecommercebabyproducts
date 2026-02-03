@@ -46,7 +46,7 @@ export function RecommendedProducts({
   if (recommendations.length === 0) return null;
 
   return (
-    <div className="bg-gradient-to-br from-[#e6dfd9]/20 via-[#fcfbf9] to-[#8da399]/20 py-16">
+    <div className="bg-gradient-to-br from-[#e6dfd9]/20 via-[#fcfbf9] to-[#83b5b6]/20 py-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex items-center gap-3 mb-8">
