@@ -2,9 +2,15 @@
 
 ## ❌ Problema: Los productos no aparecen en Netlify
 
-Si desplegaste en Netlify y los productos no aparecen, es porque las tablas de Supabase tienen RLS (Row Level Security) activado pero sin políticas que permitan lectura pública.
+### Error común:
+```
+No se pudo cargar el catálogo
+column bigbuy_product_translations_1_ai_highlight_features does not exist
+```
 
-## ✅ Solución: Aplicar migración SQL en Supabase
+**Causa:** Faltan columnas y políticas de seguridad en Supabase.
+
+## ✅ Solución: Ejecutar script SQL en Supabase
 
 ### Paso 1: Acceder al SQL Editor de Supabase
 
@@ -12,15 +18,22 @@ Si desplegaste en Netlify y los productos no aparecen, es porque las tablas de S
 2. Selecciona tu proyecto: **qozeqcfavcnfwkexxbjm**
 3. En el menú lateral, haz clic en **"SQL Editor"**
 
-### Paso 2: Ejecutar la migración
+### Paso 2: Ejecutar el script completo
 
 1. Haz clic en **"+ New query"**
-2. Copia y pega el contenido del archivo:
+2. Abre el archivo en tu proyecto:
    ```
-   src/supabase/migrations/20250205000000_enable_public_read_products.sql
+   EJECUTAR_EN_SUPABASE.sql
    ```
-3. Haz clic en **"Run"** (o presiona Ctrl+Enter)
-4. Verifica que aparezca el mensaje: **"Success. No rows returned"**
+3. **COPIA TODO EL CONTENIDO** del archivo
+4. Pégalo en el SQL Editor de Supabase
+5. Haz clic en **"Run"** (botón verde) o presiona `Ctrl+Enter`
+6. Verifica que aparezca el mensaje: **"Success. No rows returned"** ✅
+
+### ⚠️ Importante:
+- **Copia TODO el archivo completo**, no solo una parte
+- El script añade la columna faltante y configura las políticas de seguridad
+- Es seguro ejecutarlo varias veces (no duplicará datos)
 
 ### Paso 3: Verificar las políticas
 
