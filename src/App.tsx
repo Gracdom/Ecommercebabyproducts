@@ -428,6 +428,7 @@ export default function App() {
             }}
             onToggleWishlist={addToWishlist}
             isInWishlist={isInWishlist}
+            onProductClick={handleProductClick}
           />
           <Newsletter />
           <Footer />

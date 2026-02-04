@@ -19,6 +19,10 @@ export interface Product {
 
   /** Rich detail (optional) */
   description?: string;
+  /** Short description (250-350 chars), shown next to images above quantity */
+  shortDescription?: string;
+  /** Hasta 3 características destacadas para mostrar en ficha (si no se pasan, se derivan del producto) */
+  highlightFeatures?: string[];
   images?: string[];
   inStock?: boolean;
   variants?: ProductVariant[];

@@ -94,7 +94,7 @@ export function CategoryPage({ products, onAddToCart, onBack, onProductClick, on
               Inicio
             </button>
             <span className="text-stone-400">/</span>
-            <span className="text-stone-900 font-medium">Juguetes & Accesorios</span>
+            <span className="text-stone-900 font-medium">Productos por categoría</span>
           </div>
         </div>
       </div>
@@ -109,10 +109,10 @@ export function CategoryPage({ products, onAddToCart, onBack, onProductClick, on
                 {filteredProducts.length} productos
               </div>
               <h1 className="text-4xl sm:text-5xl text-stone-900 mb-3">
-                Ropa de bebé
+                Catálogo de productos
               </h1>
               <p className="text-lg text-stone-600 max-w-2xl">
-                Descubre nuestra selección de ropa de bebé con stock actualizado y precios calculados automáticamente
+                Descubre nuestra selección con stock actualizado y precios calculados automáticamente
               </p>
             </div>
           </div>
@@ -189,7 +189,7 @@ export function CategoryPage({ products, onAddToCart, onBack, onProductClick, on
                         onChange={() => toggleCategory(category)}
                         className="w-5 h-5 rounded border-stone-300 text-primary focus:ring-primary"
                       />
-                      <span className="text-sm text-stone-700 group-hover:text-stone-900 capitalize">
+                      <span className="text-sm text-stone-700 group-hover:text-stone-900">
                         {category}
                       </span>
                     </label>

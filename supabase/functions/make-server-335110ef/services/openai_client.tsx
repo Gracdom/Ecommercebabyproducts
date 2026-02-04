@@ -214,3 +214,116 @@ export async function batchGenerateDescriptions(
   return results;
 }
 
+/**
+ * Genera exactamente 3 características destacadas específicas del producto (para ficha de producto).
+ * No incluir nada de envío, disponibilidad ni frases genéricas; solo atributos concretos del producto.
+ */
+export async function generateProductHighlightFeatures(
+  productName: string,
+  originalDescription: string,
+  category?: string
+): Promise<string[]> {
+  const apiKey = await getOpenAIKey();
+
+  const systemPrompt = `Eres un experto en e-commerce de productos para bebés. Tu tarea es generar exactamente 3 características destacadas para la ficha de un producto.
+
+Reglas:
+- Devuelve SOLO un JSON válido con un array de exactamente 3 strings. Ejemplo: ["Característica 1", "Característica 2", "Característica 3"]
+- Cada característica debe ser ESPECÍFICA de este producto (materiales, diseño, seguridad, uso, composición, certificaciones, etc.).
+- NO uses nada sobre envío, disponibilidad, plazos de entrega ni ofertas genéricas.
+- NO uses frases genéricas como "Calidad premium", "Materiales seguros" sin concretar (mejor "Algodón 100% orgánico", "Sin BPA").
+- Máximo 6-8 palabras por característica. Español de España.
+- Basa las características en el nombre y la descripción del producto.`;
+
+  const userPrompt = `Producto: ${productName}
+${category ? `Categoría: ${category}` : ""}
+
+Descripción del producto:
+${originalDescription || "No hay descripción"}
+
+Devuelve únicamente el JSON con el array de 3 características (sin markdown, sin explicaciones):`;
+
+  const messages: OpenAIMessage[] = [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: userPrompt },
+  ];
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages,
+        temperature: 0.4,
+        max_tokens: 200,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`OpenAI API error: ${response.status} - ${errorText}`);
+    }
+
+    const data = (await response.json()) as OpenAIResponse;
+    const content = data.choices?.[0]?.message?.content?.trim();
+    if (!content) throw new Error("No content from OpenAI for highlight features");
+
+    const cleaned = content.replace(/^```\w*\n?|\n?```$/g, "").trim();
+    const parsed = JSON.parse(cleaned) as unknown;
+    const arr = Array.isArray(parsed) ? parsed : (parsed && typeof (parsed as any).features === "object" ? (parsed as any).features : []);
+    const features = arr
+      .filter((x): x is string => typeof x === "string")
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .slice(0, 3);
+    if (features.length < 3) throw new Error("OpenAI did not return 3 highlight features");
+    return features;
+  } catch (error) {
+    console.error("Error generating highlight features:", error);
+    throw error;
+  }
+}
+
+/**
+ * Genera características destacadas para varios productos (mismo formato que batch descriptions).
+ */
+export async function batchGenerateHighlightFeatures(
+  products: Array<{
+    productId: number;
+    name: string;
+    originalDescription: string;
+    category?: string;
+  }>
+): Promise<Map<number, string[]>> {
+  const results = new Map<number, string[]>();
+  const batchSize = 3;
+
+  for (let i = 0; i < products.length; i += batchSize) {
+    const batch = products.slice(i, i + batchSize);
+    const batchResults = await Promise.allSettled(
+      batch.map(async (product, idx) => {
+        await new Promise((r) => setTimeout(r, idx * 300));
+        const features = await generateProductHighlightFeatures(
+          product.name,
+          product.originalDescription,
+          product.category
+        );
+        return { productId: product.productId, features };
+      })
+    );
+    for (const result of batchResults) {
+      if (result.status === "fulfilled" && result.value.features?.length === 3) {
+        results.set(result.value.productId, result.value.features);
+      }
+    }
+    if (i + batchSize < products.length) {
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+  }
+  return results;
+}
+

@@ -24,7 +24,7 @@ import {
   parseBigBuyDateTime,
   sumStockFromByHandlingDays,
 } from "./utils.tsx";
-import { generateProductDescription, batchGenerateDescriptions } from "./services/openai_client.tsx";
+import { generateProductDescription, batchGenerateDescriptions, batchGenerateHighlightFeatures } from "./services/openai_client.tsx";
 const app = new Hono();
 
 async function sha256Hex(input: string): Promise<string> {
@@ -528,17 +528,26 @@ app.post("/make-server-335110ef/bigbuy/ai/descriptions/generate", requireSyncSec
         };
       });
 
-      // Generate descriptions
+      // Generate descriptions and highlight features (IA específicas por producto)
       const generatedDescriptions = await batchGenerateDescriptions(productsToProcess);
+      const generatedFeatures = await batchGenerateHighlightFeatures(
+        productsToProcess.map(({ productId, name, originalDescription }) => ({
+          productId,
+          name,
+          originalDescription,
+        }))
+      );
 
       // Update database
       let batchUpdated = 0;
       for (const [productId, description] of generatedDescriptions.entries()) {
+        const features = generatedFeatures.get(productId);
         const { error: updateError } = await supabase
           .from("bigbuy_product_translations")
           .update({
             ai_description: description,
             ai_description_updated_at: new Date().toISOString(),
+            ...(features && features.length === 3 ? { ai_highlight_features: features } : {}),
           })
           .eq("product_id", productId)
           .eq("iso_code", "es");
@@ -570,6 +579,97 @@ app.post("/make-server-335110ef/bigbuy/ai/descriptions/generate", requireSyncSec
     });
   } catch (e: any) {
     console.error("AI description generation error:", e);
+    return c.json({ error: e?.message || "Internal error" }, 500);
+  }
+});
+
+// Generate AI highlight features (3 per product) from name + description
+app.post("/make-server-335110ef/bigbuy/ai/highlight-features/generate", requireSyncSecret(), async (c) => {
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const productIds = Array.isArray(body.productIds) ? body.productIds : [];
+    const forceRegenerate = body.forceRegenerate === true;
+    const limit = Number.isFinite(body.limit) && body.limit > 0 ? Math.min(body.limit, 200) : 200;
+
+    const supabase = getServiceSupabase();
+
+    let offset = 0;
+    const batchSize = 10;
+    let totalGenerated = 0;
+    let totalProcessed = 0;
+    let totalFailed = 0;
+
+    while (true) {
+      let query = supabase
+        .from("bigbuy_products")
+        .select(`
+          id,
+          bigbuy_product_translations!inner (
+            product_id,
+            iso_code,
+            name,
+            description,
+            ai_description
+          )
+        `)
+        .eq("bigbuy_product_translations.iso_code", "es")
+        .is("deleted_at", null)
+        .eq("has_stock", true)
+        .range(offset, offset + batchSize - 1);
+
+      if (productIds.length > 0) {
+        query = query.in("id", productIds);
+      } else if (!forceRegenerate) {
+        query = query.is("bigbuy_product_translations.ai_highlight_features", null);
+      }
+
+      const { data: products, error } = await query;
+
+      if (error) {
+        console.error("Error fetching products for highlight features:", error);
+        break;
+      }
+
+      if (!products || products.length === 0) break;
+
+      totalProcessed += products.length;
+
+      const productsToProcess = products.map((p: any) => {
+        const t = Array.isArray(p.bigbuy_product_translations) ? p.bigbuy_product_translations[0] : p.bigbuy_product_translations;
+        const desc = t?.description || "";
+        const aiDesc = t?.ai_description || "";
+        return {
+          productId: p.id,
+          name: t?.name || "",
+          originalDescription: aiDesc || desc,
+        };
+      });
+
+      const generatedFeatures = await batchGenerateHighlightFeatures(productsToProcess);
+
+      for (const [productId, features] of generatedFeatures.entries()) {
+        if (!features || features.length !== 3) continue;
+        const { error: updateError } = await supabase
+          .from("bigbuy_product_translations")
+          .update({ ai_highlight_features: features })
+          .eq("product_id", productId)
+          .eq("iso_code", "es");
+        if (!updateError) totalGenerated++; else totalFailed++;
+      }
+
+      if (totalProcessed >= limit || products.length < batchSize) break;
+      offset += batchSize;
+    }
+
+    return c.json({
+      ok: true,
+      generated: totalGenerated,
+      total: totalProcessed,
+      failed: totalFailed,
+      message: `Características principales generadas: ${totalGenerated}/${totalProcessed} productos`,
+    });
+  } catch (e: any) {
+    console.error("AI highlight features generation error:", e);
     return c.json({ error: e?.message || "Internal error" }, 500);
   }
 });
@@ -1096,14 +1196,23 @@ app.post("/make-server-335110ef/bigbuy/sync", requireSyncSecret(), async (c) => 
         });
 
         const generatedDescriptions = await batchGenerateDescriptions(productsToProcess);
+        const generatedFeatures = await batchGenerateHighlightFeatures(
+          productsToProcess.map(({ productId, name, originalDescription }) => ({
+            productId,
+            name,
+            originalDescription,
+          }))
+        );
 
         // Update database
         for (const [productId, description] of generatedDescriptions.entries()) {
+          const features = generatedFeatures.get(productId);
           await supabase
             .from("bigbuy_product_translations")
             .update({
               ai_description: description,
               ai_description_updated_at: new Date().toISOString(),
+              ...(features && features.length === 3 ? { ai_highlight_features: features } : {}),
             })
             .eq("product_id", productId)
             .eq("iso_code", "es");
@@ -1803,14 +1912,23 @@ app.post("/make-server-335110ef/bigbuy/sync/full", requireSyncSecret(), async (c
         });
 
         const generatedDescriptions = await batchGenerateDescriptions(productsToProcess);
+        const generatedFeatures = await batchGenerateHighlightFeatures(
+          productsToProcess.map(({ productId, name, originalDescription }) => ({
+            productId,
+            name,
+            originalDescription,
+          }))
+        );
 
         // Update database
         for (const [productId, description] of generatedDescriptions.entries()) {
+          const features = generatedFeatures.get(productId);
           await supabase
             .from("bigbuy_product_translations")
             .update({
               ai_description: description,
               ai_description_updated_at: new Date().toISOString(),
+              ...(features && features.length === 3 ? { ai_highlight_features: features } : {}),
             })
             .eq("product_id", productId)
             .eq("iso_code", "es");

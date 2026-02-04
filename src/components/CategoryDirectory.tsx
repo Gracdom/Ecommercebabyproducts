@@ -29,7 +29,7 @@ const categories = [
     description: 'Algodón 100% orgánico',
     image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600&q=80',
     count: '234 productos',
-    badge: 'Best Seller',
+    badge: 'Más vendido',
     gradient: 'from-[#9d8e80]/90 to-[#8d7f71]/90', // Taupe / Brown
   },
   {

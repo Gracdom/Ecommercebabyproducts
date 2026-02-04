@@ -6,6 +6,7 @@ type DbTranslation = {
   name: string;
   description: string | null;
   ai_description: string | null;
+  ai_highlight_features?: string[] | null;
 };
 
 type DbImage = {
@@ -54,40 +55,51 @@ function stripHtml(input: string): string {
   return input.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 }
 
-// Map BigBuy taxonomy names to frontend categories
+/** Genera descripción corta a partir de la larga (250-350 caracteres, corte en palabra). */
+function getShortDescription(longDescription: string, minChars = 250, maxChars = 350): string {
+  const text = longDescription.trim();
+  if (!text) return "";
+  if (text.length <= maxChars) return text;
+  const slice = text.slice(0, maxChars);
+  const lastSpace = slice.lastIndexOf(" ");
+  const cut = lastSpace >= minChars ? lastSpace : maxChars;
+  return slice.slice(0, cut).trim() + (cut < text.length ? "…" : "");
+}
+
+// Map BigBuy taxonomy names to frontend categories (Spanish)
 function mapTaxonomyToCategory(taxonomyName?: string, productName?: string): string {
-  if (!taxonomyName && !productName) return 'clothing';
+  if (!taxonomyName && !productName) return 'Ropa';
   
   const name = (taxonomyName || productName || '').toLowerCase();
   
-  // Map based on keywords
+  // Map based on keywords -> nombres en español
   if (name.includes('juguete') || name.includes('toy') || name.includes('juego')) {
-    return 'toys';
+    return 'Juguetes';
   }
   if (name.includes('ropa') || name.includes('clothing') || name.includes('body') || name.includes('vestido')) {
-    return 'clothing';
+    return 'Ropa';
   }
   if (name.includes('manta') || name.includes('blanket') || name.includes('textil') || name.includes('sábana')) {
-    return 'textiles';
+    return 'Textiles';
   }
   if (name.includes('cuna') || name.includes('crib') || name.includes('cama')) {
-    return 'furniture';
+    return 'Mobiliario';
   }
   if (name.includes('carrito') || name.includes('stroller') || name.includes('coche')) {
-    return 'transport';
+    return 'Transporte';
   }
   if (name.includes('aliment') || name.includes('food') || name.includes('biberón')) {
-    return 'feeding';
+    return 'Alimentación';
   }
   if (name.includes('higiene') || name.includes('hygiene') || name.includes('baño')) {
-    return 'hygiene';
+    return 'Higiene';
   }
   if (name.includes('regalo') || name.includes('gift') || name.includes('set')) {
-    return 'gift-sets';
+    return 'Sets y regalos';
   }
   
   // Default category
-  return 'clothing';
+  return 'Ropa';
 }
 
 export async function fetchCatalogProducts(options?: {
@@ -105,7 +117,7 @@ export async function fetchCatalogProducts(options?: {
       retail_price,
       has_stock,
       deleted_at,
-      bigbuy_product_translations ( iso_code, name, description, ai_description ),
+      bigbuy_product_translations ( iso_code, name, description, ai_description, ai_highlight_features ),
       bigbuy_product_images ( url, position ),
       bigbuy_variants (
         id,
@@ -176,6 +188,15 @@ export async function fetchCatalogProducts(options?: {
       // Map category from product name/taxonomy
       const category = mapTaxonomyToCategory(undefined, name);
 
+      // Descripción corta (250-350 caracteres) para la ficha, arriba de cantidad
+      const shortDescription = getShortDescription(finalDescription);
+
+      // 3 características principales (generadas por IA y guardadas en ai_highlight_features)
+      const rawFeatures = es?.ai_highlight_features ?? en?.ai_highlight_features ?? null;
+      const highlightFeatures = Array.isArray(rawFeatures)
+        ? rawFeatures.filter((x): x is string => typeof x === "string").slice(0, 3)
+        : undefined;
+
       return {
         id: p.id,
         name,
@@ -185,6 +206,8 @@ export async function fetchCatalogProducts(options?: {
         category,
         // extras (used later by ProductPage)
         description: finalDescription,
+        shortDescription: shortDescription || undefined,
+        highlightFeatures: highlightFeatures?.length ? highlightFeatures : undefined,
         images,
         sku: p.sku,
         variants,
@@ -198,6 +221,7 @@ export async function fetchCatalogProducts(options?: {
         } : undefined,
       } as Product & {
         description?: string;
+        shortDescription?: string;
         images?: string[];
         sku?: string;
         variants?: Array<{
