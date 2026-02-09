@@ -18,23 +18,28 @@ interface MegaMenuProps {
   onCategoryClick?: (categoryName: string, subcategoryName?: string) => void;
 }
 
-// Default placeholder image for categories
-const DEFAULT_CATEGORY_IMAGE = 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=200';
+// Images from /public/categorias: "Category Name (1).webp", "(2).webp", "(3).webp"
+function getSubcategoryImage(categoryName: string, subIndex: number): string {
+  const num = (subIndex % 3) + 1;
+  const filename = `${categoryName} (${num}).webp`;
+  return `/categorias/${encodeURIComponent(filename)}`;
+}
+
+const DEFAULT_CATEGORY_IMAGE = '/img/5.webp';
 
 export function MegaMenu({ categories = [], onCategoryClick }: MegaMenuProps = {}) {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Convert CategoryInfo[] to Category[] format
-  // Categories from ebaby_productos already have subcategories included
   const displayCategories: Category[] = categories
     .map(cat => ({
       name: cat.name,
       id: parseInt(cat.id.replace('cat-', '')) || 0,
-      subcategories: cat.subcategories?.map(sub => ({
+      subcategories: cat.subcategories?.map((sub, idx) => ({
         name: sub.name,
         id: parseInt(sub.id.replace('sub-', '').split('-')[1]) || 0,
-        image: DEFAULT_CATEGORY_IMAGE,
+        image: getSubcategoryImage(cat.name, idx),
       })) || [],
     }))
     .sort((a, b) => {
@@ -114,31 +119,37 @@ export function MegaMenu({ categories = [], onCategoryClick }: MegaMenuProps = {
                   transition={{ duration: 0.2 }}
                   onMouseEnter={handleDropdownMouseEnter}
                   onMouseLeave={handleDropdownMouseLeave}
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-0 w-screen max-w-4xl bg-white shadow-2xl rounded-b-2xl border border-stone-200 z-50 max-h-[min(70vh,520px)] overflow-hidden flex flex-col"
+                  className="fixed left-1/2 -translate-x-1/2 top-[10rem] w-full max-w-3xl bg-white shadow-2xl rounded-b-2xl border border-stone-200 z-50 max-h-[min(65vh,420px)] overflow-hidden flex flex-col"
                 >
-                  <div className="p-5 flex-1 overflow-y-auto">
-                    <h3 className="text-base font-semibold text-stone-900 mb-4 sticky top-0 bg-white pb-2 z-10">
+                  <div className="p-4 flex-1 overflow-y-auto">
+                    <h3 className="text-sm font-semibold text-stone-900 mb-3 sticky top-0 bg-white pb-2 z-10">
                       {category.name}
                     </h3>
-                    <div className="grid grid-cols-5 sm:grid-cols-6 gap-3">
+                    <div className="grid grid-cols-4 gap-3">
                       {category.subcategories.map((sub) => (
                         <button
                           key={sub.id}
-                          className="group text-left flex flex-col items-center sm:items-start"
+                          className="group text-left flex flex-col items-center"
                           onClick={() => {
                             if (onCategoryClick) {
                               onCategoryClick(category.name, sub.name);
                             }
                           }}
                         >
-                          <div className="w-14 h-14 sm:w-16 sm:h-16 flex-shrink-0 bg-stone-50 rounded-xl overflow-hidden mb-2">
+                          <div className="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 bg-stone-50 rounded-xl overflow-hidden mb-2">
                             <img
                               src={sub.image}
                               alt={sub.name}
-                              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              onError={(e) => {
+                                const target = e.currentTarget;
+                                if (target.src !== DEFAULT_CATEGORY_IMAGE) {
+                                  target.src = DEFAULT_CATEGORY_IMAGE;
+                                }
+                              }}
                             />
                           </div>
-                          <p className="text-xs font-medium text-stone-700 group-hover:text-stone-900 transition-colors line-clamp-2 text-center sm:text-left leading-tight">
+                          <p className="text-sm font-medium text-stone-700 group-hover:text-stone-900 transition-colors line-clamp-2 text-center leading-tight">
                             {sub.name}
                           </p>
                         </button>
@@ -152,17 +163,17 @@ export function MegaMenu({ categories = [], onCategoryClick }: MegaMenuProps = {
         </div>
       ))}
 
-      {/* Sale/Outlet - highlighted */}
+      {/* Tienda - button style */}
       <button 
         onClick={() => {
           if (onCategoryClick) {
-            onCategoryClick('Outlet');
+            onCategoryClick('Tienda');
           }
         }}
-        className="flex items-center gap-1 px-4 py-4 text-sm text-amber-600 hover:text-amber-700 whitespace-nowrap border-b-2 border-amber-600 transition-all"
+        className="flex items-center gap-1 px-8 py-2.5 text-sm font-semibold whitespace-nowrap rounded-xl transition-all duration-300 ml-2 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+        style={{ backgroundColor: '#84b4b5', color: '#ffffff' }}
       >
-        Outlet
-        <span className="text-stone-400">›</span>
+        Tienda
       </button>
     </nav>
   );

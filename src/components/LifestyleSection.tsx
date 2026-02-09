@@ -8,7 +8,7 @@ export function LifestyleSection() {
           <div className="relative overflow-hidden rounded-2xl bg-stone-100 group cursor-pointer">
             <div className="aspect-[4/5]">
               <img
-                src="https://images.unsplash.com/photo-1761206887052-9abec0c38f03?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxrbml0dGVkJTIwYmFieSUyMGl0ZW1zfGVufDF8fHx8MTc2NjY1NTM0Mnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                src="/img/5.webp"
                 alt="Colección tejidos"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
@@ -28,7 +28,7 @@ export function LifestyleSection() {
             <div className="relative overflow-hidden rounded-2xl bg-stone-100 group cursor-pointer">
               <div className="aspect-[16/9]">
                 <img
-                  src="https://images.unsplash.com/photo-1753370241583-82d8c84f0c6e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWJ5JTIwbnVyc2VyeSUyMHBhc3RlbHxlbnwxfHx8fDE3NjY2NTUzNDF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                  src="/img/6.webp"
                   alt="Habitación bebé"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
@@ -46,7 +46,7 @@ export function LifestyleSection() {
             <div className="relative overflow-hidden rounded-2xl bg-stone-100 group cursor-pointer">
               <div className="aspect-[16/9]">
                 <img
-                  src="https://images.unsplash.com/photo-1639751907353-3629fc00d2b2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWJ5JTIwcm9vbSUyMG1pbmltYWxpc3R8ZW58MXx8fHwxNzY2NjU1MzQxfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                  src="/img/7.webp"
                   alt="Decoración minimalista"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 />
@@ -68,7 +68,7 @@ export function LifestyleSection() {
           <div className="relative overflow-hidden rounded-2xl bg-stone-100 group cursor-pointer">
             <div className="aspect-square">
               <img
-                src="https://images.unsplash.com/photo-1655150795492-682679296e97?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWJ5JTIwY3JpYiUyMG5hdHVyYWwlMjB3b29kfGVufDF8fHx8MTc2NjY1NTM0Mnww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                src="/img/8.webp"
                 alt="Madera natural"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
@@ -83,7 +83,7 @@ export function LifestyleSection() {
           <div className="relative overflow-hidden rounded-2xl bg-stone-100 group cursor-pointer">
             <div className="aspect-square">
               <img
-                src="https://images.unsplash.com/photo-1761891927371-c9d094127f97?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWJ5JTIwYWNjZXNzb3JpZXMlMjBiZWlnZXxlbnwxfHx8fDE3NjY2NTUzNDJ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                src="/img/9.webp"
                 alt="Algodón orgánico"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />
@@ -98,7 +98,7 @@ export function LifestyleSection() {
           <div className="relative overflow-hidden rounded-2xl bg-stone-100 group cursor-pointer">
             <div className="aspect-square">
               <img
-                src="https://images.unsplash.com/photo-1735583099365-cb68e4caea3f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWJ5JTIwbGlmZXN0eWxlJTIwbmF0dXJhbHxlbnwxfHx8fDE3NjY2NTUzNDF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
+                src="/img/10.webp"
                 alt="Cuidado natural"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
               />

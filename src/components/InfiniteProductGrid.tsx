@@ -15,6 +15,7 @@ interface InfiniteProductGridProps {
     minPrice?: number;
     maxPrice?: number;
     category?: string;
+    subCategory?: string;
     minMlScore?: number;
   };
 }
@@ -44,7 +45,8 @@ export function InfiniteProductGrid({
       const newProducts = await fetchCatalogProducts({
         limit: BATCH_SIZE,
         offset,
-        minMlScore: filters?.minMlScore,
+        category: filters?.category,
+        subCategory: filters?.subCategory,
       });
 
       // Apply price filters
@@ -108,12 +110,16 @@ export function InfiniteProductGrid({
     };
   }, [loadMore, hasMore, loading]);
 
-  // Reset when filters change
+  // Reset when initialProducts change (solo cuando cambia la longitud para evitar reset en cada render)
+  const prevLenRef = useRef(initialProducts.length);
   useEffect(() => {
-    setProducts(initialProducts);
-    setOffset(initialProducts.length);
-    setHasMore(true);
-  }, [filters, initialProducts.length]);
+    if (prevLenRef.current !== initialProducts.length) {
+      prevLenRef.current = initialProducts.length;
+      setProducts(initialProducts);
+      setOffset(initialProducts.length);
+      setHasMore(true);
+    }
+  }, [initialProducts, initialProducts.length]);
 
   return (
     <div>

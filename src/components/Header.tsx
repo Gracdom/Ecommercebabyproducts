@@ -31,12 +31,12 @@ export function Header({
   const { user } = useAuth();
   return (
     <header className="sticky top-0 z-50 backdrop-blur-md shadow-sm" style={{ backgroundColor: '#FFFFFF', borderBottom: 'none' }}>
-      {/* Promo bar - Teal/Petrol blue background like Rabildoz */}
-      <div className="text-center py-4 px-4" style={{ 
+      {/* Promo bar - Teal/Petrol blue background */}
+      <div className="text-center py-1 px-4" style={{ 
         backgroundColor: '#008080',
         borderBottom: 'none'
       }}>
-        <p className="text-sm font-semibold text-white">
+        <p className="text-xs sm:text-sm font-semibold text-white">
           Envío gratis en pedidos superiores a 50€ · Devolución gratuita en 30 días
         </p>
       </div>
@@ -44,7 +44,7 @@ export function Header({
       {/* Main header - Clean white, no heavy borders */}
       <div style={{ backgroundColor: '#FFFFFF', borderBottom: 'none' }}>
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
-          <div className="flex items-center justify-between h-24" style={{ minHeight: '96px' }}>
+          <div className="flex items-center justify-between h-20" style={{ minHeight: '80px' }}>
             {/* Logo */}
             <div className="flex items-center">
               <button 
@@ -104,35 +104,38 @@ export function Header({
               )}
             </div>
 
-            {/* Actions - Very colorful and rounded icons */}
-            <div className="flex items-center gap-3">
+            {/* Actions - Small icons, color #84b4b5 */}
+            <div className="flex items-center gap-2">
               <button 
                 onClick={onUserClick}
-                className="hidden sm:block p-3 bg-[#E0F7FA]/30 hover:bg-[#E0F7FA]/60 text-[#2d3748] rounded-2xl transition-all duration-200 relative hover:scale-110 shadow-sm hover:shadow-md"
+                className="hidden sm:flex p-2 items-center justify-center rounded-xl transition-all duration-200 relative hover:opacity-80"
+                style={{ color: '#84b4b5' }}
               >
-                <User className="h-6 w-6" />
+                <User className="h-4 w-4" strokeWidth={2} />
                 {user && (
-                  <span className="absolute top-0.5 right-0.5 h-3.5 w-3.5 bg-[#4ade80] rounded-full border-2 border-white shadow-md" />
+                  <span className="absolute top-0.5 right-0.5 h-2 w-2 bg-[#4ade80] rounded-full border border-white" />
                 )}
               </button>
               <button 
                 onClick={onWishlistClick}
-                className="relative hidden sm:block p-3 bg-[#FFC1CC]/30 hover:bg-[#FFC1CC]/50 text-[#FF6B9D] rounded-2xl transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md"
+                className="relative hidden sm:flex p-2 items-center justify-center rounded-xl transition-all duration-200 hover:opacity-80"
+                style={{ color: '#84b4b5' }}
               >
-                <Heart className="h-6 w-6" />
+                <Heart className="h-4 w-4" strokeWidth={2} />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-gradient-to-br from-[#FF6B9D] to-[#FF4D6D] text-white text-xs rounded-full h-7 w-7 flex items-center justify-center font-bold shadow-xl border-2 border-white">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[1rem] h-4 px-0.5 text-white text-[10px] rounded-full flex items-center justify-center font-bold border border-white" style={{ backgroundColor: '#84b4b5' }}>
                     {wishlistCount}
                   </span>
                 )}
               </button>
               <button 
                 onClick={onCartClick}
-                className="relative p-3 bg-[#FFF9C4]/40 hover:bg-[#FFF9C4]/60 text-[#2d3748] rounded-2xl transition-all duration-200 hover:scale-110 shadow-sm hover:shadow-md"
+                className="relative flex p-2 items-center justify-center rounded-xl transition-all duration-200 hover:opacity-80"
+                style={{ color: '#84b4b5' }}
               >
-                <ShoppingCart className="h-6 w-6" />
+                <ShoppingCart className="h-4 w-4" strokeWidth={2} />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-gradient-to-br from-[#FFC1CC] to-[#FFB3C1] text-white text-xs rounded-full h-7 w-7 flex items-center justify-center font-bold shadow-xl border-2 border-white">
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[1rem] h-4 px-0.5 text-white text-[10px] rounded-full flex items-center justify-center font-bold border border-white" style={{ backgroundColor: '#84b4b5' }}>
                     {cartCount}
                   </span>
                 )}
@@ -168,7 +171,7 @@ export function Header({
           
           {/* Mobile horizontal scroll fallback - More rounded, playful */}
           <nav className="flex lg:hidden items-center gap-2 overflow-x-auto scrollbar-hide py-3">
-            {['Nuevos', 'Ropa', 'Accesorios', 'Habitación', 'Textil', 'Juguetes', 'Cuidado', 'Paseo', 'Outlet'].map((item) => (
+            {['Nuevos', 'Ropa', 'Accesorios', 'Habitación', 'Textil', 'Juguetes', 'Cuidado', 'Paseo', 'Tienda'].map((item) => (
               <button 
                 key={item} 
                 onClick={() => {

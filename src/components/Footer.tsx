@@ -1,62 +1,11 @@
-import { Heart, Mail, Phone, MapPin, Instagram, Facebook, Twitter, Youtube, CreditCard, Shield, Truck, Award, RefreshCw } from 'lucide-react';
+import { Heart, Mail, Phone, MapPin, Instagram, Facebook, Twitter, Youtube, CreditCard, Shield, Award } from 'lucide-react';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
 
   return (
     <footer>
-      {/* Trust Badges Bar - Pastel Theme */}
-      <div className="bg-white border-b border-[#E2E8F0]/50">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-12">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            {/* Envío gratis */}
-            <div className="flex items-center gap-4 group">
-              <div className="w-14 h-14 bg-[#E0F7FA]/50 hover:bg-[#E0F7FA] rounded-3xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 shadow-sm group-hover:shadow-md">
-                <Truck className="h-7 w-7 text-[#2d3748]" />
-              </div>
-              <div>
-                <div className="text-base font-semibold text-[#2d3748]">Envío gratis</div>
-                <div className="text-sm text-[#718096]">En pedidos +50€</div>
-              </div>
-            </div>
-
-            {/* Pago seguro */}
-            <div className="flex items-center gap-4 group">
-              <div className="w-14 h-14 bg-[#FFC1CC]/30 hover:bg-[#FFC1CC]/50 rounded-3xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 shadow-sm group-hover:shadow-md">
-                <Shield className="h-7 w-7 text-[#2d3748]" />
-              </div>
-              <div>
-                <div className="text-base font-semibold text-[#2d3748]">Pago seguro</div>
-                <div className="text-sm text-[#718096]">100% protegido</div>
-              </div>
-            </div>
-
-            {/* Devolución */}
-            <div className="flex items-center gap-4 group">
-              <div className="w-14 h-14 bg-[#FFF9C4]/50 hover:bg-[#FFF9C4] rounded-3xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 shadow-sm group-hover:shadow-md">
-                <RefreshCw className="h-7 w-7 text-[#2d3748]" />
-              </div>
-              <div>
-                <div className="text-base font-semibold text-[#2d3748]">Devolución</div>
-                <div className="text-sm text-[#718096]">30 días gratis</div>
-              </div>
-            </div>
-
-            {/* Garantía */}
-            <div className="flex items-center gap-4 group">
-              <div className="w-14 h-14 bg-[#E1BEE7]/40 hover:bg-[#E1BEE7]/60 rounded-3xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 shadow-sm group-hover:shadow-md">
-                <Award className="h-7 w-7 text-[#2d3748]" />
-              </div>
-              <div>
-                <div className="text-base font-semibold text-[#2d3748]">Garantía</div>
-                <div className="text-sm text-[#718096]">Calidad premium</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Footer - Teal/Petrol blue background like Rabildoz */}
+      {/* Main Footer - Teal/Petrol blue background */}
       <div style={{ backgroundColor: '#008080' }}>
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">

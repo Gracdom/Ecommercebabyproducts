@@ -7,6 +7,10 @@ export interface Product {
   originalPrice?: number;
   image: string;
   category: string;
+  /** Subcategoría (ej. desde ebaby_productos) */
+  subCategory?: string;
+  /** Marca del producto */
+  brand?: string;
   badge?: string;
   rating?: number;
   reviews?: number;
@@ -25,6 +29,8 @@ export interface Product {
   highlightFeatures?: string[];
   images?: string[];
   inStock?: boolean;
+  /** Stock quantity (if available from catalog) */
+  stock?: number;
   variants?: ProductVariant[];
 
   /** Analytics and ML Score (optional) */

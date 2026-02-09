@@ -17,7 +17,7 @@ const mockPurchases: Purchase[] = [
     customerName: 'María L.',
     location: 'Madrid',
     productName: 'Body de algodón orgánico',
-    productImage: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400',
+    productImage: '/img/5.webp',
     timeAgo: 'hace 3 minutos'
   },
   {
@@ -25,7 +25,7 @@ const mockPurchases: Purchase[] = [
     customerName: 'Carmen R.',
     location: 'Barcelona',
     productName: 'Manta de punto suave',
-    productImage: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400',
+    productImage: '/img/6.webp',
     timeAgo: 'hace 8 minutos'
   },
   {
@@ -33,7 +33,7 @@ const mockPurchases: Purchase[] = [
     customerName: 'Laura S.',
     location: 'Valencia',
     productName: 'Set de baberos premium',
-    productImage: 'https://images.unsplash.com/photo-1519689680058-324335c77eba?w=400',
+    productImage: '/img/7.webp',
     timeAgo: 'hace 12 minutos'
   },
   {
@@ -41,7 +41,7 @@ const mockPurchases: Purchase[] = [
     customerName: 'Ana M.',
     location: 'Sevilla',
     productName: 'Pijama de estrellas',
-    productImage: 'https://images.unsplash.com/photo-1602345397613-0934a8812d90?w=400',
+    productImage: '/img/8.webp',
     timeAgo: 'hace 15 minutos'
   },
   {
@@ -49,7 +49,7 @@ const mockPurchases: Purchase[] = [
     customerName: 'Isabel G.',
     location: 'Málaga',
     productName: 'Gorro de punto bebé',
-    productImage: 'https://images.unsplash.com/photo-1533062618053-d51e617307ec?w=400',
+    productImage: '/img/9.webp',
     timeAgo: 'hace 18 minutos'
   },
   {
@@ -57,7 +57,7 @@ const mockPurchases: Purchase[] = [
     customerName: 'Elena P.',
     location: 'Bilbao',
     productName: 'Zapatitos de algodón',
-    productImage: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400',
+    productImage: '/img/10.webp',
     timeAgo: 'hace 22 minutos'
   }
 ];

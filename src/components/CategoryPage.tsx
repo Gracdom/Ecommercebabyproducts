@@ -1,13 +1,14 @@
 import { useState, useMemo, useEffect } from 'react';
-import { X, SlidersHorizontal, Grid3x3, List, Star, Heart, ShoppingCart, Eye, TrendingUp, Sparkles, ChevronDown } from 'lucide-react';
+import { SlidersHorizontal, Grid3x3, List, Star, ChevronDown, Sparkles } from 'lucide-react';
 import { Product } from '../types';
-import { InfiniteProductGrid } from './InfiniteProductGrid';
-import { ProductBadge } from './ProductBadge';
-
-const BATCH_SIZE = 20;
+import { ProductGrid } from './ProductGrid';
+import type { CategoryInfo } from '@/utils/ebaby/catalog';
+import { fetchCatalogProducts, fetchProductsByCategory } from '@/utils/ebaby/catalog';
 
 interface CategoryPageProps {
   products: Product[];
+  /** Categorías del catálogo (desde fetchCategories) para rellenar filtros aunque products esté vacío */
+  categoryOptions?: CategoryInfo[] | null;
   selectedCategory?: string | null;
   selectedSubCategory?: string | null;
   onAddToCart: (product: Product) => void;
@@ -18,22 +19,88 @@ interface CategoryPageProps {
   isInWishlist: (productId: number) => boolean;
 }
 
-export function CategoryPage({ products, selectedCategory, selectedSubCategory, onAddToCart, onBack, onProductClick, onQuickView, onToggleWishlist, isInWishlist }: CategoryPageProps) {
+export function CategoryPage({ products, categoryOptions, selectedCategory, selectedSubCategory, onAddToCart, onBack, onProductClick, onQuickView, onToggleWishlist, isInWishlist }: CategoryPageProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('ml_score');
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const [selectedSubCategories, setSelectedSubCategories] = useState<string[]>([]);
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [minRating, setMinRating] = useState<number | null>(null);
+  const [subcategoriesOpen, setSubcategoriesOpen] = useState(false);
+  const [localProducts, setLocalProducts] = useState<Product[]>([]);
+  const [localLoading, setLocalLoading] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  const categories = useMemo(() => Array.from(new Set(products.map(p => p.category))).sort(), [products]);
+  // Si App no pasa productos, cargar directamente desde ebaby_productos
+  useEffect(() => {
+    if (products.length > 0) {
+      setLocalProducts([]);
+      setLocalLoading(false);
+      setLoadError(null);
+      return;
+    }
+    let cancelled = false;
+    setLocalLoading(true);
+    setLoadError(null);
+    const sub = selectedSubCategory && selectedSubCategory !== 'null' ? selectedSubCategory : undefined;
+    const load = selectedCategory
+      ? fetchProductsByCategory(selectedCategory, sub)
+      : fetchCatalogProducts();
+    load
+      .then((list) => {
+        if (!cancelled) {
+          setLocalProducts(Array.isArray(list) ? list : []);
+          setLoadError(null);
+        }
+      })
+      .catch((err) => {
+        console.error('[CategoryPage] Error cargando ebaby_productos:', err);
+        if (!cancelled) {
+          setLocalProducts([]);
+          setLoadError(err?.message || err?.error_description || String(err));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setLocalLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [products.length, selectedCategory, selectedSubCategory]);
 
-  // Calculate price range from products
+  const productsToUse = products.length > 0 ? products : localProducts;
+
+  // Categorías: usar catálogo si está disponible, si no derivar de products
+  const categories = useMemo(() => {
+    if (categoryOptions?.length) {
+      return categoryOptions.map(c => c.name).sort();
+    }
+    return Array.from(new Set(productsToUse.map(p => p.category).filter(Boolean))).sort();
+  }, [categoryOptions, productsToUse]);
+
+  // Subcategorías: usar catálogo si está disponible, si no derivar de products
+  const subcategories = useMemo(() => {
+    if (categoryOptions?.length) {
+      const names = categoryOptions.flatMap(c => (c.subcategories ?? []).map(s => s.name));
+      return Array.from(new Set(names)).sort();
+    }
+    return Array.from(new Set(productsToUse.map(p => p.subCategory).filter((s): s is string => Boolean(s)))).sort();
+  }, [categoryOptions, productsToUse]);
+
+  const brands = useMemo(() =>
+    Array.from(new Set(productsToUse.map(p => p.brand).filter((b): b is string => Boolean(b)))).sort(),
+    [productsToUse]
+  );
+
+  // Calculate price range from products (evitar NaN que filtraría todo)
   const priceBounds = useMemo(() => {
-    if (products.length === 0) return [0, 1000];
-    const prices = products.map(p => p.price);
-    return [Math.floor(Math.min(...prices)), Math.ceil(Math.max(...prices))];
-  }, [products]);
+    if (productsToUse.length === 0) return [0, 1000];
+    const prices = productsToUse.map(p => Number(p.price)).filter(n => !isNaN(n) && isFinite(n));
+    if (prices.length === 0) return [0, 1000];
+    const min = Math.floor(Math.min(...prices));
+    const max = Math.ceil(Math.max(...prices));
+    return isFinite(min) && isFinite(max) ? [min, max] : [0, 1000];
+  }, [productsToUse]);
 
   // Initialize price range with actual bounds
   useEffect(() => {
@@ -43,9 +110,16 @@ export function CategoryPage({ products, selectedCategory, selectedSubCategory, 
   }, [priceBounds]);
 
   const filteredProducts = useMemo(() => {
-    let filtered = products
+    let filtered = productsToUse
       .filter(p => selectedCategories.length === 0 || selectedCategories.includes(p.category))
-      .filter(p => p.price >= priceRange[0] && p.price <= priceRange[1])
+      .filter(p => selectedSubCategories.length === 0 || (p.subCategory && selectedSubCategories.includes(p.subCategory)))
+      .filter(p => selectedBrands.length === 0 || (p.brand && selectedBrands.includes(p.brand)))
+      .filter(p => {
+        const price = Number(p.price);
+        if (isNaN(price)) return true;
+        return price >= priceRange[0] && price <= priceRange[1];
+      })
+      .filter(p => minRating == null || (p.rating ?? 0) >= minRating)
       .slice();
 
     // Sort products
@@ -67,14 +141,31 @@ export function CategoryPage({ products, selectedCategory, selectedSubCategory, 
     });
 
     return filtered;
-  }, [products, selectedCategories, priceRange, sortBy]);
+  }, [productsToUse, selectedCategories, selectedSubCategories, selectedBrands, priceRange, minRating, sortBy]);
+
+  const activeFilterCount = selectedCategories.length + selectedSubCategories.length + selectedBrands.length + (minRating != null ? 1 : 0);
 
   const toggleCategory = (category: string) => {
     setSelectedCategories(prev =>
-      prev.includes(category)
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
+      prev.includes(category) ? prev.filter(c => c !== category) : [...prev, category]
     );
+  };
+  const toggleSubCategory = (sub: string) => {
+    setSelectedSubCategories(prev =>
+      prev.includes(sub) ? prev.filter(s => s !== sub) : [...prev, sub]
+    );
+  };
+  const toggleBrand = (brand: string) => {
+    setSelectedBrands(prev =>
+      prev.includes(brand) ? prev.filter(b => b !== brand) : [...prev, brand]
+    );
+  };
+  const clearFilters = () => {
+    setSelectedCategories([]);
+    setSelectedSubCategories([]);
+    setSelectedBrands([]);
+    setMinRating(null);
+    setPriceRange(priceBounds);
   };
 
   const getBadgeColor = (tag?: string) => {
@@ -141,9 +232,9 @@ export function CategoryPage({ products, selectedCategory, selectedSubCategory, 
             >
               <SlidersHorizontal className="h-4 w-4" />
               <span className="text-sm font-medium">Filtros</span>
-              {selectedCategories.length > 0 && (
+              {activeFilterCount > 0 && (
                 <span className="bg-primary text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {selectedCategories.length}
+                  {activeFilterCount}
                 </span>
               )}
             </button>
@@ -165,12 +256,13 @@ export function CategoryPage({ products, selectedCategory, selectedSubCategory, 
             </div>
 
             {/* View Mode */}
-            <div className="ml-auto flex items-center gap-2 bg-white border border-stone-300 rounded-xl p-1">
+            <div className="flex items-center gap-2 bg-white border border-stone-300 rounded-xl p-1">
               <button
                 onClick={() => setViewMode('grid')}
                 className={`p-2 rounded-lg transition-all ${
                   viewMode === 'grid' ? 'bg-stone-900 text-white' : 'text-stone-600 hover:text-stone-900'
                 }`}
+                title="Vista cuadrícula"
               >
                 <Grid3x3 className="h-4 w-4" />
               </button>
@@ -179,6 +271,7 @@ export function CategoryPage({ products, selectedCategory, selectedSubCategory, 
                 className={`p-2 rounded-lg transition-all ${
                   viewMode === 'list' ? 'bg-stone-900 text-white' : 'text-stone-600 hover:text-stone-900'
                 }`}
+                title="Vista lista"
               >
                 <List className="h-4 w-4" />
               </button>
@@ -192,10 +285,19 @@ export function CategoryPage({ products, selectedCategory, selectedSubCategory, 
           {/* Sidebar Filters */}
           <aside className={`${isFilterOpen ? 'block' : 'hidden'} lg:block w-full lg:w-64 flex-shrink-0`}>
             <div className="sticky top-24 space-y-6">
-              {/* Categories */}
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={clearFilters}
+                  className="w-full py-2.5 text-sm font-medium text-primary hover:underline"
+                >
+                  Limpiar filtros
+                </button>
+              )}
+
+              {/* Categorías */}
               <div className="bg-white rounded-2xl p-6 border border-stone-200">
                 <h3 className="text-lg font-medium text-stone-900 mb-4">Categorías</h3>
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-48 overflow-y-auto">
                   {categories.map((category) => (
                     <label key={category} className="flex items-center gap-3 cursor-pointer group">
                       <input
@@ -204,70 +306,128 @@ export function CategoryPage({ products, selectedCategory, selectedSubCategory, 
                         onChange={() => toggleCategory(category)}
                         className="w-5 h-5 rounded border-stone-300 text-primary focus:ring-primary"
                       />
-                      <span className="text-sm text-stone-700 group-hover:text-stone-900">
-                        {category}
-                      </span>
+                      <span className="text-sm text-stone-700 group-hover:text-stone-900">{category}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
-              {/* Price Range */}
+              {/* Subcategorías (cerrado por defecto, el usuario lo despliega) */}
+              {subcategories.length > 0 && (
+                <div className="bg-white rounded-2xl p-6 border border-stone-200">
+                  <button
+                    type="button"
+                    onClick={() => setSubcategoriesOpen((prev) => !prev)}
+                    className="flex w-full items-center justify-between text-left"
+                    aria-expanded={subcategoriesOpen}
+                  >
+                    <h3 className="text-lg font-medium text-stone-900">Subcategorías</h3>
+                    <ChevronDown
+                      className={`h-5 w-5 text-stone-500 transition-transform ${subcategoriesOpen ? '' : '-rotate-90'}`}
+                    />
+                  </button>
+                  {subcategoriesOpen && (
+                    <div className="mt-4 space-y-3 max-h-48 overflow-y-auto">
+                      {subcategories.map((sub) => (
+                        <label key={sub} className="flex items-center gap-3 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            checked={selectedSubCategories.includes(sub)}
+                            onChange={() => toggleSubCategory(sub)}
+                            className="w-5 h-5 rounded border-stone-300 text-primary focus:ring-primary"
+                          />
+                          <span className="text-sm text-stone-700 group-hover:text-stone-900">{sub}</span>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Marca */}
+              {brands.length > 0 && (
+                <div className="bg-white rounded-2xl p-6 border border-stone-200">
+                  <h3 className="text-lg font-medium text-stone-900 mb-4">Marca</h3>
+                  <div className="space-y-3 max-h-48 overflow-y-auto">
+                    {brands.map((brand) => (
+                      <label key={brand} className="flex items-center gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={selectedBrands.includes(brand)}
+                          onChange={() => toggleBrand(brand)}
+                          className="w-5 h-5 rounded border-stone-300 text-primary focus:ring-primary"
+                        />
+                        <span className="text-sm text-stone-700 group-hover:text-stone-900">{brand}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Rango de precio */}
               <div className="bg-white rounded-2xl p-6 border border-stone-200">
                 <h3 className="text-lg font-medium text-stone-900 mb-4">Rango de precio</h3>
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-sm text-stone-600 mb-2">
-                      <span>€{priceRange[0]}</span>
-                      <span>€{priceRange[1]}</span>
+                      <span>€{priceRange[0].toFixed(2)}</span>
+                      <span>€{priceRange[1].toFixed(2)}</span>
                     </div>
                     <input
                       type="range"
                       min={priceBounds[0]}
                       max={priceBounds[1]}
                       value={priceRange[0]}
-                      onChange={(e) => setPriceRange([parseInt(e.target.value), priceRange[1]])}
+                      onChange={(e) => setPriceRange([Number(e.target.value), priceRange[1]])}
                       className="w-full accent-primary"
                     />
-                  <input
-                    type="range"
+                    <input
+                      type="range"
                       min={priceBounds[0]}
                       max={priceBounds[1]}
-                    value={priceRange[1]}
-                      onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                    className="w-full accent-primary"
-                  />
+                      value={priceRange[1]}
+                      onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value)])}
+                      className="w-full accent-primary"
+                    />
                   </div>
                   <div className="flex gap-2">
                     <input
                       type="number"
                       min={priceBounds[0]}
                       max={priceBounds[1]}
+                      step={0.01}
                       value={priceRange[0]}
-                      onChange={(e) => setPriceRange([parseInt(e.target.value) || 0, priceRange[1]])}
+                      onChange={(e) => setPriceRange([Number(e.target.value) || 0, priceRange[1]])}
                       className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm"
-                      placeholder="Min"
+                      placeholder="Mín"
                     />
                     <input
                       type="number"
                       min={priceBounds[0]}
                       max={priceBounds[1]}
+                      step={0.01}
                       value={priceRange[1]}
-                      onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value) || priceBounds[1]])}
+                      onChange={(e) => setPriceRange([priceRange[0], Number(e.target.value) || priceBounds[1]])}
                       className="w-full px-3 py-2 border border-stone-300 rounded-lg text-sm"
-                      placeholder="Max"
+                      placeholder="Máx"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Rating Filter */}
+              {/* Valoración */}
               <div className="bg-white rounded-2xl p-6 border border-stone-200">
                 <h3 className="text-lg font-medium text-stone-900 mb-4">Valoración</h3>
                 <div className="space-y-3">
                   {[5, 4, 3].map((rating) => (
                     <label key={rating} className="flex items-center gap-2 cursor-pointer group">
-                      <input type="checkbox" className="w-5 h-5 rounded border-stone-300 text-primary focus:ring-primary" />
+                      <input
+                        type="radio"
+                        name="minRating"
+                        checked={minRating === rating}
+                        onChange={() => setMinRating(prev => (prev === rating ? null : rating))}
+                        className="w-5 h-5 rounded border-stone-300 text-primary focus:ring-primary"
+                      />
                       <div className="flex items-center gap-1">
                         {[...Array(5)].map((_, i) => (
                           <Star
@@ -279,26 +439,56 @@ export function CategoryPage({ products, selectedCategory, selectedSubCategory, 
                       <span className="text-sm text-stone-600">y más</span>
                     </label>
                   ))}
+                  <label className="flex items-center gap-2 cursor-pointer group">
+                    <input
+                      type="radio"
+                      name="minRating"
+                      checked={minRating === null}
+                      onChange={() => setMinRating(null)}
+                      className="w-5 h-5 rounded border-stone-300 text-primary focus:ring-primary"
+                    />
+                    <span className="text-sm text-stone-600">Cualquier valoración</span>
+                  </label>
                 </div>
               </div>
             </div>
           </aside>
 
-          {/* Products Grid */}
+          {/* ProductGrid: todos los productos filtrados sin paginación */}
           <main className="flex-1">
-            <InfiniteProductGrid
-              initialProducts={filteredProducts.slice(0, BATCH_SIZE)}
-              onAddToCart={onAddToCart}
-              onProductClick={onProductClick}
-              onQuickView={onQuickView}
-              onToggleWishlist={onToggleWishlist}
-              isInWishlist={isInWishlist}
-              filters={{
-                minPrice: priceRange[0],
-                maxPrice: priceRange[1],
-                category: selectedCategories.length === 1 ? selectedCategories[0] : undefined,
-              }}
-            />
+            {productsToUse.length === 0 && localLoading ? (
+              <div className="flex flex-col items-center justify-center py-24 text-stone-600">
+                <div className="h-10 w-10 border-2 border-primary border-t-transparent rounded-full animate-spin mb-4" />
+                <p className="text-lg font-medium">Cargando productos desde catálogo...</p>
+                <p className="text-sm mt-1">Tabla: ebaby_productos</p>
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-24 text-stone-600 max-w-md px-4 text-center">
+                <p className="text-lg font-medium">No se encontraron productos</p>
+                <p className="text-sm mt-1">
+                  {productsToUse.length === 0
+                    ? 'Comprueba la conexión y que la tabla ebaby_productos tenga datos.'
+                    : 'Prueba a cambiar o limpiar los filtros.'}
+                </p>
+                {loadError && (
+                  <p className="text-xs mt-3 text-red-600 font-mono bg-red-50 px-2 py-1 rounded">
+                    Error: {loadError}
+                  </p>
+                )}
+                {productsToUse.length === 0 && !loadError && (
+                  <p className="text-xs mt-2 text-stone-500">Abre la consola del navegador (F12) para más detalles.</p>
+                )}
+              </div>
+            ) : (
+              <ProductGrid
+                products={filteredProducts}
+                onAddToCart={onAddToCart}
+                onProductClick={onProductClick}
+                onQuickView={onQuickView}
+                onToggleWishlist={onToggleWishlist}
+                isInWishlist={isInWishlist}
+              />
+            )}
           </main>
         </div>
       </div>

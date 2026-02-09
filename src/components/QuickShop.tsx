@@ -26,11 +26,11 @@ export function QuickShop({
   // Use provided products or empty array (will be populated from App.tsx)
   const products = propProducts || [];
   
-  // Get top 4 products by ML score
-  const displayProducts = products
-    .filter(p => p.mlScore !== undefined && p.mlScore > 0)
-    .sort((a, b) => (b.mlScore ?? 0) - (a.mlScore ?? 0))
-    .slice(0, 4);
+  // Top 4: by ML score if available, otherwise first 4 products (ej. desde ebaby_productos)
+  const withScore = products.filter(p => p.mlScore !== undefined && p.mlScore > 0);
+  const displayProducts = withScore.length > 0
+    ? [...withScore].sort((a, b) => (b.mlScore ?? 0) - (a.mlScore ?? 0)).slice(0, 4)
+    : products.slice(0, 4);
 
   const getBadgeIcon = (mlScore?: number) => {
     if (!mlScore) return <Star className="h-3 w-3" />;

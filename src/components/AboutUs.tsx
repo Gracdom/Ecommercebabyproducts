@@ -30,7 +30,7 @@ export function AboutUs() {
           <div className="relative">
             <div className="aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl">
               <img
-                src="https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=800&q=80"
+                src="/img/5.webp"
                 alt="Sobre nosotros"
                 className="w-full h-full object-cover"
               />

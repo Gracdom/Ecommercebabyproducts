@@ -1,4 +1,4 @@
-import { Heart, TrendingUp, Flame, Eye } from 'lucide-react';
+import { Heart, TrendingUp, Flame, Eye, Star } from 'lucide-react';
 import { Product } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useProductAnalytics } from '../hooks/useProductAnalytics';
@@ -108,21 +108,37 @@ export function ProductGrid({
                   <h3 className="text-sm font-semibold text-[#2d3748] line-clamp-2 min-h-[2.5rem] leading-snug">
                     {product.name}
                   </h3>
+                  {/* Estrellas - mismo estilo que filtro Valoración, color amarillo */}
+                  <div className="flex items-center gap-1 text-[#FBBF24]" aria-hidden>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className="h-4 w-4 shrink-0 fill-current stroke-current"
+                      />
+                    ))}
+                  </div>
                   <div className="flex items-center justify-between">
                     <p className="text-lg font-bold text-[#2d3748]">€{product.price.toFixed(2)}</p>
                     {product.originalPrice && product.originalPrice > product.price && (
                       <span className="text-sm text-[#718096] line-through">€{product.originalPrice.toFixed(2)}</span>
                     )}
                   </div>
-                  
-                  {/* Add to Cart Button - Vibrant pink, extremely rounded */}
+                  {/* Stock */}
+                  <p className="text-xs text-[#718096]">
+                    {typeof product.stock === 'number' 
+                      ? `${product.stock} en stock` 
+                      : product.inStock 
+                        ? 'En stock' 
+                        : 'Agotado'}
+                  </p>
+                  {/* Add to Cart Button - smaller */}
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onAddToCart(product);
                     }}
-                    className="w-full bg-[#FFC1CC] hover:bg-[#FFB3C1] text-white font-bold py-4 px-6 rounded-full transition-all duration-200 hover:scale-[1.02] hover:shadow-xl shadow-lg flex items-center justify-center gap-2 text-lg"
-                    style={{ backgroundColor: '#FFC1CC', boxShadow: '0 8px 20px rgba(255, 193, 204, 0.3)' }}
+                    className="w-full bg-[#FFC1CC] hover:bg-[#FFB3C1] text-white font-semibold py-2.5 px-4 rounded-full transition-all duration-200 hover:scale-[1.02] hover:shadow-lg flex items-center justify-center gap-1.5 text-sm"
+                    style={{ backgroundColor: '#FFC1CC', boxShadow: '0 4px 12px rgba(255, 193, 204, 0.3)' }}
                   >
                     <span>Añadir al carrito</span>
                   </button>

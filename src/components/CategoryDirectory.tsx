@@ -5,57 +5,12 @@ interface CategoryDirectoryProps {
 }
 
 const categories = [
-  {
-    id: 1,
-    name: 'Juguetes sensoriales',
-    description: 'Desarrollo y diversión',
-    image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=600&q=80',
-    count: '147 productos',
-    badge: 'Popular',
-    gradient: 'from-[#83b5b6]/90 to-[#7a8f85]/90', // Sage
-  },
-  {
-    id: 2,
-    name: 'Textiles orgánicos',
-    description: 'Suavidad premium',
-    image: 'https://images.unsplash.com/photo-1519689373023-dd07c7988603?w=600&q=80',
-    count: '89 productos',
-    badge: 'Nuevo',
-    gradient: 'from-[#c5a5a5]/90 to-[#b08e8e]/90', // Dusty Pink / Mauve
-  },
-  {
-    id: 3,
-    name: 'Ropa de bebé',
-    description: 'Algodón 100% orgánico',
-    image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600&q=80',
-    count: '234 productos',
-    badge: 'Más vendido',
-    gradient: 'from-[#9d8e80]/90 to-[#8d7f71]/90', // Taupe / Brown
-  },
-  {
-    id: 4,
-    name: 'Accesorios',
-    description: 'Todo lo esencial',
-    image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=600&q=80',
-    count: '156 productos',
-    gradient: 'from-[#9cadb3]/90 to-[#8a9ca3]/90', // Dusty Blue / Slate
-  },
-  {
-    id: 5,
-    name: 'Mobiliario',
-    description: 'Diseño y seguridad',
-    image: 'https://images.unsplash.com/photo-1519689373023-dd07c7988603?w=600&q=80',
-    count: '67 productos',
-    gradient: 'from-[#b0a396]/90 to-[#a09386]/90', // Warm Beige
-  },
-  {
-    id: 6,
-    name: 'Alimentación',
-    description: 'Vajillas y biberones',
-    image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=600&q=80',
-    count: '98 productos',
-    gradient: 'from-[#83b5b6]/80 to-[#9d8e80]/80', // Light Sage Mix
-  },
+  { id: 1, name: 'Juguetes sensoriales', description: 'Desarrollo y diversión', image: '/img/5.webp', count: '147 productos', badge: 'Popular', gradient: 'from-[#83b5b6]/90 to-[#7a8f85]/90' },
+  { id: 2, name: 'Textiles orgánicos', description: 'Suavidad premium', image: '/img/6.webp', count: '89 productos', badge: 'Nuevo', gradient: 'from-[#c5a5a5]/90 to-[#b08e8e]/90' },
+  { id: 3, name: 'Ropa de bebé', description: 'Algodón 100% orgánico', image: '/img/7.webp', count: '234 productos', badge: 'Más vendido', gradient: 'from-[#9d8e80]/90 to-[#8d7f71]/90' },
+  { id: 4, name: 'Accesorios', description: 'Todo lo esencial', image: '/img/8.webp', count: '156 productos', gradient: 'from-[#9cadb3]/90 to-[#8a9ca3]/90' },
+  { id: 5, name: 'Mobiliario', description: 'Diseño y seguridad', image: '/img/9.webp', count: '67 productos', gradient: 'from-[#b0a396]/90 to-[#a09386]/90' },
+  { id: 6, name: 'Alimentación', description: 'Vajillas y biberones', image: '/img/10.webp', count: '98 productos', gradient: 'from-[#83b5b6]/80 to-[#9d8e80]/80' },
 ];
 
 export function CategoryDirectory({ onCategoryClick }: CategoryDirectoryProps) {

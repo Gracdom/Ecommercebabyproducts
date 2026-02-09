@@ -26,7 +26,6 @@ import { CategoryCarousel } from './components/CategoryCarousel';
 import { FeaturesSection } from './components/FeaturesSection';
 import { Testimonials } from './components/Testimonials';
 import { InstagramFeed } from './components/InstagramFeed';
-import { CollectionShowcase } from './components/CollectionShowcase';
 import { GenderPredictor } from './components/GenderPredictor';
 import { GenderPredictorBanner } from './components/GenderPredictorBanner';
 import { BigBuyAdmin } from './components/BigBuyAdmin';
@@ -64,94 +63,53 @@ export default function App() {
   // Auth integration
   const { user, isAdmin, loading: authLoading } = useAuth();
 
-  // Load catalog from ebaby_productos table (only when no category is selected)
-  useEffect(() => {
-    // Skip if a category is selected (handled by the category effect)
-    if (selectedCategory) return;
-    
-    let cancelled = false;
-    fetchCatalogProducts()
-      .then((products) => {
-        if (!cancelled) {
-          setAllProducts(products);
-        }
-      })
-      .catch((err) => {
-        console.error(err);
-        toast.error('No se pudo cargar el catálogo', {
-          description: err?.message || 'Error al cargar productos desde la base de datos',
-          duration: 5000,
-        });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedCategory]);
-
-  // Load categories from ebaby_productos
+  // Load categories from ebaby_productos (once on mount)
   useEffect(() => {
     let cancelled = false;
     fetchCategories()
       .then((cats) => {
-        if (!cancelled) {
-          setCategories(cats);
-        }
+        if (!cancelled) setCategories(cats);
       })
-      .catch((err) => {
-        console.error('Error loading categories:', err);
-        // Don't show error toast for categories, just log it
-      });
-    return () => {
-      cancelled = true;
-    };
+      .catch((err) => console.error('Error loading categories:', err));
+    return () => { cancelled = true; };
   }, []);
 
-  // Listen for category selection events
+  // Single source of truth: load products from ebaby_productos
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = selectedCategory
+      ? fetchProductsByCategory(selectedCategory, selectedSubCategory || undefined)
+      : fetchCatalogProducts();
+
+    load
+      .then((products) => {
+        if (!cancelled) setAllProducts(Array.isArray(products) ? products : []);
+      })
+      .catch((err) => {
+        console.error('Error loading products from ebaby_productos:', err);
+        if (!cancelled) {
+          setAllProducts([]);
+          toast.error('No se pudieron cargar los productos', {
+            description: err?.message || 'Revisa la conexión y la tabla ebaby_productos.',
+            duration: 5000,
+          });
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [selectedCategory, selectedSubCategory]);
+
+  // Listen for category selection from header
   useEffect(() => {
     const handleCategorySelected = (event: CustomEvent<{ categoryName: string; subcategoryName?: string }>) => {
       setSelectedCategory(event.detail.categoryName);
       setSelectedSubCategory(event.detail.subcategoryName || null);
       setCurrentView('category');
     };
-
     window.addEventListener('categorySelected', handleCategorySelected as EventListener);
-    return () => {
-      window.removeEventListener('categorySelected', handleCategorySelected as EventListener);
-    };
+    return () => window.removeEventListener('categorySelected', handleCategorySelected as EventListener);
   }, []);
-
-  // Load products when category changes
-  useEffect(() => {
-    let cancelled = false;
-    
-    if (selectedCategory) {
-      // Load products filtered by category
-      fetchProductsByCategory(selectedCategory, selectedSubCategory || undefined)
-        .then((products) => {
-          if (!cancelled) {
-            setAllProducts(products);
-          }
-        })
-        .catch((err) => {
-          console.error('Error loading products by category:', err);
-        });
-    } else {
-      // Load all products when no category is selected
-      fetchCatalogProducts()
-        .then((products) => {
-          if (!cancelled) {
-            setAllProducts(products);
-          }
-        })
-        .catch((err) => {
-          console.error('Error loading all products:', err);
-        });
-    }
-    
-    return () => {
-      cancelled = true;
-    };
-  }, [selectedCategory, selectedSubCategory]);
 
   // Hash-based navigation (/#admin, #product/..., #category, etc.)
   useEffect(() => {
@@ -163,7 +121,7 @@ export default function App() {
       const storedSubCategory = sessionStorage.getItem('selectedSubCategory');
       if (storedCategory && hash === '#category') {
         setSelectedCategory(storedCategory);
-        setSelectedSubCategory(storedSubCategory);
+        setSelectedSubCategory(storedSubCategory && storedSubCategory !== 'null' ? storedSubCategory : null);
       }
       
       // Admin route
@@ -376,11 +334,19 @@ export default function App() {
           <Hero 
             onGenderPredictorClick={() => setCurrentView('gender-predictor')}
             onExploreClick={() => {
+              sessionStorage.removeItem('selectedCategory');
+              sessionStorage.removeItem('selectedSubCategory');
+              setSelectedCategory(null);
+              setSelectedSubCategory(null);
               window.history.pushState({ view: 'category' }, '', '#category');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             onOffersClick={() => {
+              sessionStorage.removeItem('selectedCategory');
+              sessionStorage.removeItem('selectedSubCategory');
+              setSelectedCategory(null);
+              setSelectedSubCategory(null);
               window.history.pushState({ view: 'category' }, '', '#category');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -401,19 +367,10 @@ export default function App() {
             onToggleWishlist={addToWishlist}
             isInWishlist={isInWishlist}
             onViewAllClick={() => {
-              window.history.pushState({ view: 'category' }, '', '#category');
-              setCurrentView('category');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          />
-          <CollectionShowcase 
-            onCollectionClick={(collectionId) => {
-              window.history.pushState({ view: 'category' }, '', '#category');
-              setCurrentView('category');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-              // Could filter by collection in the future
-            }}
-            onViewAllClick={() => {
+              sessionStorage.removeItem('selectedCategory');
+              sessionStorage.removeItem('selectedSubCategory');
+              setSelectedCategory(null);
+              setSelectedSubCategory(null);
               window.history.pushState({ view: 'category' }, '', '#category');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -435,6 +392,10 @@ export default function App() {
             onToggleWishlist={addToWishlist}
             isInWishlist={isInWishlist}
             onViewAllClick={() => {
+              sessionStorage.removeItem('selectedCategory');
+              sessionStorage.removeItem('selectedSubCategory');
+              setSelectedCategory(null);
+              setSelectedSubCategory(null);
               window.history.pushState({ view: 'category' }, '', '#category');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -455,6 +416,7 @@ export default function App() {
         <>
           <CategoryPage 
             products={allProducts}
+            categoryOptions={categories}
             selectedCategory={selectedCategory}
             selectedSubCategory={selectedSubCategory}
             onAddToCart={addToCart}

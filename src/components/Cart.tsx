@@ -17,14 +17,14 @@ const recommendedProducts: Product[] = [
     id: 201,
     name: 'Cuddle cloth Animals',
     price: 16.95,
-    image: 'https://images.unsplash.com/photo-1518036456775-3016c91dd75d?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWJ5JTIwY3VkZGxlJTIwY2xvdGh8ZW58MXx8fHwxNzY2NjU4MjgxfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+    image: '/img/5.webp',
     category: 'Juguetes',
   },
   {
     id: 202,
     name: 'Organic cotton rattle',
     price: 14.95,
-    image: 'https://images.unsplash.com/photo-1640215775136-75e0c69df035?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiYWJ5JTIwb3JnYW5pYyUyMGNvdHRvbiUyMHRveXxlbnwxfHx8fDE3NjY2NTg5OTZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral',
+    image: '/img/6.webp',
     category: 'Juguetes',
   },
 ];

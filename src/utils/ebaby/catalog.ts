@@ -46,12 +46,14 @@ export async function fetchCatalogProducts(options?: {
   category?: string;
   subCategory?: string;
 }): Promise<Product[]> {
+  // Mostrar productos activos con stock > 0 o stock null (por si acaso)
   let query = supabase
     .from("ebaby_productos")
     .select("*")
-    .eq("is_active", true)
-    .not("stock", "is", null)
-    .gt("stock", 0);
+    .or("is_active.eq.true,is_active.is.null")
+    .or("stock.gt.0,stock.is.null")
+    .order("created_at", { ascending: false })
+    .range(0, 999); // Obtener hasta 1000 productos (límite por defecto de PostgREST)
 
   // Filtrar por categoría si se especifica
   if (options?.category) {
@@ -63,24 +65,28 @@ export async function fetchCatalogProducts(options?: {
     query = query.eq("sub_category", options.subCategory);
   }
 
-  // Ordenar por fecha de creación (más recientes primero)
-  query = query.order("created_at", { ascending: false });
-
   const { data, error } = await query;
 
-  if (error) throw error;
+  if (error) {
+    console.error("[ebaby/catalog] Error fetching products:", error);
+    throw error;
+  }
+
   const rows = (data ?? []) as unknown as EbabyProduct[];
 
   let products = rows.map((p) => {
-    // Usar main_image_url o image_path como imagen principal
-    const mainImage = p.main_image_url || p.image_path || "";
+    // Usar main_image_url o image_path como imagen principal (excluir 'NULL' string)
+    const mainImage = (p.main_image_url && p.main_image_url !== 'NULL') 
+      ? p.main_image_url 
+      : (p.image_path && p.image_path !== 'NULL' ? p.image_path : "");
     
-    // Combinar imágenes adicionales
-    const additionalImages = p.additional_images || [];
+    // Combinar imágenes adicionales (excluir 'NULL' strings)
+    const additionalImages = (p.additional_images || []).filter(img => img && img !== 'NULL');
     const allImages = mainImage ? [mainImage, ...additionalImages] : additionalImages;
 
-    // Convertir precio de céntimos a euros (si está en céntimos) o mantenerlo
-    const price = p.price ? (p.price > 1000 ? p.price / 100 : p.price) : 0;
+    // Precio en BD está en céntimos (según migración). Convertir a euros.
+    const rawPrice = p.price ? (typeof p.price === 'string' ? parseFloat(p.price) : Number(p.price)) : 0;
+    const price = rawPrice > 0 ? rawPrice / 100 : 0;
 
     // Convertir UUID a número para compatibilidad (usar hash simple del UUID)
     // Tomar los primeros 8 caracteres del UUID y convertirlos a número
@@ -94,6 +100,8 @@ export async function fetchCatalogProducts(options?: {
       originalPrice: undefined,
       image: mainImage || "",
       category: p.category || "Otros",
+      subCategory: p.sub_category || undefined,
+      brand: p.brand || undefined,
       description: p.description || undefined,
       images: allImages.length > 0 ? allImages : undefined,
       sku: p.source_url || p.id,
@@ -131,7 +139,7 @@ export async function fetchCategories(): Promise<CategoryInfo[]> {
     const { data: products, error: productsError } = await supabase
       .from("ebaby_productos")
       .select("category, sub_category")
-      .eq("is_active", true)
+      .or("is_active.eq.true,is_active.is.null")
       .not("stock", "is", null)
       .gt("stock", 0)
       .not("category", "is", null);

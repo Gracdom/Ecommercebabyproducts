@@ -6,41 +6,13 @@ interface CategoryCarouselProps {
 }
 
 const categories = [
-  {
-    id: 1,
-    name: 'Playtime Paradise',
-    image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400&q=80',
-  },
-  {
-    id: 2,
-    name: 'Tiny Trendsetters',
-    image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400&q=80',
-  },
-  {
-    id: 3,
-    name: 'Fairy Tale Bathland',
-    image: 'https://images.unsplash.com/photo-1519689373023-dd07c7988603?w=400&q=80',
-  },
-  {
-    id: 4,
-    name: 'Healthy Heroes',
-    image: 'https://images.unsplash.com/photo-1602345397613-0934a8812d90?w=400&q=80',
-  },
-  {
-    id: 5,
-    name: 'Tiny Trends',
-    image: 'https://images.unsplash.com/photo-1533062618053-d51e617307ec?w=400&q=80',
-  },
-  {
-    id: 6,
-    name: 'Sleepy Dreams',
-    image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=400&q=80',
-  },
-  {
-    id: 7,
-    name: 'Organic Essentials',
-    image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=400&q=80',
-  },
+  { id: 1, name: 'Juguetes sensoriales', image: '/img/5.webp' },
+  { id: 2, name: 'Lactancia y alimentación', image: '/img/6.webp' },
+  { id: 3, name: 'Ropa de bebé', image: '/img/7.webp' },
+  { id: 4, name: 'Higiene y cuidado', image: '/img/8.webp' },
+  { id: 5, name: 'Accesorios', image: '/img/9.webp' },
+  { id: 6, name: 'Dormitorio', image: '/img/10.webp' },
+  { id: 7, name: 'Textiles orgánicos', image: '/img/11.webp' },
 ];
 
 export function CategoryCarousel({ onCategoryClick }: CategoryCarouselProps) {
@@ -62,10 +34,10 @@ export function CategoryCarousel({ onCategoryClick }: CategoryCarouselProps) {
         {/* Header */}
         <div className="text-center mb-12">
           <div className="inline-block uppercase text-xs font-semibold tracking-wider text-[#FF6B9D] mb-3">
-            SHOP BY CATEGORIES
+            Compra por categorías
           </div>
           <h2 className="text-4xl sm:text-5xl font-bold text-[#2d3748] mb-2">
-            e-baby Specials
+            e-baby Especiales
           </h2>
         </div>
 
