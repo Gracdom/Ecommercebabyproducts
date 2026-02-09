@@ -17,7 +17,7 @@ const collections: Collection[] = [
     subtitle: 'Certificado GOTS',
     description: 'Algodón 100% orgánico para la piel más delicada',
     image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=800&q=80',
-    gradient: 'from-[#83b5b6]/90 to-[#7a8f85]/90',
+    gradient: 'from-[#C8E6C9]/90 to-[#A5D6A7]/90',
     itemCount: 45,
   },
   {
@@ -26,7 +26,7 @@ const collections: Collection[] = [
     subtitle: '0-3 meses',
     description: 'Todo lo esencial para los primeros días de tu bebé',
     image: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?w=800&q=80',
-    gradient: 'from-[#e6dfd9]/90 to-[#d6ccc2]/90',
+    gradient: 'from-[#E0F7FA]/90 to-[#B2EBF2]/90',
     itemCount: 38,
   },
   {
@@ -35,7 +35,7 @@ const collections: Collection[] = [
     subtitle: 'Montessori',
     description: 'Desarrollo sensorial y motor con juguetes de madera',
     image: 'https://images.unsplash.com/photo-1519689373023-dd07c7988603?w=800&q=80',
-    gradient: 'from-[#dcbaba]/90 to-[#c8a8a8]/90',
+    gradient: 'from-[#FFC1CC]/90 to-[#FFB3C1]/90',
     itemCount: 52,
   },
 ];
@@ -47,18 +47,18 @@ interface CollectionShowcaseProps {
 
 export function CollectionShowcase({ onCollectionClick, onViewAllClick }: CollectionShowcaseProps = {}) {
   return (
-    <section className="py-20 bg-gradient-to-b from-white to-stone-50">
+    <section className="py-32 lg:py-40 bg-white" style={{ backgroundColor: '#FFFFFF', paddingTop: '8rem', paddingBottom: '8rem' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-secondary/50 to-accent/50 px-4 py-2 rounded-full mb-6">
-            <Sparkles className="h-4 w-4 text-accent animate-pulse" />
-            <span className="text-sm text-stone-900">Colecciones destacadas</span>
+        <div className="text-center mb-20">
+          <div className="inline-flex items-center gap-3 bg-gradient-to-r from-[#FFC1CC]/30 via-[#E0F7FA]/30 to-[#FFF9C4]/30 px-6 py-3 rounded-full mb-8 border-2 border-[#FFC1CC]/40 shadow-sm">
+            <Sparkles className="h-5 w-5 text-[#FF6B9D] fill-[#FF6B9D] animate-pulse" />
+            <span className="text-sm font-semibold text-[#2d3748]">Colecciones destacadas</span>
           </div>
-          <h2 className="text-4xl sm:text-5xl text-stone-900 mb-4">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl text-[#2d3748] mb-6 font-bold leading-tight">
             Explora nuestras colecciones
           </h2>
-          <p className="text-lg text-stone-600 max-w-2xl mx-auto">
+          <p className="text-xl text-[#718096] max-w-3xl mx-auto leading-relaxed">
             Cuidadosamente curadas para cada etapa del crecimiento
           </p>
         </div>
@@ -103,11 +103,11 @@ export function CollectionShowcase({ onCollectionClick, onViewAllClick }: Collec
                     onCollectionClick(collections[0].id);
                   }
                 }}
-                className="inline-flex items-center gap-3 bg-white text-stone-900 px-8 py-4 rounded-xl hover:bg-stone-100 transition-all duration-300 group-hover:shadow-2xl"
+                className="inline-flex items-center gap-3 bg-white text-[#2d3748] px-10 py-5 rounded-3xl hover:bg-[#FFC1CC]/10 transition-all duration-300 group-hover:shadow-2xl font-bold text-lg"
               >
-                <span className="font-medium">Explorar colección</span>
-                <div className="w-6 h-6 bg-stone-900 text-white rounded-full flex items-center justify-center transition-transform group-hover:translate-x-1">
-                  <ArrowRight className="h-4 w-4" />
+                <span>Explorar colección</span>
+                <div className="w-8 h-8 bg-gradient-to-r from-[#FFC1CC] to-[#FFB3C1] text-white rounded-full flex items-center justify-center transition-transform group-hover:translate-x-2">
+                  <ArrowRight className="h-5 w-5" />
                 </div>
               </button>
             </div>
@@ -175,15 +175,15 @@ export function CollectionShowcase({ onCollectionClick, onViewAllClick }: Collec
         </div>
 
         {/* Bottom CTA */}
-        <div className="mt-12 text-center">
+        <div className="mt-16 text-center">
           <button 
             onClick={onViewAllClick}
-            className="group relative px-8 py-4 bg-gradient-to-r from-stone-900 to-stone-800 text-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105"
+            className="group relative px-10 py-5 bg-gradient-to-r from-[#FFC1CC] to-[#FFB3C1] text-white rounded-3xl overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 shadow-lg"
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-primary to-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="relative flex items-center gap-2">
-              <span className="font-medium">Ver todas las colecciones</span>
-              <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#FFB3C1] to-[#FF9DB3] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="relative flex items-center justify-center gap-3">
+              <span className="font-bold text-lg">Ver todas las colecciones</span>
+              <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-2" />
             </div>
           </button>
         </div>

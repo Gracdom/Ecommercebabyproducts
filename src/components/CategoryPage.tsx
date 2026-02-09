@@ -8,6 +8,8 @@ const BATCH_SIZE = 20;
 
 interface CategoryPageProps {
   products: Product[];
+  selectedCategory?: string | null;
+  selectedSubCategory?: string | null;
   onAddToCart: (product: Product) => void;
   onBack: () => void;
   onProductClick: (product: Product) => void;
@@ -16,7 +18,7 @@ interface CategoryPageProps {
   isInWishlist: (productId: number) => boolean;
 }
 
-export function CategoryPage({ products, onAddToCart, onBack, onProductClick, onQuickView, onToggleWishlist, isInWishlist }: CategoryPageProps) {
+export function CategoryPage({ products, selectedCategory, selectedSubCategory, onAddToCart, onBack, onProductClick, onQuickView, onToggleWishlist, isInWishlist }: CategoryPageProps) {
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [sortBy, setSortBy] = useState('ml_score');
@@ -94,7 +96,20 @@ export function CategoryPage({ products, onAddToCart, onBack, onProductClick, on
               Inicio
             </button>
             <span className="text-stone-400">/</span>
-            <span className="text-stone-900 font-medium">Productos por categoría</span>
+            {selectedCategory && (
+              <>
+                <span className="text-stone-900 font-medium">{selectedCategory}</span>
+                {selectedSubCategory && (
+                  <>
+                    <span className="text-stone-400">/</span>
+                    <span className="text-stone-900 font-medium">{selectedSubCategory}</span>
+                  </>
+                )}
+              </>
+            )}
+            {!selectedCategory && (
+              <span className="text-stone-900 font-medium">Todos los productos</span>
+            )}
           </div>
         </div>
       </div>

@@ -98,13 +98,19 @@ export function SocialProofPopup() {
 
   return (
     <div
-      className={`fixed bottom-8 left-8 z-50 transition-all duration-500 ${
-        isVisible ? 'translate-x-0 opacity-100' : '-translate-x-full opacity-0'
+      className={`fixed bottom-8 right-8 z-50 transition-all duration-500 ${
+        isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
+      style={{ 
+        left: 'auto',
+        right: '2rem',
+        bottom: '2rem',
+        transform: isVisible ? 'translateX(0)' : 'translateX(100%)'
+      }}
     >
-      <div className="bg-white rounded-lg shadow-2xl border border-stone-200 p-4 max-w-sm flex items-center gap-4 hover:shadow-xl transition-shadow">
+      <div className="bg-white rounded-2xl shadow-xl border border-[#E2E8F0] p-3 max-w-xs flex items-center gap-3 hover:shadow-2xl transition-shadow">
         {/* Product Image */}
-        <div className="w-16 h-16 bg-stone-100 rounded-lg overflow-hidden flex-shrink-0">
+        <div className="w-12 h-12 bg-[#F9F9F9] rounded-xl overflow-hidden flex-shrink-0">
           <ImageWithFallback
             src={currentPurchase.productImage}
             alt={currentPurchase.productName}
@@ -114,18 +120,18 @@ export function SocialProofPopup() {
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <ShoppingBag className="h-4 w-4 text-green-600 flex-shrink-0" />
-            <span className="text-sm text-stone-900 truncate">
-              <strong>{currentPurchase.customerName}</strong> compró
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <ShoppingBag className="h-3 w-3 text-[#4ade80] flex-shrink-0" />
+            <span className="text-xs text-[#2d3748] truncate">
+              <strong className="font-semibold">{currentPurchase.customerName}</strong> compró
             </span>
           </div>
-          <p className="text-sm text-stone-700 line-clamp-1 mb-1">
+          <p className="text-xs text-[#718096] line-clamp-1 mb-0.5 font-medium">
             {currentPurchase.productName}
           </p>
-          <div className="flex items-center gap-3 text-xs text-stone-500">
+          <div className="flex items-center gap-2 text-[10px] text-[#718096]">
             <span className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
+              <MapPin className="h-2.5 w-2.5" />
               {currentPurchase.location}
             </span>
             <span>•</span>
@@ -136,7 +142,7 @@ export function SocialProofPopup() {
         {/* Close button */}
         <button
           onClick={() => setIsVisible(false)}
-          className="flex-shrink-0 text-stone-400 hover:text-stone-600 transition-colors"
+          className="flex-shrink-0 text-[#718096] hover:text-[#2d3748] transition-colors text-sm"
           aria-label="Cerrar"
         >
           ✕

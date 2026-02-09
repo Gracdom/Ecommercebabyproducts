@@ -117,7 +117,7 @@ export async function fetchCatalogProducts(options?: {
       retail_price,
       has_stock,
       deleted_at,
-      bigbuy_product_translations ( iso_code, name, description, ai_description, ai_highlight_features ),
+      bigbuy_product_translations ( iso_code, name, description, ai_description ),
       bigbuy_product_images ( url, position ),
       bigbuy_variants (
         id,
@@ -192,10 +192,12 @@ export async function fetchCatalogProducts(options?: {
       const shortDescription = getShortDescription(finalDescription);
 
       // 3 características principales (generadas por IA y guardadas en ai_highlight_features)
-      const rawFeatures = es?.ai_highlight_features ?? en?.ai_highlight_features ?? null;
-      const highlightFeatures = Array.isArray(rawFeatures)
-        ? rawFeatures.filter((x): x is string => typeof x === "string").slice(0, 3)
-        : undefined;
+      // Temporalmente desactivado hasta que la columna exista en Supabase
+      const highlightFeatures = undefined;
+      // const rawFeatures = es?.ai_highlight_features ?? en?.ai_highlight_features ?? null;
+      // const highlightFeatures = Array.isArray(rawFeatures)
+      //   ? rawFeatures.filter((x): x is string => typeof x === "string").slice(0, 3)
+      //   : undefined;
 
       return {
         id: p.id,

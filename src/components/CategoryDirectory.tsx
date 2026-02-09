@@ -60,18 +60,18 @@ const categories = [
 
 export function CategoryDirectory({ onCategoryClick }: CategoryDirectoryProps) {
   return (
-    <section className="py-20 bg-background">
+    <section className="py-32 lg:py-40 bg-white" style={{ paddingTop: '8rem', paddingBottom: '8rem' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 bg-gradient-to-r from-secondary/20 to-primary/20 px-4 py-2 rounded-full mb-6 border border-secondary/30">
             <Sparkles className="h-4 w-4 text-secondary" />
-            <span className="text-sm text-foreground">Explora por categoría</span>
+            <span className="text-sm text-[#2d3748]">Explora por categoría</span>
           </div>
-          <h2 className="text-4xl sm:text-5xl text-foreground mb-4 font-medium">
+          <h2 className="text-4xl sm:text-5xl text-[#2d3748] mb-4 font-medium">
             Encuentra lo que necesitas
           </h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-[#718096] max-w-2xl mx-auto">
             Navega por nuestras colecciones cuidadosamente organizadas
           </p>
         </div>

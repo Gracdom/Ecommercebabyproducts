@@ -34,77 +34,99 @@ export function ProductGrid({
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
       {products.map((product) => {
         const isBestseller = bestsellerIds.includes(product.id);
         const isInWish = isInWishlist ? isInWishlist(product.id) : false;
         
         return (
           <div key={product.id} className="group">
-            <div 
-              onClick={() => handleProductClick(product)}
-              className="w-full text-left cursor-pointer"
-            >
-              <div className="relative aspect-square mb-3 bg-stone-50 rounded-lg overflow-hidden">
-                <ImageWithFallback
-                  src={product.image}
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                />
-                
-                {/* Badges */}
-                <div className="absolute top-3 left-3 flex flex-col gap-2">
-                  <ProductBadge mlScore={product.mlScore} />
-                  {product.badge && (
-                    <span className="bg-white px-2 py-1 rounded text-xs text-stone-700">
-                      {product.badge}
-                    </span>
-                  )}
-                  {isBestseller && (
-                    <span className="bg-[#dccf9d] text-stone-900 px-2 py-1 rounded text-xs flex items-center gap-1">
-                      <TrendingUp className="h-3 w-3" />
-                      Bestseller
-                    </span>
-                  )}
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="absolute top-3 right-3 flex flex-col gap-2">
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (onToggleWishlist) {
-                        onToggleWishlist(product);
-                      }
-                    }}
-                    className={`p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity ${
-                      isInWish 
-                        ? 'bg-red-50 hover:bg-red-100' 
-                        : 'bg-white hover:bg-stone-100'
-                    }`}
-                  >
-                    <Heart className={`h-4 w-4 ${isInWish ? 'text-red-500 fill-red-500' : 'text-stone-600'}`} />
-                  </button>
-                  {onQuickView && (
+            <div className="w-full text-left">
+              {/* Product Card - Extremely rounded, soft shadow, white background */}
+              <div 
+                onClick={() => handleProductClick(product)}
+                className="bg-white rounded-[2rem] overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer border border-[#E2E8F0]/30"
+                style={{ borderRadius: '2rem', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08)' }}
+              >
+                <div className="relative aspect-square bg-[#F9F9F9] overflow-hidden">
+                  <ImageWithFallback
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                  />
+                  
+                  {/* Badges - Pastel colors, very rounded */}
+                  <div className="absolute top-4 left-4 flex flex-col gap-2">
+                    <ProductBadge mlScore={product.mlScore} />
+                    {product.badge && (
+                      <span className="bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-semibold text-[#2d3748] shadow-sm border border-[#FFC1CC]/30">
+                        {product.badge}
+                      </span>
+                    )}
+                    {isBestseller && (
+                      <span className="bg-gradient-to-r from-[#FFF9C4] to-[#FFE5B4] px-3 py-1.5 rounded-full text-xs font-semibold text-[#2d3748] flex items-center gap-1.5 shadow-sm">
+                        <TrendingUp className="h-3.5 w-3.5" />
+                        Bestseller
+                      </span>
+                    )}
+                  </div>
+                  
+                  {/* Action Buttons - Colorful, rounded */}
+                  <div className="absolute top-4 right-4 flex flex-col gap-2">
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        onQuickView(product);
+                        if (onToggleWishlist) {
+                          onToggleWishlist(product);
+                        }
                       }}
-                      className="bg-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-stone-100"
-                      title="Vista rápida"
+                      className={`p-2.5 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg ${
+                        isInWish 
+                          ? 'bg-[#FFC1CC] hover:bg-[#FFB3C1]' 
+                          : 'bg-white/95 backdrop-blur-sm hover:bg-[#FFC1CC]/20'
+                      }`}
                     >
-                      <Eye className="h-4 w-4 text-stone-600" />
+                      <Heart className={`h-5 w-5 ${isInWish ? 'text-white fill-white' : 'text-[#FF6B9D]'}`} />
                     </button>
-                  )}
+                    {onQuickView && (
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onQuickView(product);
+                        }}
+                        className="bg-white/95 backdrop-blur-sm p-2.5 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-[#E0F7FA]/30 shadow-lg"
+                        title="Vista rápida"
+                      >
+                        <Eye className="h-5 w-5 text-[#2d3748]" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-              </div>
-              
-              <div className="space-y-1">
-                <h3 className="text-sm text-stone-900 line-clamp-2 min-h-[2.5rem]">
-                  {product.name}
-                </h3>
-                <p className="text-stone-700">€ {product.price.toFixed(2)}</p>
+                
+                {/* Product Info */}
+                <div className="p-5 space-y-3">
+                  <h3 className="text-sm font-semibold text-[#2d3748] line-clamp-2 min-h-[2.5rem] leading-snug">
+                    {product.name}
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    <p className="text-lg font-bold text-[#2d3748]">€{product.price.toFixed(2)}</p>
+                    {product.originalPrice && product.originalPrice > product.price && (
+                      <span className="text-sm text-[#718096] line-through">€{product.originalPrice.toFixed(2)}</span>
+                    )}
+                  </div>
+                  
+                  {/* Add to Cart Button - Vibrant pink, extremely rounded */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAddToCart(product);
+                    }}
+                    className="w-full bg-[#FFC1CC] hover:bg-[#FFB3C1] text-white font-bold py-4 px-6 rounded-full transition-all duration-200 hover:scale-[1.02] hover:shadow-xl shadow-lg flex items-center justify-center gap-2 text-lg"
+                    style={{ backgroundColor: '#FFC1CC', boxShadow: '0 8px 20px rgba(255, 193, 204, 0.3)' }}
+                  >
+                    <span>Añadir al carrito</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>

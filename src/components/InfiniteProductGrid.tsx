@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { Product } from '@/types';
 import { ProductGrid } from './ProductGrid';
 import { Loader2 } from 'lucide-react';
-import { fetchCatalogProducts } from '@/utils/bigbuy/catalog';
+import { fetchCatalogProducts } from '@/utils/ebaby/catalog';
 
 interface InfiniteProductGridProps {
   onAddToCart: (product: Product) => void;

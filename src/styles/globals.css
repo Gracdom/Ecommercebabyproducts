@@ -3,116 +3,117 @@
 :root {
   --font-size: 16px;
   
-  /* Baby's Only Style - Organic, Earthy, Soft Scandi */
+  /* Soft & Playful Pastel Theme - Baby Store Style */
   --background: #ffffff;
-  --foreground: #4a4541; /* Warm dark grey */
+  --foreground: #2d3748; /* Soft dark grey for text */
   
   --card: #ffffff;
-  --card-foreground: #4a4541;
+  --card-foreground: #2d3748;
   
   --popover: #ffffff;
-  --popover-foreground: #4a4541;
+  --popover-foreground: #2d3748;
   
-  /* Palette from image */
-  --color-sage: #83b5b6;   /* Juguetes sensoriales */
-  --color-mauve: #c5a5a5;  /* Textiles orgánicos - Dusty Pink/Mauve */
-  --color-taupe: #9d8e80;  /* Ropa de bebé - Warm Brown */
-  --color-slate: #9cadb3;  /* Accesorios - Blueish Grey */
-  --color-beige: #b0a396;  /* Mobiliario - Warm Beige */
+  /* Pastel Palette - Soft & Playful */
+  --color-pastel-pink: #FFC1CC;      /* Primary - Rosa Pastel */
+  --color-sky-blue: #E0F7FA;         /* Secondary - Azul Cielo Suave */
+  --color-butter-yellow: #FFF9C4;    /* Accent - Amarillo Mantequilla */
+  --color-lavender: #E1BEE7;         /* Additional accent */
+  --color-mint: #C8E6C9;             /* Additional accent */
+  --color-peach: #FFE0B2;            /* Additional accent */
   
-  /* Semantic mapping */
-  --primary: var(--color-sage);
+  /* Semantic mapping - Pastel Theme */
+  --primary: var(--color-pastel-pink);
   --primary-foreground: #ffffff;
   
-  --secondary: #e6dfd9; /* Light Sand/Oatmeal for backgrounds */
-  --secondary-foreground: #4a4541;
+  --secondary: var(--color-sky-blue);
+  --secondary-foreground: #2d3748;
   
-  /* Muted: Very light warm grey */
-  --muted: #f4f1ee;
-  --muted-foreground: #9ca3af;
+  /* Muted: Very light grey with hint of color */
+  --muted: #F9F9F9;
+  --muted-foreground: #718096;
   
-  /* Accent: Warm Clay / Taupe */
-  --accent: var(--color-mauve);
-  --accent-foreground: #ffffff;
+  /* Accent: Butter Yellow for highlights/offers */
+  --accent: var(--color-butter-yellow);
+  --accent-foreground: #2d3748;
   
-  /* Destructive: Muted Terracotta */
-  --destructive: #c0776d;
+  /* Destructive: Soft coral */
+  --destructive: #FF8A95;
   --destructive-foreground: #ffffff;
   
-  --border: #e6dfd9;
-  --input: #e6dfd9;
-  --input-background: #fcfbf9;
+  --border: #E2E8F0; /* Very light grey border */
+  --input: #E2E8F0;
+  --input-background: #ffffff;
   
-  --switch-background: #cbced4;
+  --switch-background: #CBD5E0;
   --font-weight-medium: 500;
   --font-weight-normal: 400;
   
-  --ring: var(--color-sage);
+  --ring: var(--color-pastel-pink);
   
-  /* Chart colors - Muted Earth Tones */
-  --chart-1: var(--color-sage);
-  --chart-2: var(--color-mauve);
-  --chart-3: var(--color-slate);
-  --chart-4: var(--color-beige);
-  --chart-5: var(--color-taupe);
+  /* Chart colors - Pastel tones */
+  --chart-1: var(--color-pastel-pink);
+  --chart-2: var(--color-sky-blue);
+  --chart-3: var(--color-butter-yellow);
+  --chart-4: var(--color-lavender);
+  --chart-5: var(--color-mint);
   
-  --radius: 0.5rem; /* Standard refined radius */
+  --radius: 1.5rem; /* Much more rounded - pill style (rounded-2xl equivalent) */
   
-  --sidebar: #fcfbf9;
-  --sidebar-foreground: #4a4541;
-  --sidebar-primary: var(--color-sage);
+  --sidebar: #F9F9F9;
+  --sidebar-foreground: #2d3748;
+  --sidebar-primary: var(--color-pastel-pink);
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #e6dfd9;
-  --sidebar-accent-foreground: #4a4541;
-  --sidebar-border: #e6dfd9;
-  --sidebar-ring: var(--color-sage);
+  --sidebar-accent: var(--color-sky-blue);
+  --sidebar-accent-foreground: #2d3748;
+  --sidebar-border: #E2E8F0;
+  --sidebar-ring: var(--color-pastel-pink);
 }
 
 .dark {
-  /* Dark Mode - Warm Dark Grey / Taupe */
-  --background: #2c2a29;
-  --foreground: #f4f1ee;
+  /* Dark Mode - Soft Pastel Dark */
+  --background: #1a202c;
+  --foreground: #f7fafc;
   
-  --card: #2c2a29;
-  --card-foreground: #f4f1ee;
+  --card: #2d3748;
+  --card-foreground: #f7fafc;
   
-  --popover: #2c2a29;
-  --popover-foreground: #f4f1ee;
+  --popover: #2d3748;
+  --popover-foreground: #f7fafc;
   
-  --primary: #83b5b6;
-  --primary-foreground: #ffffff;
+  --primary: #FFB3C1; /* Lighter pink for dark mode */
+  --primary-foreground: #1a202c;
   
-  --secondary: #4a4541;
-  --secondary-foreground: #f4f1ee;
+  --secondary: #4a5568;
+  --secondary-foreground: #f7fafc;
   
-  --muted: #4a4541;
-  --muted-foreground: #9ca3af;
+  --muted: #2d3748;
+  --muted-foreground: #a0aec0;
   
-  --accent: #5c5550;
-  --accent-foreground: #f4f1ee;
+  --accent: #FFE5B4; /* Lighter yellow for dark mode */
+  --accent-foreground: #1a202c;
   
-  --destructive: #994f4f;
-  --destructive-foreground: #f4f1ee;
+  --destructive: #FF6B7A;
+  --destructive-foreground: #ffffff;
   
-  --border: #4a4541;
-  --input: #4a4541;
+  --border: #4a5568;
+  --input: #4a5568;
   
-  --ring: #83b5b6;
+  --ring: #FFB3C1;
   
-  --chart-1: #83b5b6;
-  --chart-2: #a09085;
-  --chart-3: #9fb3b8;
-  --chart-4: #e6dfd9;
-  --chart-5: #c0776d;
+  --chart-1: #FFB3C1;
+  --chart-2: #B3E5FC;
+  --chart-3: #FFE5B4;
+  --chart-4: #E1BEE7;
+  --chart-5: #C8E6C9;
   
-  --sidebar: #2c2a29;
-  --sidebar-foreground: #f4f1ee;
-  --sidebar-primary: #83b5b6;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #4a4541;
-  --sidebar-accent-foreground: #f4f1ee;
-  --sidebar-border: #4a4541;
-  --sidebar-ring: #83b5b6;
+  --sidebar: #2d3748;
+  --sidebar-foreground: #f7fafc;
+  --sidebar-primary: #FFB3C1;
+  --sidebar-primary-foreground: #1a202c;
+  --sidebar-accent: #4a5568;
+  --sidebar-accent-foreground: #f7fafc;
+  --sidebar-border: #4a5568;
+  --sidebar-ring: #FFB3C1;
 }
 
 @theme inline {
@@ -155,13 +156,16 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
   
-  /* Custom Palette */
-  --color-sage: var(--color-sage);
-  --color-mauve: var(--color-mauve);
-  --color-taupe: var(--color-taupe);
-  --color-slate: var(--color-slate);
-  --color-beige: var(--color-beige);
+  /* Custom Pastel Palette */
+  --color-pastel-pink: var(--color-pastel-pink);
+  --color-sky-blue: var(--color-sky-blue);
+  --color-butter-yellow: var(--color-butter-yellow);
+  --color-lavender: var(--color-lavender);
+  --color-mint: var(--color-mint);
+  --color-peach: var(--color-peach);
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700;800&display=swap');
 
 @layer base {
   * {
@@ -170,8 +174,14 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'Quicksand', 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Nunito', 'Quicksand', sans-serif;
+    font-weight: 600;
   }
   
   /* Add padding for mobile bottom navigation */
