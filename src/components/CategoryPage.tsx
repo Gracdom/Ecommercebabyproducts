@@ -181,9 +181,9 @@ export function CategoryPage({ products, categoryOptions, selectedCategory, sele
     <div className="min-h-screen bg-stone-50">
       {/* Breadcrumb */}
       <div className="bg-white border-b border-stone-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center gap-2 text-sm">
-            <button onClick={onBack} className="text-stone-600 hover:text-stone-900 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
+          <div className="flex items-center gap-2 text-xs sm:text-sm flex-wrap">
+            <button onClick={onBack} className="text-stone-600 hover:text-stone-900 active:opacity-80 transition-colors py-1 min-h-[44px] flex items-center -ml-2 pl-2 pr-1">
               Inicio
             </button>
             <span className="text-stone-400">/</span>
@@ -207,30 +207,30 @@ export function CategoryPage({ products, categoryOptions, selectedCategory, sele
 
       {/* Header */}
       <div className="bg-gradient-to-r from-background to-secondary/30 border-b border-border">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <div className="inline-flex items-center gap-2 bg-white px-3 py-1 rounded-full text-xs text-stone-600 mb-4 border border-stone-200">
-                <Sparkles className="h-3 w-3 text-[#dccf9d]" />
-                {filteredProducts.length} productos
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-2 bg-white px-3 py-1.5 rounded-full text-xs text-stone-600 mb-3 sm:mb-4 border border-stone-200">
+                <Sparkles className="h-3 w-3 text-[#dccf9d] flex-shrink-0" />
+                <span>{filteredProducts.length} productos</span>
               </div>
-              <h1 className="text-4xl sm:text-5xl text-stone-900 mb-3">
+              <h1 className="text-2xl sm:text-4xl lg:text-5xl text-stone-900 mb-2 sm:mb-3">
                 Catálogo de productos
               </h1>
-              <p className="text-lg text-stone-600 max-w-2xl">
+              <p className="text-sm sm:text-base lg:text-lg text-stone-600 max-w-2xl">
                 Descubre nuestra selección con stock actualizado y precios calculados automáticamente
               </p>
             </div>
           </div>
 
-          {/* Toolbar */}
-          <div className="flex flex-wrap items-center gap-4">
+          {/* Toolbar - touch-friendly buttons */}
+          <div className="flex flex-wrap items-center gap-3 sm:gap-4">
             {/* Filter Button */}
             <button
               onClick={() => setIsFilterOpen(!isFilterOpen)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white border border-stone-300 rounded-xl hover:border-stone-400 transition-all"
+              className="flex items-center gap-2 px-4 py-3 sm:py-2.5 min-h-[44px] bg-white border border-stone-300 rounded-xl hover:border-stone-400 active:bg-stone-50 transition-all"
             >
-              <SlidersHorizontal className="h-4 w-4" />
+              <SlidersHorizontal className="h-4 w-4 flex-shrink-0" />
               <span className="text-sm font-medium">Filtros</span>
               {activeFilterCount > 0 && (
                 <span className="bg-primary text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
@@ -244,7 +244,7 @@ export function CategoryPage({ products, categoryOptions, selectedCategory, sele
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="appearance-none pl-4 pr-10 py-2.5 bg-white border border-stone-300 rounded-xl hover:border-stone-400 transition-all text-sm font-medium cursor-pointer"
+                className="appearance-none pl-4 pr-10 py-3 sm:py-2.5 min-h-[44px] bg-white border border-stone-300 rounded-xl hover:border-stone-400 transition-all text-sm font-medium cursor-pointer w-full min-w-[180px]"
               >
                 <option value="ml_score">Destacados (ML Score)</option>
                 <option value="conversion">Mejor conversión</option>
@@ -256,10 +256,10 @@ export function CategoryPage({ products, categoryOptions, selectedCategory, sele
             </div>
 
             {/* View Mode */}
-            <div className="flex items-center gap-2 bg-white border border-stone-300 rounded-xl p-1">
+            <div className="flex items-center gap-1 bg-white border border-stone-300 rounded-xl p-1">
               <button
                 onClick={() => setViewMode('grid')}
-                className={`p-2 rounded-lg transition-all ${
+                className={`p-2.5 sm:p-2 min-h-[44px] min-w-[44px] rounded-lg transition-all flex items-center justify-center ${
                   viewMode === 'grid' ? 'bg-stone-900 text-white' : 'text-stone-600 hover:text-stone-900'
                 }`}
                 title="Vista cuadrícula"
@@ -268,7 +268,7 @@ export function CategoryPage({ products, categoryOptions, selectedCategory, sele
               </button>
               <button
                 onClick={() => setViewMode('list')}
-                className={`p-2 rounded-lg transition-all ${
+                className={`p-2.5 sm:p-2 min-h-[44px] min-w-[44px] rounded-lg transition-all flex items-center justify-center ${
                   viewMode === 'list' ? 'bg-stone-900 text-white' : 'text-stone-600 hover:text-stone-900'
                 }`}
                 title="Vista lista"
@@ -280,11 +280,11 @@ export function CategoryPage({ products, categoryOptions, selectedCategory, sele
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="flex gap-8">
-          {/* Sidebar Filters */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
+          {/* Sidebar Filters - full width on mobile when open, drawer-like */}
           <aside className={`${isFilterOpen ? 'block' : 'hidden'} lg:block w-full lg:w-64 flex-shrink-0`}>
-            <div className="sticky top-24 space-y-6">
+            <div className="lg:sticky lg:top-24 space-y-6 max-h-[85vh] overflow-y-auto lg:max-h-none pr-2 -mx-4 px-4 lg:mx-0 lg:px-0 bg-stone-50/50 lg:bg-transparent rounded-xl lg:rounded-none py-4 lg:py-0">
               {activeFilterCount > 0 && (
                 <button
                   onClick={clearFilters}

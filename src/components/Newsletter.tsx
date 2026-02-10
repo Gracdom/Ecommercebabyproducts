@@ -17,7 +17,7 @@ export function Newsletter() {
   };
 
   return (
-    <section className="relative py-20 overflow-hidden">
+    <section className="relative py-12 sm:py-16 lg:py-20 overflow-hidden">
       {/* Background with gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary via-[#9fb3b8] to-accent" />
       
@@ -42,10 +42,10 @@ export function Newsletter() {
           </div>
 
           {/* Heading */}
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl text-white mb-4">
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl xl:text-6xl text-white mb-3 sm:mb-4">
             Únete a nuestra familia
           </h2>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-base sm:text-lg lg:text-xl text-white/90 mb-6 sm:mb-8 max-w-2xl mx-auto leading-relaxed px-2">
             Suscríbete y recibe ofertas exclusivas, consejos para bebés y las últimas novedades directamente en tu email
           </p>
 

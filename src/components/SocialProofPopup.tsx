@@ -98,13 +98,13 @@ export function SocialProofPopup() {
 
   return (
     <div
-      className={`fixed bottom-8 right-8 z-50 transition-all duration-500 ${
+      className={`fixed right-8 z-50 transition-all duration-500 ${
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
       style={{ 
         left: 'auto',
         right: '2rem',
-        bottom: '2rem',
+        bottom: '11rem',
         transform: isVisible ? 'translateX(0)' : 'translateX(100%)'
       }}
     >

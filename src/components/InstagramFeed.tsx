@@ -70,7 +70,7 @@ export function InstagramFeed() {
             <Instagram className="h-4 w-4 text-accent" />
             <span className="text-sm text-stone-900">Síguenos en Instagram</span>
           </div>
-          <h2 className="text-4xl sm:text-5xl text-stone-900 mb-4">
+          <h2 className="text-4xl sm:text-5xl mb-4 font-bold" style={{ color: '#83b5b6' }}>
             #eBabyMoments
           </h2>
           <p className="text-lg text-stone-600 max-w-2xl mx-auto mb-8">
@@ -80,7 +80,7 @@ export function InstagramFeed() {
             href="https://instagram.com/ebaby"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-primary via-[#7a8f85] to-accent text-white rounded-xl hover:shadow-xl transition-all duration-300 hover:scale-105 group"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-[var(--chart-1)] text-white rounded-xl hover:shadow-xl transition-all duration-300 hover:scale-105 group"
           >
             <Instagram className="h-5 w-5" />
             <span>Seguir @ebaby</span>

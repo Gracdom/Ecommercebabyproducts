@@ -16,7 +16,7 @@ export function AboutUs() {
             <Heart className="h-4 w-4 text-accent fill-accent" />
             <span className="text-sm text-stone-900">Nuestra historia</span>
           </div>
-          <h2 className="text-4xl sm:text-5xl text-stone-900 mb-6">
+          <h2 className="text-4xl sm:text-5xl mb-6 font-bold" style={{ color: '#83b5b6' }}>
             Por qué elegir e-baby
           </h2>
           <p className="text-xl text-stone-600 max-w-3xl mx-auto leading-relaxed">
@@ -145,8 +145,10 @@ export function AboutUs() {
 
         {/* CTA */}
         <div className="text-center mt-16">
-          <button className="group relative px-8 py-4 bg-gradient-to-r from-stone-900 to-stone-800 text-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105">
-            <div className="absolute inset-0 bg-gradient-to-r from-primary to-[#7a8f85] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          <button 
+            className="group relative px-8 py-4 bg-[#FFC1CC] text-white rounded-xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:scale-105 hover:bg-[#83b5b6]"
+            style={{ backgroundColor: '#FFC1CC' }}
+          >
             <div className="relative flex items-center gap-2">
               <span className="font-medium">Conoce más sobre nosotros</span>
               <Heart className="h-5 w-5" />

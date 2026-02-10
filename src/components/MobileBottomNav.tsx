@@ -17,11 +17,11 @@ export function MobileBottomNav({
 }: MobileBottomNavProps) {
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-stone-200 z-40 lg:hidden">
-      <nav className="flex items-center justify-around px-2 pb-safe">
+      <nav className="flex items-center justify-around px-2 py-2 min-h-[56px]" style={{ paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom, 0px))' }}>
         {/* Home */}
         <button
           onClick={onHomeClick}
-          className={`flex flex-col items-center gap-1 py-3 px-4 transition-colors ${
+          className={`flex flex-col items-center justify-center gap-0.5 min-h-[44px] min-w-[44px] py-2 px-3 transition-colors ${
             currentView === 'home' ? 'text-stone-900' : 'text-stone-500'
           }`}
         >
@@ -32,7 +32,7 @@ export function MobileBottomNav({
         {/* Categories */}
         <button
           onClick={onCategoriesClick}
-          className={`flex flex-col items-center gap-1 py-3 px-4 transition-colors ${
+          className={`flex flex-col items-center justify-center gap-0.5 min-h-[44px] min-w-[44px] py-2 px-3 transition-colors ${
             currentView === 'category' ? 'text-stone-900' : 'text-stone-500'
           }`}
         >
@@ -43,7 +43,7 @@ export function MobileBottomNav({
         {/* Cart */}
         <button
           onClick={onCartClick}
-          className="flex flex-col items-center gap-1 py-3 px-4 text-stone-500 relative"
+          className="flex flex-col items-center justify-center gap-0.5 min-h-[44px] min-w-[44px] py-2 px-3 text-stone-500 relative"
         >
           <ShoppingCart className="h-5 w-5" />
           {cartCount > 0 && (
@@ -55,13 +55,13 @@ export function MobileBottomNav({
         </button>
 
         {/* Wishlist */}
-        <button className="flex flex-col items-center gap-1 py-3 px-4 text-stone-500">
+        <button className="flex flex-col items-center justify-center gap-0.5 min-h-[44px] min-w-[44px] py-2 px-3 text-stone-500">
           <Heart className="h-5 w-5" />
           <span className="text-xs">Favoritos</span>
         </button>
 
         {/* Account */}
-        <button className="flex flex-col items-center gap-1 py-3 px-4 text-stone-500">
+        <button className="flex flex-col items-center justify-center gap-0.5 min-h-[44px] min-w-[44px] py-2 px-3 text-stone-500">
           <User className="h-5 w-5" />
           <span className="text-xs">Cuenta</span>
         </button>

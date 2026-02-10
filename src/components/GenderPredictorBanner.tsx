@@ -6,9 +6,8 @@ interface GenderPredictorBannerProps {
 
 export function GenderPredictorBanner({ onClick }: GenderPredictorBannerProps) {
   return (
-    <section className="relative py-8 lg:py-0 overflow-hidden" style={{ 
-      backgroundColor: '#83b4b6',
-      minHeight: '350px'
+    <section className="relative py-6 sm:py-8 lg:py-0 overflow-hidden min-h-[280px] sm:min-h-[320px] lg:min-h-[350px]" style={{ 
+      backgroundColor: '#83b4b6'
     }}>
       {/* Right side - Ultrasound image - Absolute positioned, no padding */}
       <div className="hidden lg:block absolute top-0 right-0 w-[50vw] h-full" style={{ 
@@ -30,10 +29,10 @@ export function GenderPredictorBanner({ onClick }: GenderPredictorBannerProps) {
         />
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:pl-10 lg:pr-0 relative z-10">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 min-h-[350px] relative">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 lg:pl-10 lg:pr-0 relative z-10">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8 min-h-[260px] sm:min-h-[300px] lg:min-h-[350px] relative">
           {/* Left side - Text Content */}
-          <div className="flex-1 lg:max-w-2xl space-y-4 py-4 z-10 lg:py-8">
+          <div className="flex-1 lg:max-w-2xl space-y-3 sm:space-y-4 py-4 z-10 lg:py-8">
             <div className="flex items-center gap-3">
               <Sparkles className="h-5 w-5 text-[#FF6B9D] animate-pulse fill-[#FF6B9D]" />
               <span className="text-sm uppercase tracking-wider font-bold text-[#2d3748]">
@@ -53,7 +52,7 @@ export function GenderPredictorBanner({ onClick }: GenderPredictorBannerProps) {
             {/* CTA Button - Smaller */}
             <button
               onClick={onClick}
-              className="group px-8 py-4 bg-[#FFC1CC] hover:bg-[#FFB3C1] text-white rounded-full text-base font-bold transition-all duration-300 hover:shadow-xl hover:scale-105 flex items-center gap-2 whitespace-nowrap shadow-lg mt-4"
+              className="group px-8 py-4 bg-[#FFC1CC] hover:bg-[#83b5b6] text-white rounded-full text-base font-bold transition-all duration-300 hover:shadow-xl hover:scale-105 flex items-center gap-2 whitespace-nowrap shadow-lg mt-4"
               style={{ backgroundColor: '#FFC1CC' }}
             >
               <span>Hacer predicción</span>

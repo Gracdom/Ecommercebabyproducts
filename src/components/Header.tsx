@@ -43,17 +43,18 @@ export function Header({
 
       {/* Main header - Clean white, no heavy borders */}
       <div style={{ backgroundColor: '#FFFFFF', borderBottom: 'none' }}>
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
-          <div className="flex items-center justify-between h-20" style={{ minHeight: '80px' }}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
+          <div className="flex items-center justify-between h-16 sm:h-20" style={{ minHeight: '64px' }}>
             {/* Logo */}
-            <div className="flex items-center">
+            <div className="flex items-center min-w-0">
               <button 
                 onClick={() => {
                   window.location.hash = '#category';
                 }}
-                className="lg:hidden mr-4 p-3 text-[#2d3748] hover:bg-[#FFC1CC]/20 rounded-2xl transition-all duration-200"
+                className="lg:hidden mr-2 sm:mr-4 p-2.5 sm:p-3 text-[#2d3748] hover:bg-[#FFC1CC]/20 rounded-2xl transition-all duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
+                aria-label="Abrir menú"
               >
-                <Menu className="h-6 w-6" />
+                <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
               <button
                 type="button"
@@ -74,7 +75,7 @@ export function Header({
                 <img
                   src="/logo.png"
                   alt="e-baby"
-                  className="h-12 w-auto shrink-0 object-contain"
+                  className="h-9 sm:h-12 w-auto max-h-12 shrink-0 object-contain"
                   onError={(e) => {
                     const target = e.currentTarget;
                     target.style.display = 'none';
@@ -130,10 +131,11 @@ export function Header({
               </button>
               <button 
                 onClick={onCartClick}
-                className="relative flex p-2 items-center justify-center rounded-xl transition-all duration-200 hover:opacity-80"
+                className="relative flex p-2.5 items-center justify-center rounded-xl transition-all duration-200 hover:opacity-80 min-h-[44px] min-w-[44px]"
                 style={{ color: '#84b4b5' }}
+                aria-label="Ver carrito"
               >
-                <ShoppingCart className="h-4 w-4" strokeWidth={2} />
+                <ShoppingCart className="h-5 w-5 sm:h-4 sm:w-4" strokeWidth={2} />
                 {cartCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 min-w-[1rem] h-4 px-0.5 text-white text-[10px] rounded-full flex items-center justify-center font-bold border border-white" style={{ backgroundColor: '#84b4b5' }}>
                     {cartCount}
@@ -147,7 +149,7 @@ export function Header({
 
       {/* Navigation with Mega Menu - Soft background, no heavy borders */}
       <div className="bg-white/50 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
           <MegaMenu 
             categories={categories}
             onCategoryClick={(categoryName, subcategoryName) => {
@@ -169,15 +171,18 @@ export function Header({
             }} 
           />
           
-          {/* Mobile horizontal scroll fallback - More rounded, playful */}
-          <nav className="flex lg:hidden items-center gap-2 overflow-x-auto scrollbar-hide py-3">
+          {/* Mobile horizontal scroll fallback - touch-friendly, smooth scroll */}
+          <nav 
+            className="flex lg:hidden items-center gap-2 overflow-x-auto scrollbar-hide py-3 -mx-4 px-4"
+            style={{ WebkitOverflowScrolling: 'touch' }}
+          >
             {['Nuevos', 'Ropa', 'Accesorios', 'Habitación', 'Textil', 'Juguetes', 'Cuidado', 'Paseo', 'Tienda'].map((item) => (
               <button 
                 key={item} 
                 onClick={() => {
                   window.location.hash = '#category';
                 }}
-                className="flex items-center gap-1 px-5 py-2.5 text-sm text-[#2d3748] hover:text-[#FF6B9D] whitespace-nowrap rounded-2xl hover:bg-[#FFC1CC]/10 transition-all duration-200 font-semibold"
+                className="flex items-center gap-1 px-4 py-3 text-sm text-[#2d3748] hover:text-[#FF6B9D] active:bg-[#FFC1CC]/10 whitespace-nowrap rounded-2xl hover:bg-[#FFC1CC]/10 transition-all duration-200 font-semibold min-h-[44px] flex-shrink-0"
               >
                 {item}
               </button>

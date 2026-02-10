@@ -245,6 +245,75 @@ html {
   font-size: var(--font-size);
 }
 
+/* ========================================
+   SCROLLBAR PERSONALIZADA - Infantil y Moderno
+   ======================================== */
+/* Webkit browsers (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f7fafc;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #83b5b6;
+  border-radius: 9999px;
+  border: 2px solid #ffffff;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6fa3a5;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #83b5b6 #f7fafc;
+}
+
+/* ========================================
+   CURSOR PERSONALIZADO - Infantil y Bonito
+   ======================================== */
+body {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%2383b5b6"><circle cx="12" cy="12" r="8" opacity="0.8"/><circle cx="12" cy="12" r="4" fill="%23ffffff"/></svg>') 12 12, auto;
+}
+
+/* Cursor para elementos interactivos */
+button, 
+a, 
+[role="button"],
+input[type="submit"],
+input[type="button"],
+select,
+.cursor-pointer {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 28 28" fill="%2383b5b6"><circle cx="14" cy="14" r="10" opacity="0.9"/><circle cx="14" cy="14" r="5" fill="%23ffffff"/><circle cx="10" cy="11" r="2" fill="%23ffffff" opacity="0.7"/><circle cx="18" cy="11" r="2" fill="%23ffffff" opacity="0.7"/></svg>') 14 14, pointer;
+}
+
+/* Cursor para inputs de texto */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="search"],
+textarea {
+  cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%2383b5b6"><rect x="10" y="4" width="4" height="16" rx="2" opacity="0.8"/><rect x="9" y="3" width="6" height="2" rx="1"/><rect x="9" y="19" width="6" height="2" rx="1"/></svg>') 12 12, text;
+}
+
+/* ========================================
+   ANIMACIONES SUAVES
+   ======================================== */
+@keyframes cursor-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
 /* Utility classes */
 @layer utilities {
   .scrollbar-hide::-webkit-scrollbar {

@@ -20,25 +20,25 @@ export function FeaturesSection() {
   ];
 
   return (
-    <section className="py-16 bg-white">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-12">
+    <section className="py-8 sm:py-10 lg:py-12 bg-white">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
               <div key={index} className="flex flex-col items-center text-center">
-                {/* Icon Container - Pink icon on light grey circle */}
-                <div className="w-20 h-20 bg-[#F5F5F5] rounded-full flex items-center justify-center mb-6">
-                  <IconComponent className="h-10 w-10 text-[#FF6B9D]" strokeWidth={1.5} />
+                {/* Icon - Above the title */}
+                <div className="w-12 h-12 flex items-center justify-center mb-3">
+                  <IconComponent className="w-10 h-10 text-[#83b5b6]" strokeWidth={1.5} />
                 </div>
                 
-                {/* Title - Bold dark text */}
-                <h3 className="text-xl font-bold text-[#2d3748] mb-3">
+                {/* Title - Bold */}
+                <h3 className="text-sm font-bold text-[#2d3748] mb-1.5">
                   {feature.title}
                 </h3>
                 
-                {/* Description - Grey text */}
-                <p className="text-base text-[#718096] max-w-sm leading-relaxed">
+                {/* Description - Small and soft */}
+                <p className="text-xs text-gray-500 leading-relaxed max-w-xs">
                   {feature.description}
                 </p>
               </div>

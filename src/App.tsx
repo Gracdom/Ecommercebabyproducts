@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
-import { QuickShop } from './components/QuickShop';
+// import { QuickShop } from './components/QuickShop';
 import { CategoryDirectory } from './components/CategoryDirectory';
 import { CategoryPage } from './components/CategoryPage';
 import { ProductPage } from './components/ProductPage';
-import { LifestyleSection } from './components/LifestyleSection';
+// import { LifestyleSection } from './components/LifestyleSection';
 import { AboutUs } from './components/AboutUs';
-import { Newsletter } from './components/Newsletter';
+// import { Newsletter } from './components/Newsletter';
 import { Footer } from './components/Footer';
 import { Cart } from './components/Cart';
 import { QuickViewModal } from './components/QuickViewModal';
@@ -17,15 +17,16 @@ import { MobileBottomNav } from './components/MobileBottomNav';
 import { ToastNotifications } from './components/ToastNotifications';
 import { WishlistPage } from './components/WishlistPage';
 import { ExitIntentPopup } from './components/ExitIntentPopup';
-import { RecommendedProducts } from './components/RecommendedProducts';
+// import { RecommendedProducts } from './components/RecommendedProducts';
 import { CheckoutPage, OrderData } from './components/CheckoutPage';
 import { OrderConfirmation } from './components/OrderConfirmation';
 import { WhatsAppButton } from './components/WhatsAppButton';
-import { FeaturedProducts } from './components/FeaturedProducts';
-import { CategoryCarousel } from './components/CategoryCarousel';
+// import { FeaturedProducts } from './components/FeaturedProducts';
 import { FeaturesSection } from './components/FeaturesSection';
+import { CategoryBentoGrid } from './components/CategoryBentoGrid';
 import { Testimonials } from './components/Testimonials';
 import { InstagramFeed } from './components/InstagramFeed';
+import { BrandCarousel } from './components/BrandCarousel';
 import { GenderPredictor } from './components/GenderPredictor';
 import { GenderPredictorBanner } from './components/GenderPredictorBanner';
 import { BigBuyAdmin } from './components/BigBuyAdmin';
@@ -305,7 +306,7 @@ export default function App() {
   const cartCount = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
   return (
-    <div className="min-h-screen bg-white" style={{ backgroundColor: '#FFFFFF' }}>
+    <div className="min-h-screen min-h-[100dvh] bg-white pb-24 lg:pb-0" style={{ backgroundColor: '#FFFFFF' }}>
           <Header
             cartCount={cartCount}
             wishlistCount={wishlistCount}
@@ -352,16 +353,21 @@ export default function App() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           />
-          <CategoryCarousel 
+          <FeaturesSection />
+          <CategoryBentoGrid
+            categories={categories}
             onCategoryClick={(categoryName) => {
+              sessionStorage.setItem('selectedCategory', categoryName);
+              sessionStorage.removeItem('selectedSubCategory');
+              setSelectedCategory(categoryName);
+              setSelectedSubCategory(null);
               window.history.pushState({ view: 'category' }, '', '#category');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           />
-          <FeaturesSection />
           <GenderPredictorBanner onClick={() => setCurrentView('gender-predictor')} />
-          <FeaturedProducts 
+          {/* <FeaturedProducts 
             onProductClick={handleProductClick}
             onAddToCart={addToCart}
             onToggleWishlist={addToWishlist}
@@ -375,8 +381,7 @@ export default function App() {
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-          />
-          <Testimonials />
+          /> */}
           <CategoryDirectory 
             onCategoryClick={(categoryName) => {
               window.history.pushState({ view: 'category' }, '', '#category');
@@ -385,7 +390,7 @@ export default function App() {
               // Could filter by category in the future
             }} 
           />
-          <QuickShop 
+          {/* <QuickShop 
             products={allProducts}
             onProductClick={handleProductClick}
             onAddToCart={addToCart}
@@ -400,16 +405,18 @@ export default function App() {
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-          />
+          /> */}
           <InstagramFeed />
-          <RecommendedProducts 
+          {/* <RecommendedProducts 
             recentlyViewed={recentlyViewed}
             allProducts={allProducts}
             onProductClick={handleProductClick}
-          />
-          <LifestyleSection />
+          /> */}
+          {/* <LifestyleSection /> */}
           <AboutUs />
-          <Newsletter />
+          {/* <Newsletter /> */}
+          <Testimonials />
+          <BrandCarousel />
           <Footer />
         </>
       ) : currentView === 'category' ? (
@@ -436,7 +443,8 @@ export default function App() {
             onToggleWishlist={addToWishlist}
             isInWishlist={isInWishlist}
           />
-          <Newsletter />
+          {/* <Newsletter /> */}
+          <BrandCarousel />
           <Footer />
         </>
       ) : currentView === 'wishlist' ? (
@@ -447,7 +455,8 @@ export default function App() {
             onAddToCart={addToCart}
             onProductClick={handleProductClick}
           />
-          <Newsletter />
+          {/* <Newsletter /> */}
+          <BrandCarousel />
           <Footer />
         </>
       ) : currentView === 'product' ? (
@@ -465,7 +474,8 @@ export default function App() {
             isInWishlist={isInWishlist}
             onProductClick={handleProductClick}
           />
-          <Newsletter />
+          {/* <Newsletter /> */}
+          <BrandCarousel />
           <Footer />
         </>
       ) : currentView === 'checkout' ? (

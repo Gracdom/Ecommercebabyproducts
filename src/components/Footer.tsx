@@ -7,8 +7,8 @@ export function Footer() {
     <footer>
       {/* Main Footer - Teal/Petrol blue background */}
       <div style={{ backgroundColor: '#008080' }}>
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-10 py-16">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-10 sm:py-12 lg:py-16">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 sm:gap-10 lg:gap-12 mb-8 sm:mb-12">
             {/* Brand Column */}
             <div className="lg:col-span-2 space-y-6">
               <div>

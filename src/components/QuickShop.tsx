@@ -55,35 +55,29 @@ export function QuickShop({
   };
 
   return (
-    <section className="py-20 bg-gradient-to-b from-stone-50 to-white relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 right-1/4 w-96 h-96 bg-gradient-to-br from-[#83b5b6]/40 to-[#9fb3b8]/40 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-gradient-to-br from-[#e6dfd9]/40 to-[#a09085]/40 rounded-full blur-3xl" />
-      </div>
-
+    <section className="py-12 sm:py-16 lg:py-20 bg-gradient-to-b from-stone-50 to-white relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 bg-white px-4 py-2 rounded-full mb-6 border border-stone-200 shadow-sm">
-            <Flame className="h-4 w-4 text-destructive animate-pulse" />
-            <span className="text-sm text-stone-900 font-medium">Ofertas destacadas del día</span>
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="inline-flex items-center gap-2 bg-white px-3 sm:px-4 py-2 rounded-full mb-4 sm:mb-6 border border-stone-200 shadow-sm">
+            <Flame className="h-4 w-4 text-destructive animate-pulse flex-shrink-0" />
+            <span className="text-xs sm:text-sm text-stone-900 font-medium">Ofertas destacadas del día</span>
           </div>
-          <h2 className="text-4xl sm:text-5xl text-stone-900 mb-4">
+          <h2 className="text-2xl sm:text-4xl lg:text-5xl mb-3 sm:mb-4 font-bold" style={{ color: '#83b5b6' }}>
             Compra rápido
           </h2>
-          <p className="text-lg text-stone-600 max-w-2xl mx-auto">
+          <p className="text-sm sm:text-base lg:text-lg text-stone-600 max-w-2xl mx-auto px-2">
             Los productos más populares seleccionados especialmente para ti
           </p>
         </div>
 
         {/* Products Grid */}
         {displayProducts.length === 0 ? (
-          <div className="text-center py-12 text-stone-600">
+          <div className="text-center py-8 sm:py-12 text-stone-600 text-sm sm:text-base">
             No hay productos disponibles en este momento
           </div>
         ) : (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {displayProducts.map((product) => {
               const badgeText = getBadgeText(product.mlScore, !!product.originalPrice);
               return (

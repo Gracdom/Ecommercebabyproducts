@@ -75,7 +75,8 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
           </h3>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-[#faf9f8] rounded-lg transition-colors"
+            className="p-3 hover:bg-[#faf9f8] active:bg-[#f0eeec] rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="Cerrar carrito"
           >
             <X className="h-5 w-5 text-[#9ca3af]" />
           </button>

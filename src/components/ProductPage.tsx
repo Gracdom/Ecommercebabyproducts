@@ -176,8 +176,8 @@ export function ProductPage({ product, allProducts = [], onAddToCart, onBack, on
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
-        <div className="grid lg:grid-cols-2 gap-10 lg:gap-14">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 lg:py-14">
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-14">
           {/* Left - Galería: imagen principal + carrusel de miniaturas con flechas */}
           <div className="space-y-4">
             <div className="relative aspect-square bg-white rounded-2xl overflow-hidden border border-stone-200 shadow-sm">
@@ -211,7 +211,7 @@ export function ProductPage({ product, allProducts = [], onAddToCart, onBack, on
                       <button
                         key={idx}
                         onClick={() => setSelectedImage(idx)}
-                        className={`flex-shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${
+                        className={`flex-shrink-0 w-14 h-14 sm:w-20 sm:h-20 rounded-lg sm:rounded-xl overflow-hidden border-2 transition-all ${
                           selectedImage === idx ? 'border-[#83b5b6] ring-2 ring-[#83b5b6]/30' : 'border-stone-200 hover:border-stone-300'
                         }`}
                       >
@@ -330,49 +330,50 @@ export function ProductPage({ product, allProducts = [], onAddToCart, onBack, on
               </div>
             )}
 
-            {/* Cantidad + Añadir al carrito — más arriba (menos padding superior) */}
-            <div className="flex flex-wrap items-center gap-4 pt-1">
-              <div className="flex items-center gap-0 border border-stone-200 rounded-xl overflow-hidden">
+            {/* Cantidad + Añadir al carrito — full width on mobile, touch-friendly */}
+            <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4 pt-1">
+              <div className="flex items-center gap-0 border border-stone-200 rounded-xl overflow-hidden w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="w-11 h-11 flex items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors"
+                  className="flex-1 sm:flex-none w-12 sm:w-11 h-12 sm:h-11 flex items-center justify-center text-stone-600 hover:bg-stone-100 active:bg-stone-200 transition-colors min-h-[48px]"
                 >
                   −
                 </button>
-                <span className="w-12 h-11 flex items-center justify-center text-stone-900 font-medium border-x border-stone-200 bg-stone-50/50">
+                <span className="w-14 sm:w-12 h-12 sm:h-11 flex items-center justify-center text-stone-900 font-medium border-x border-stone-200 bg-stone-50/50 flex-shrink-0">
                   {quantity}
                 </span>
                 <button
                   type="button"
                   onClick={() => setQuantity(Math.min(Math.max(1, displayedStock), quantity + 1))}
-                  className="w-11 h-11 flex items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors"
+                  className="flex-1 sm:flex-none w-12 sm:w-11 h-12 sm:h-11 flex items-center justify-center text-stone-600 hover:bg-stone-100 active:bg-stone-200 transition-colors min-h-[48px]"
                 >
                   +
                 </button>
               </div>
-
               <button
                 onClick={handleAddToCart}
                 disabled={displayedStock <= 0}
-                className="flex-1 min-w-[220px] bg-[#83b5b6] hover:bg-[#73a5a6] text-white py-4 px-8 rounded-xl text-base font-semibold flex items-center justify-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 min-w-0 w-full sm:min-w-[220px] bg-[#83b5b6] hover:bg-[#73a5a6] text-white py-4 px-6 sm:px-8 rounded-xl text-base font-semibold flex items-center justify-center gap-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px]"
               >
-                <ShoppingCart className="h-6 w-6" />
-                Añadir al carrito — €{(displayedPrice * quantity).toFixed(2)}
+                <ShoppingCart className="h-5 w-5 sm:h-6 sm:w-6 flex-shrink-0" />
+                <span className="truncate">Añadir al carrito — €{(displayedPrice * quantity).toFixed(2)}</span>
               </button>
-              <button
-                onClick={() => onToggleWishlist(product)}
-                className={`w-12 h-12 rounded-xl border-2 flex items-center justify-center transition-colors ${
-                  isInWishlist(product.id)
-                    ? 'border-[#83b5b6] bg-[#83b5b6] text-white'
-                    : 'border-stone-200 text-stone-600 hover:border-[#83b5b6] hover:text-[#83b5b6]'
-                }`}
-              >
-                <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
-              </button>
-              <button className="w-12 h-12 rounded-xl border-2 border-stone-200 text-stone-600 hover:border-[#83b5b6] hover:text-[#83b5b6] flex items-center justify-center transition-colors">
-                <Share2 className="h-5 w-5" />
-              </button>
+              <div className="flex gap-2 justify-end sm:justify-start">
+                <button
+                  onClick={() => onToggleWishlist(product)}
+                  className={`w-12 h-12 min-w-[48px] min-h-[48px] rounded-xl border-2 flex items-center justify-center transition-colors flex-shrink-0 ${
+                    isInWishlist(product.id)
+                      ? 'border-[#83b5b6] bg-[#83b5b6] text-white'
+                      : 'border-stone-200 text-stone-600 hover:border-[#83b5b6] hover:text-[#83b5b6]'
+                  }`}
+                >
+                  <Heart className={`h-5 w-5 ${isInWishlist(product.id) ? 'fill-current' : ''}`} />
+                </button>
+                <button className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-xl border-2 border-stone-200 text-stone-600 hover:border-[#83b5b6] hover:text-[#83b5b6] flex items-center justify-center transition-colors flex-shrink-0" aria-label="Compartir">
+                  <Share2 className="h-5 w-5" />
+                </button>
+              </div>
             </div>
 
             {/* Categoría y SKU (sin Compartir) */}

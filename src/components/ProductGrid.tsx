@@ -1,4 +1,4 @@
-import { Heart, TrendingUp, Flame, Eye, Star } from 'lucide-react';
+import { Heart, TrendingUp, Flame, Eye } from 'lucide-react';
 import { Product } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useProductAnalytics } from '../hooks/useProductAnalytics';
@@ -34,7 +34,7 @@ export function ProductGrid({
   };
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 xl:gap-8">
       {products.map((product) => {
         const isBestseller = bestsellerIds.includes(product.id);
         const isInWish = isInWishlist ? isInWishlist(product.id) : false;
@@ -108,13 +108,10 @@ export function ProductGrid({
                   <h3 className="text-sm font-semibold text-[#2d3748] line-clamp-2 min-h-[2.5rem] leading-snug">
                     {product.name}
                   </h3>
-                  {/* Estrellas - mismo estilo que filtro Valoración, color amarillo */}
-                  <div className="flex items-center gap-1 text-[#FBBF24]" aria-hidden>
+                  {/* 5 estrellas de reseñas amarillas */}
+                  <div className="flex items-center gap-0.5" aria-hidden>
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <Star
-                        key={star}
-                        className="h-4 w-4 shrink-0 fill-current stroke-current"
-                      />
+                      <span key={star} className="text-sm leading-none" style={{ color: '#FBBF24' }}>★</span>
                     ))}
                   </div>
                   <div className="flex items-center justify-between">
@@ -123,8 +120,8 @@ export function ProductGrid({
                       <span className="text-sm text-[#718096] line-through">€{product.originalPrice.toFixed(2)}</span>
                     )}
                   </div>
-                  {/* Stock */}
-                  <p className="text-xs text-[#718096]">
+                  {/* Stock - mucho más pequeño */}
+                  <p className="text-[10px] text-[#718096]">
                     {typeof product.stock === 'number' 
                       ? `${product.stock} en stock` 
                       : product.inStock 
