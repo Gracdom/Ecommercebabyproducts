@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Gift, Mail } from 'lucide-react';
+import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 export function ExitIntentPopup() {
@@ -40,10 +40,10 @@ export function ExitIntentPopup() {
     setIsSubscribed(true);
     localStorage.setItem('exit_intent_dismissed', 'true');
     
-    // Auto close after 2 seconds
+    // Auto close after 3 seconds
     setTimeout(() => {
       setIsVisible(false);
-    }, 2000);
+    }, 3000);
   };
 
   return (
@@ -55,94 +55,136 @@ export function ExitIntentPopup() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/50 z-50 backdrop-blur-sm"
+            className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
             onClick={handleClose}
           />
 
-          {/* Modal */}
+          {/* Modal - TODO alineado a la derecha */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            transition={{ type: 'spring', duration: 0.5 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-lg mx-4"
+    initial={{ opacity: 0, scale: 0.95 }}
+    animate={{ opacity: 1, scale: 1 }}
+    exit={{ opacity: 0, scale: 0.95 }}
+    transition={{ type: 'spring', duration: 0.4 }}
+    // CAMBIO AQUÍ: de max-w-[700px] a max-w-4xl (aprox 900px) o max-w-[950px]
+    className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-full max-w-4xl mx-auto px-4" 
+    onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
-              {/* Close button */}
-              <button
-                onClick={handleClose}
-                className="absolute top-4 right-4 p-2 bg-white/80 backdrop-blur-sm rounded-full hover:bg-stone-100 transition-colors z-10"
+            {!isSubscribed ? (
+              <div 
+                className="relative rounded-[2rem] shadow-2xl overflow-hidden"
+                style={{
+                  backgroundImage: 'url(/popup-overlay.png)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundColor: 'white',
+                }}
               >
-                <X className="h-5 w-5 text-stone-600" />
-              </button>
+                {/* Close button */}
+                <button
+                  onClick={handleClose}
+                  className="absolute top-4 right-4 z-10 p-1.5 bg-white rounded-full hover:bg-gray-100 transition-all shadow-md"
+                >
+                  <X className="h-4 w-4 text-gray-600" />
+                </button>
 
-              {!isSubscribed ? (
-                <div className="p-8 md:p-12">
-                  {/* Icon */}
-                  <div className="flex justify-center mb-6">
-                    <div className="bg-amber-100 p-4 rounded-full">
-                      <Gift className="h-10 w-10 text-amber-600" />
-                    </div>
-                  </div>
-
-                  {/* Content */}
-                  <div className="text-center mb-8">
-                    <h2 className="text-2xl md:text-3xl text-stone-900 mb-3">
-                      ¡Espera! 🎁
+                {/* Contenido del formulario - TODO a la derecha */}
+                <div className="p-8 md:p-12 flex flex-col justify-center min-h-[450px]">
+                  <div className="ml-auto max-w-sm text-right">
+                    {/* Título - derecha */}
+                    <h2 className="text-4xl md:text-5xl font-bold mb-4" style={{ color: '#FFB3BA' }}>
+                      ¡Espera!
                     </h2>
-                    <p className="text-lg text-stone-700 mb-2">
-                      Consigue un <strong className="text-amber-600">10% de descuento</strong>
-                    </p>
-                    <p className="text-stone-600">
+
+                    {/* Subtítulo - derecha */}
+                    <p className="text-lg md:text-xl text-gray-800 font-medium mb-8 leading-relaxed">
+                      Consigue un <span className="font-bold">10% de descuento</span><br />
                       en tu primera compra
                     </p>
-                  </div>
 
-                  {/* Form */}
-                  <form onSubmit={handleSubscribe} className="space-y-4">
-                    <div className="relative">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
+                    {/* Formulario - derecha */}
+                    <form onSubmit={handleSubscribe} className="space-y-4">
+                      {/* Campo de email - derecha */}
                       <input
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Tu correo electrónico"
+                        placeholder="tu@email.com"
                         required
-                        className="w-full pl-12 pr-4 py-4 bg-stone-50 border border-stone-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                        className="w-full px-4 py-3.5 bg-white border-2 rounded-xl focus:outline-none focus:ring-2 transition-all text-gray-800 placeholder:text-gray-400 text-right"
+                        style={{ 
+                          borderColor: '#83b5b6',
+                        }}
                       />
-                    </div>
-                    <button
-                      type="submit"
-                      className="w-full bg-amber-500 hover:bg-amber-600 text-white py-4 rounded-lg transition-colors"
-                    >
-                      ¡Quiero mi descuento!
-                    </button>
-                  </form>
 
-                  {/* Fine print */}
-                  <p className="text-xs text-stone-500 text-center mt-4">
-                    Al suscribirte, aceptas recibir emails promocionales. Puedes darte de baja en cualquier momento.
-                  </p>
-                </div>
-              ) : (
-                <div className="p-8 md:p-12 text-center">
-                  <div className="flex justify-center mb-6">
-                    <div className="bg-green-100 p-4 rounded-full">
-                      <Gift className="h-10 w-10 text-green-600" />
-                    </div>
+                      {/* Botón Enviar - derecha */}
+                      <button
+                        type="submit"
+                        className="w-full py-3.5 rounded-full font-semibold text-white text-lg transition-all hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+                        style={{ backgroundColor: '#FFB3BA' }}
+                      >
+                        Enviar
+                      </button>
+                    </form>
+
+                    {/* Texto legal - derecha */}
+                    <p className="text-xs text-gray-600 mt-6 leading-relaxed">
+                      Al suscribirte, aceptas recibir emails promocionales.
+                    </p>
                   </div>
-                  <h2 className="text-2xl text-stone-900 mb-3">
-                    ¡Perfecto! 🎉
-                  </h2>
-                  <p className="text-stone-700 mb-2">
-                    Revisa tu email para obtener tu código de descuento
-                  </p>
-                  <p className="text-sm text-stone-600">
-                    <strong>Código:</strong> <span className="bg-amber-100 text-amber-800 px-3 py-1 rounded">WELCOME10</span>
-                  </p>
                 </div>
-              )}
-            </div>
+              </div>
+            ) : (
+              /* Estado de éxito - TODO a la derecha */
+              <div 
+                className="relative rounded-[2rem] shadow-2xl overflow-hidden"
+                style={{
+                  backgroundImage: 'url(/popup-overlay.png)',
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  backgroundColor: 'white',
+                }}
+              >
+                {/* Close button */}
+                <button
+                  onClick={handleClose}
+                  className="absolute top-4 right-4 z-10 p-1.5 bg-white rounded-full hover:bg-gray-100 transition-all shadow-md"
+                >
+                  <X className="h-4 w-4 text-gray-600" />
+                </button>
+
+                <div className="p-8 md:p-12 flex flex-col justify-center min-h-[450px]">
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="ml-auto max-w-sm text-right"
+                  >
+                    {/* Título éxito - derecha */}
+                    <h2 className="text-4xl font-bold mb-4 text-gray-800">
+                      ¡Perfecto! 🎉
+                    </h2>
+                    
+                    <p className="text-lg text-gray-700 mb-6">
+                      Revisa tu email para obtener<br />tu código de descuento
+                    </p>
+                    
+                    {/* Código de descuento - derecha */}
+                    <div className="bg-gradient-to-r from-pink-50 to-rose-50 rounded-2xl p-6 mb-6 border-2" style={{ borderColor: '#FFB3BA' }}>
+                      <p className="text-sm text-gray-600 mb-2">Tu código de descuento:</p>
+                      <p className="text-3xl font-bold tracking-wider" style={{ color: '#FFB3BA' }}>
+                        WELCOME10
+                      </p>
+                    </div>
+
+                    {/* Auto-close indicator - derecha */}
+                    <div className="flex items-center justify-end gap-2 text-xs text-gray-500">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                      <span>Esta ventana se cerrará automáticamente</span>
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
+            )}
           </motion.div>
         </>
       )}

@@ -1,10 +1,16 @@
 
   <!DOCTYPE html>
-  <html lang="en">
+  <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>e-baby | Productos para bebé</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -13,6 +19,19 @@
     <body>
       <div id="root"></div>
       <script type="module" src="/src/main.tsx"></script>
+      
+      <!-- Zoho SalesIQ Chat Widget -->
+      <script>
+        window.$zoho = window.$zoho || {};
+        $zoho.salesiq = $zoho.salesiq || {
+          ready: function() {}
+        }
+      </script>
+      <script 
+        id="zsiqscript" 
+        src="https://salesiq.zohopublic.eu/widget?wc=siq45ca2ee213a30162bc0b1cd88d271ebca1e8b1b631be7969995062c80d04bfa95c8dcf3a8994897cd11ade72f04cc865" 
+        defer>
+      </script>
     </body>
   </html>
   

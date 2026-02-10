@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de Conexión Supabase</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2d3748;
+            margin-top: 0;
+        }
+        h2 {
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 8px;
+        }
+        button {
+            background: #3182ce;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 12px;
+            margin-bottom: 12px;
+        }
+        button:hover {
+            background: #2c5aa0;
+        }
+        .success {
+            background: #c6f6d5;
+            color: #22543d;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+        }
+        .error {
+            background: #fed7d7;
+            color: #742a2a;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+        }
+        .warning {
+            background: #feebc8;
+            color: #7c2d12;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+        }
+        .info {
+            background: #bee3f8;
+            color: #2c5282;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+        }
+        pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3182ce;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            vertical-align: middle;
+            margin-left: 8px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .product-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            background: #f7fafc;
+        }
+        .product-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+        .product-name {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .product-price {
+            color: #3182ce;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔍 Verificación de Conexión Supabase</h1>
+        <p>Este script verifica la conexión con tu base de datos Supabase y muestra los productos disponibles.</p>
+    </div>
+
+    <div class="card">
+        <h2>Configuración</h2>
+        <div id="config-info"></div>
+    </div>
+
+    <div class="card">
+        <h2>Pruebas de Conexión</h2>
+        <button onclick="testConnection()">1. Probar Conexión</button>
+        <button onclick="testTableExists()">2. Verificar Tabla</button>
+        <button onclick="testLoadProducts()">3. Cargar Productos</button>
+        <button onclick="testRLSPolicies()">4. Verificar Políticas RLS</button>
+        <button onclick="runAllTests()">▶️ Ejecutar Todas</button>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="card">
+        <h2>Productos Encontrados</h2>
+        <div id="products-count"></div>
+        <div id="products-display" class="products-grid"></div>
+    </div>
+
+    <div class="card">
+        <h2>Soluciones Comunes</h2>
+        <div class="info">
+            <strong>Si no se encuentran productos:</strong>
+            <ol style="margin: 8px 0 0 20px;">
+                <li>Verifica que la tabla <code>ebaby_productos</code> tenga datos en Supabase</li>
+                <li>Asegúrate de que las políticas RLS permitan lectura pública</li>
+                <li>Revisa la consola del navegador (F12) para ver errores específicos</li>
+                <li>Verifica que las credenciales de Supabase sean correctas</li>
+            </ol>
+        </div>
+        <div class="warning">
+            <strong>⚠️ Configuración de RLS (Row Level Security):</strong>
+            <p>Para permitir que la aplicación lea productos, ejecuta este SQL en Supabase:</p>
+            <pre>-- Permitir lectura pública de productos
+ALTER TABLE ebaby_productos ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Permitir lectura pública de productos"
+ON ebaby_productos FOR SELECT
+USING (true);</pre>
+        </div>
+    </div>
+
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+
+        // Configuración (extraída de tu proyecto)
+        const projectId = "qozeqcfavcnfwkexxbjm";
+        const publicAnonKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFvemVxY2ZhdmNuZndrZXh4YmptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY3MDUyNjcsImV4cCI6MjA4MjI4MTI2N30.iP_VkD9Bc1xEeM4hctC-xGnmiHdq5BFdJ3URUlC4Wr8";
+        const supabaseUrl = `https://${projectId}.supabase.co`;
+
+        const supabase = createClient(supabaseUrl, publicAnonKey);
+
+        let allProducts = [];
+
+        // Mostrar configuración
+        document.getElementById('config-info').innerHTML = `
+            <div class="info">
+                <strong>URL de Supabase:</strong> ${supabaseUrl}<br>
+                <strong>Project ID:</strong> ${projectId}<br>
+                <strong>Anon Key:</strong> ${publicAnonKey.substring(0, 30)}...
+            </div>
+        `;
+
+        window.testConnection = async function() {
+            const results = document.getElementById('test-results');
+            results.innerHTML += `<div class="info">🔄 Probando conexión con Supabase... <span class="loading"></span></div>`;
+            
+            try {
+                const { data, error } = await supabase.from('ebaby_productos').select('count', { count: 'exact', head: true });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                results.innerHTML += `<div class="success">✅ Conexión exitosa con Supabase</div>`;
+            } catch (error) {
+                results.innerHTML += `<div class="error">❌ Error de conexión: ${error.message}</div>`;
+                console.error('Error de conexión:', error);
+            }
+        };
+
+        window.testTableExists = async function() {
+            const results = document.getElementById('test-results');
+            results.innerHTML += `<div class="info">🔄 Verificando tabla ebaby_productos... <span class="loading"></span></div>`;
+            
+            try {
+                const { count, error } = await supabase
+                    .from('ebaby_productos')
+                    .select('*', { count: 'exact', head: true });
+                
+                if (error) {
+                    throw error;
+                }
+                
+                results.innerHTML += `<div class="success">✅ Tabla ebaby_productos existe. Total de filas: ${count || 0}</div>`;
+                
+                if (count === 0) {
+                    results.innerHTML += `<div class="warning">⚠️ La tabla está vacía. Necesitas insertar productos.</div>`;
+                }
+            } catch (error) {
+                results.innerHTML += `<div class="error">❌ Error al verificar tabla: ${error.message}</div>`;
+                console.error('Error al verificar tabla:', error);
+            }
+        };
+
+        window.testLoadProducts = async function() {
+            const results = document.getElementById('test-results');
+            const productsCount = document.getElementById('products-count');
+            const productsDisplay = document.getElementById('products-display');
+            
+            results.innerHTML += `<div class="info">🔄 Cargando productos... <span class="loading"></span></div>`;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('ebaby_productos')
+                    .select('*')
+                    .limit(100);
+                
+                if (error) {
+                    throw error;
+                }
+                
+                allProducts = data || [];
+                
+                if (allProducts.length === 0) {
+                    results.innerHTML += `<div class="warning">⚠️ No se encontraron productos en la tabla</div>`;
+                    productsCount.innerHTML = `<div class="warning">0 productos encontrados</div>`;
+                } else {
+                    results.innerHTML += `<div class="success">✅ Productos cargados correctamente: ${allProducts.length}</div>`;
+                    productsCount.innerHTML = `<div class="success"><strong>${allProducts.length} productos encontrados</strong></div>`;
+                    
+                    // Mostrar productos
+                    productsDisplay.innerHTML = allProducts.slice(0, 20).map(p => {
+                        const mainImage = (p.main_image_url && p.main_image_url !== 'NULL') 
+                            ? p.main_image_url 
+                            : (p.image_path && p.image_path !== 'NULL' ? p.image_path : 'https://via.placeholder.com/150');
+                        
+                        const price = p.price ? (p.price / 100).toFixed(2) : '0.00';
+                        
+                        return `
+                            <div class="product-card">
+                                <img src="${mainImage}" alt="${p.name}" onerror="this.src='https://via.placeholder.com/150'">
+                                <div class="product-name">${p.name}</div>
+                                <div class="product-price">€${price}</div>
+                                <div style="font-size: 12px; color: #718096; margin-top: 4px;">
+                                    ${p.category || 'Sin categoría'}<br>
+                                    Stock: ${p.stock || 0}
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                    
+                    if (allProducts.length > 20) {
+                        productsDisplay.innerHTML += `<div class="info" style="grid-column: 1/-1;">... y ${allProducts.length - 20} productos más</div>`;
+                    }
+                }
+                
+                // Mostrar detalles del primer producto
+                if (allProducts.length > 0) {
+                    results.innerHTML += `
+                        <div class="info">
+                            <strong>Ejemplo de producto (primero en la lista):</strong>
+                            <pre>${JSON.stringify(allProducts[0], null, 2)}</pre>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                results.innerHTML += `<div class="error">❌ Error al cargar productos: ${error.message}</div>`;
+                console.error('Error al cargar productos:', error);
+            }
+        };
+
+        window.testRLSPolicies = async function() {
+            const results = document.getElementById('test-results');
+            results.innerHTML += `<div class="info">🔄 Verificando políticas RLS... <span class="loading"></span></div>`;
+            
+            try {
+                // Intentar hacer una consulta simple
+                const { data, error } = await supabase
+                    .from('ebaby_productos')
+                    .select('id')
+                    .limit(1);
+                
+                if (error) {
+                    if (error.code === 'PGRST301' || error.message.includes('policy')) {
+                        results.innerHTML += `
+                            <div class="error">
+                                ❌ Problema con políticas RLS. No tienes permiso para leer la tabla.<br>
+                                <strong>Solución:</strong> Ejecuta el SQL mostrado abajo en el panel SQL de Supabase.
+                            </div>
+                        `;
+                    } else {
+                        throw error;
+                    }
+                } else {
+                    results.innerHTML += `<div class="success">✅ Políticas RLS configuradas correctamente</div>`;
+                }
+            } catch (error) {
+                results.innerHTML += `<div class="error">❌ Error al verificar RLS: ${error.message}</div>`;
+                console.error('Error al verificar RLS:', error);
+            }
+        };
+
+        window.runAllTests = async function() {
+            document.getElementById('test-results').innerHTML = '<h3>Ejecutando todas las pruebas...</h3>';
+            await testConnection();
+            await testTableExists();
+            await testLoadProducts();
+            await testRLSPolicies();
+        };
+
+        // Ejecutar pruebas automáticamente al cargar
+        window.addEventListener('load', () => {
+            setTimeout(runAllTests, 500);
+        });
+    </script>
+</body>
+</html>
