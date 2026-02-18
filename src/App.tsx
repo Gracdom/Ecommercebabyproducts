@@ -38,6 +38,7 @@ import { UserProfile } from './components/UserProfile';
 import { toast } from 'sonner@2.0.3';
 import { Product } from './types';
 import { fetchCatalogProducts, fetchCategories, fetchProductsByCategory, type CategoryInfo } from './utils/ebaby/catalog';
+import { createProductSlug, createSlug } from './utils/slug';
 
 type View = 'home' | 'category' | 'product' | 'wishlist' | 'checkout' | 'confirmation' | 'gender-predictor' | 'admin' | 'login' | 'signup' | 'profile';
 
@@ -139,15 +140,18 @@ export default function App() {
         return;
       }
       
-      // Product route (#product/sku or #product/product-id)
+      // Product route (#product/nombre-del-producto)
       if (hash.startsWith('#product/')) {
         const productSlug = hash.replace('#product/', '');
-        // Try to find product by SKU or ID
-        const product = allProducts.find(p => 
-          p.sku === productSlug || 
-          p.id.toString() === productSlug ||
-          `product-${p.id}` === productSlug
-        );
+        // Buscar producto por slug del nombre (prioritario), luego por SKU o ID (retrocompatibilidad)
+        const product = allProducts.find(p => {
+          const nameSlug = createProductSlug(p);
+          return nameSlug === productSlug || 
+                 p.sku === productSlug || 
+                 p.id.toString() === productSlug ||
+                 `product-${p.id}` === productSlug ||
+                 `producto-${p.id}` === productSlug;
+        });
         if (product) {
           setSelectedProduct(product);
           setCurrentView('product');
@@ -279,8 +283,8 @@ export default function App() {
     addToRecentlyViewed(product);
     setSelectedProduct(product);
     setCurrentView('product');
-    // Update URL without page reload
-    const productSlug = product.sku || `product-${product.id}`;
+    // Update URL without page reload - usar nombre del producto como slug
+    const productSlug = createProductSlug(product);
     window.history.pushState({ view: 'product', productId: product.id }, '', `#product/${productSlug}`);
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });

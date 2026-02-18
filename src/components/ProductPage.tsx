@@ -234,17 +234,11 @@ export function ProductPage({ product, allProducts = [], onAddToCart, onBack, on
 
           {/* Right - Detalles (sin borde) */}
           <div className="bg-white rounded-2xl shadow-sm pt-10 sm:pt-12 pb-6 sm:pb-8 px-6 sm:px-8 space-y-8">
-            {/* Nombre + Precio — padding superior para que no pegue al borde */}
-            <div className="flex flex-wrap items-baseline justify-between gap-2 pt-4 sm:pt-5">
-              <h2 className="text-2xl sm:text-3xl font-bold text-stone-700 leading-tight flex-1 min-w-0">
+            {/* Nombre — padding superior para que no pegue al borde */}
+            <div className="pt-4 sm:pt-5">
+              <h2 className="text-2xl sm:text-3xl font-bold text-stone-700 leading-tight">
                 {product.name}
               </h2>
-              <div className="flex items-baseline gap-2 flex-shrink-0">
-                <span className="text-2xl sm:text-3xl font-bold text-[#83b5b6]">€{displayedPrice.toFixed(2)}</span>
-                {product.originalPrice && (
-                  <span className="text-lg text-stone-400 line-through">€{product.originalPrice.toFixed(2)}</span>
-                )}
-              </div>
             </div>
 
             {/* Siempre 5 estrellas visibles — SIEMPRE AMARILLAS y MÁS GRANDES */}
@@ -253,6 +247,14 @@ export function ProductPage({ product, allProducts = [], onAddToCart, onBack, on
                 {'★'.repeat(5)}
               </span>
               <span className="text-sm text-stone-500">({displayedReviews} reseñas)</span>
+            </div>
+
+            {/* Precio encima de la descripción */}
+            <div className="flex items-baseline gap-2">
+              <span className="text-2xl sm:text-3xl font-bold text-[#83b5b6]">€{displayedPrice.toFixed(2)}</span>
+              {product.originalPrice && (
+                <span className="text-lg text-stone-400 line-through">€{product.originalPrice.toFixed(2)}</span>
+              )}
             </div>
 
             {/* Descripción corta */}

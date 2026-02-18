@@ -1,4 +1,4 @@
-import { X, Minus, Plus, ShoppingBag, ArrowRight, Gift, Tag, Zap, Award } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag, ArrowRight, Gift, Tag, Award } from 'lucide-react';
 import { Product } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useState } from 'react';
@@ -32,15 +32,12 @@ const recommendedProducts: Product[] = [
 export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onCheckout }: CartProps) {
   const [couponCode, setCouponCode] = useState('');
   const [couponApplied, setCouponApplied] = useState(false);
-  const [expressShipping, setExpressShipping] = useState(false);
   const [giftWrap, setGiftWrap] = useState(false);
   
   const subtotal = items.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
-  const freeShippingThreshold = 50;
-  const standardShipping = subtotal >= freeShippingThreshold ? 0 : 4.99;
-  const expressShippingCost = 9.99;
+  const freeShippingThreshold = 200;
+  const shipping = subtotal >= freeShippingThreshold ? 0 : 4.99;
   const giftWrapCost = giftWrap ? 2.99 : 0;
-  const shipping = expressShipping ? expressShippingCost : standardShipping;
   const discount = couponApplied ? subtotal * 0.1 : 0;
   const giftThreshold = 75;
   const total = subtotal + shipping + giftWrapCost - discount;
@@ -126,14 +123,6 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
                     style={{ width: `${Math.min((subtotal / giftThreshold) * 100, 100)}%` }}
                   />
                 </div>
-              </div>
-            )}
-
-            {/* Success message */}
-            {subtotal >= giftThreshold && (
-              <div className="flex items-center gap-2 text-sm text-[#83b5b6] bg-[#83b5b6]/10 px-3 py-2 rounded-lg font-medium">
-                <Gift className="h-4 w-4" />
-                <span>¡Felicidades! Regalo gratis incluido 🎁</span>
               </div>
             )}
 
@@ -258,44 +247,6 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
                   )}
                 </div>
 
-                {/* Shipping Options */}
-                <div className="space-y-3">
-                  <p className="text-sm font-medium text-[#5e544e]">Opciones de envío</p>
-                  <label className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${!expressShipping ? 'border-[#83b5b6] bg-[#83b5b6]/5' : 'border-[#e6dfd9] hover:bg-[#faf9f8]'}`}>
-                    <input
-                      type="radio"
-                      name="shipping"
-                      checked={!expressShipping}
-                      onChange={() => setExpressShipping(false)}
-                      className="text-[#83b5b6] focus:ring-[#83b5b6]"
-                    />
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-[#5e544e]">Envío estándar</p>
-                      <p className="text-xs text-[#9ca3af]">2-4 días laborables</p>
-                    </div>
-                    <span className="text-sm font-medium text-[#5e544e]">
-                      {standardShipping === 0 ? 'GRATIS' : `€${standardShipping.toFixed(2)}`}
-                    </span>
-                  </label>
-                  <label className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${expressShipping ? 'border-[#c59a8b] bg-[#c59a8b]/5' : 'border-[#e6dfd9] hover:bg-[#faf9f8]'}`}>
-                    <input
-                      type="radio"
-                      name="shipping"
-                      checked={expressShipping}
-                      onChange={() => setExpressShipping(true)}
-                      className="text-[#c59a8b] focus:ring-[#c59a8b]"
-                    />
-                    <div className="flex-1 flex items-center gap-2">
-                      <Zap className="h-4 w-4 text-[#c59a8b]" />
-                      <div>
-                        <p className="text-sm font-medium text-[#5e544e]">Envío express</p>
-                        <p className="text-xs text-[#9ca3af]">Recíbelo mañana</p>
-                      </div>
-                    </div>
-                    <span className="text-sm font-medium text-[#5e544e]">€{expressShippingCost.toFixed(2)}</span>
-                  </label>
-                </div>
-
                 {/* Gift Wrap */}
                 <label className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all ${giftWrap ? 'border-[#c59a8b] bg-[#c59a8b]/5' : 'border-[#e6dfd9] hover:bg-[#faf9f8]'}`}>
                   <div className="flex items-center gap-3">
@@ -363,7 +314,7 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
 
             <button
               onClick={onCheckout}
-              className="w-full bg-[#5e544e] text-white py-4 rounded-xl hover:bg-[#4a4541] transition-all duration-300 hover:shadow-lg hover:scale-[1.02] flex items-center justify-center gap-2 font-medium text-lg"
+              className="w-full bg-[#83b5b6] text-white py-4 rounded-xl hover:bg-[#6fa3a5] transition-all duration-300 hover:shadow-lg hover:scale-[1.02] flex items-center justify-center gap-2 font-medium text-lg"
             >
               Finalizar Compra
               <ArrowRight className="h-5 w-5" />

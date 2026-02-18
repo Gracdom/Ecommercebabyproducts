@@ -119,24 +119,28 @@ export function MegaMenu({ categories = [], onCategoryClick }: MegaMenuProps = {
                   transition={{ duration: 0.2 }}
                   onMouseEnter={handleDropdownMouseEnter}
                   onMouseLeave={handleDropdownMouseLeave}
-                  className="fixed left-1/2 -translate-x-1/2 top-[10rem] w-full max-w-3xl bg-white shadow-2xl rounded-b-2xl border border-stone-200 z-50 max-h-[min(65vh,420px)] overflow-hidden flex flex-col"
+                  className="fixed left-1/2 -translate-x-1/2 top-[10rem] bg-white shadow-2xl rounded-b-2xl border border-stone-200 z-50 max-h-[min(55vh,360px)] overflow-hidden flex flex-col"
+                  style={{ width: 720, minWidth: 720 }}
                 >
-                  <div className="p-4 flex-1 overflow-y-auto">
-                    <h3 className="text-sm font-semibold text-stone-900 mb-3 sticky top-0 bg-white pb-2 z-10">
+                  <div className="p-3 flex-1 overflow-y-auto">
+                    <h3 className="text-xs font-semibold text-stone-900 mb-2 sticky top-0 bg-white pb-1.5 z-10">
                       {category.name}
                     </h3>
-                    <div className="grid grid-cols-4 gap-3">
+                    <div
+                      className="gap-x-5 gap-y-5"
+                      style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)' }}
+                    >
                       {category.subcategories.map((sub) => (
                         <button
                           key={sub.id}
-                          className="group text-left flex flex-col items-center"
+                          className="group flex flex-col items-center min-w-0 p-2"
                           onClick={() => {
                             if (onCategoryClick) {
                               onCategoryClick(category.name, sub.name);
                             }
                           }}
                         >
-                          <div className="w-16 h-16 sm:w-20 sm:h-20 flex-shrink-0 bg-stone-50 rounded-xl overflow-hidden mb-2">
+                          <div className="w-9 h-9 flex-shrink-0 bg-stone-50 rounded-lg overflow-hidden mb-1.5">
                             <img
                               src={sub.image}
                               alt={sub.name}
@@ -149,7 +153,7 @@ export function MegaMenu({ categories = [], onCategoryClick }: MegaMenuProps = {
                               }}
                             />
                           </div>
-                          <p className="text-sm font-medium text-stone-700 group-hover:text-stone-900 transition-colors line-clamp-2 text-center leading-tight">
+                          <p className="text-xs font-medium text-stone-700 group-hover:text-stone-900 transition-colors line-clamp-2 text-center leading-tight">
                             {sub.name}
                           </p>
                         </button>

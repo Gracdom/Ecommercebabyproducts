@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700;800&display=swap');
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -164,8 +166,6 @@
   --color-mint: var(--color-mint);
   --color-peach: var(--color-peach);
 }
-
-@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;500;600;700&family=Nunito:wght@300;400;500;600;700;800&display=swap');
 
 @layer base {
   * {

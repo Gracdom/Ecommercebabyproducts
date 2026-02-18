@@ -60,14 +60,14 @@ export function Hero({ onGenderPredictorClick, onExploreClick, onOffersClick }: 
       <div className="grid lg:grid-cols-2 min-h-[600px] lg:min-h-[700px]">
         {/* Left Column - Text Content */}
         <div 
-          className="flex flex-col justify-center px-6 sm:px-8 lg:pl-20 lg:pr-10 py-8 sm:py-12 lg:py-16 relative z-10 space-y-6 sm:space-y-8"
+          className="flex flex-col justify-center pl-10 pr-6 sm:pl-14 sm:pr-8 lg:pl-[7.5rem] lg:pr-10 py-8 sm:py-12 lg:py-16 relative z-10 space-y-6 sm:space-y-8"
           style={{ transform: `translateX(${-scrollY * 0.1}px)` }}
         >
           {/* Badge - More rounded, pastel colors */}
-          <div className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-[#FFC1CC]/30 via-[#E0F7FA]/30 to-[#FFF9C4]/30 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full border-2 border-[#FFC1CC]/40 shadow-sm backdrop-blur-sm flex-wrap">
+          <div className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-[#FFC1CC]/30 via-[#E0F7FA]/30 to-[#FFF9C4]/30 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full backdrop-blur-sm flex-wrap">
             <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-[#FF6B9D] animate-pulse flex-shrink-0" />
             <span className="text-xs sm:text-sm text-[#2d3748] font-semibold">
-              Envío gratis en pedidos +50€
+              Envío gratis a partir de 200€
             </span>
             <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-[#FFC1CC] rounded-full animate-pulse flex-shrink-0" />
           </div>
@@ -87,17 +87,6 @@ export function Hero({ onGenderPredictorClick, onExploreClick, onOffersClick }: 
 
           {/* Trust indicators - Responsive wrap and size */}
           <div className="flex flex-wrap items-center gap-4 sm:gap-6 text-sm sm:text-base text-[#718096]">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <div className="flex -space-x-2 sm:-space-x-3 flex-shrink-0">
-                <img src="https://images.unsplash.com/photo-1764859878528-2b512ab9d4d9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxoYXBweSUyMGJhYnklMjBmYWNlJTIwbmF0dXJhbCUyMGxpZ2h0fGVufDF8fHx8MTc2NjgzMjY0OXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" alt="Bebé feliz" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 sm:border-[3px] border-white object-cover shadow-md" />
-                <img src="https://images.unsplash.com/photo-1622632405663-f43782a098b5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtb3RoZXIlMjBzbWlsaW5nJTIwcG9ydHJhaXQlMjBzb2Z0JTIwY29sb3JzfGVufDF8fHx8MTc2NjgzMjY1M3ww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" alt="Mamá feliz" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 sm:border-[3px] border-white object-cover shadow-md" />
-                <img src="https://images.unsplash.com/photo-1761891949359-abd8fb35b987?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYXRoZXIlMjBiYWJ5JTIwcG9ydHJhaXQlMjBuYXR1cmFsfGVufDF8fHx8MTc2NjgzMjY1NXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral" alt="Papá y bebé" className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 sm:border-[3px] border-white object-cover shadow-md" />
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-[#FFC1CC] to-[#FFB3C1] border-2 sm:border-[3px] border-white flex items-center justify-center shadow-md">
-                  <span className="text-[10px] sm:text-xs text-white font-bold">+5K</span>
-                </div>
-              </div>
-              <span className="font-semibold whitespace-nowrap">Clientes felices</span>
-            </div>
             <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
               {[...Array(5)].map((_, i) => (
                 <Star key={i} className="h-4 w-4 sm:h-5 sm:w-5 fill-[#FBBF24] text-[#FBBF24] flex-shrink-0" />

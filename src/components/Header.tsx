@@ -105,12 +105,12 @@ export function Header({
               )}
             </div>
 
-            {/* Actions - Small icons, color #84b4b5 */}
+            {/* Actions - Carrito en verde corporativo #83b5b6 */}
             <div className="flex items-center gap-2">
               <button 
                 onClick={onUserClick}
                 className="hidden sm:flex p-2 items-center justify-center rounded-xl transition-all duration-200 relative hover:opacity-80"
-                style={{ color: '#84b4b5' }}
+                style={{ color: '#83b5b6' }}
               >
                 <User className="h-4 w-4" strokeWidth={2} />
                 {user && (
@@ -120,11 +120,11 @@ export function Header({
               <button 
                 onClick={onWishlistClick}
                 className="relative hidden sm:flex p-2 items-center justify-center rounded-xl transition-all duration-200 hover:opacity-80"
-                style={{ color: '#84b4b5' }}
+                style={{ color: '#83b5b6' }}
               >
                 <Heart className="h-4 w-4" strokeWidth={2} />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[1rem] h-4 px-0.5 text-white text-[10px] rounded-full flex items-center justify-center font-bold border border-white" style={{ backgroundColor: '#84b4b5' }}>
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[1rem] h-4 px-0.5 text-white text-[10px] rounded-full flex items-center justify-center font-bold border border-white" style={{ backgroundColor: '#83b5b6' }}>
                     {wishlistCount}
                   </span>
                 )}
@@ -132,12 +132,12 @@ export function Header({
               <button 
                 onClick={onCartClick}
                 className="relative flex p-2.5 items-center justify-center rounded-xl transition-all duration-200 hover:opacity-80 min-h-[44px] min-w-[44px]"
-                style={{ color: '#84b4b5' }}
+                style={{ color: '#83b5b6' }}
                 aria-label="Ver carrito"
               >
                 <ShoppingCart className="h-5 w-5 sm:h-4 sm:w-4" strokeWidth={2} />
                 {cartCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[1rem] h-4 px-0.5 text-white text-[10px] rounded-full flex items-center justify-center font-bold border border-white" style={{ backgroundColor: '#84b4b5' }}>
+                  <span className="absolute top-0 right-0 w-5 h-5 min-w-5 text-white text-xs rounded-full flex items-center justify-center font-bold border-2 border-white leading-none" style={{ backgroundColor: '#83b5b6' }}>
                     {cartCount}
                   </span>
                 )}
