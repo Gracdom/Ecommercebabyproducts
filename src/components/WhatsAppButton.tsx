@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 export function WhatsAppButton() {
   const [isOpen, setIsOpen] = useState(false);
-  const whatsappNumber = '+34900123456'; // Replace with actual number
+  const whatsappNumber = '34910202911';
   const message = encodeURIComponent('¡Hola! Tengo una consulta sobre los productos de e-baby.');
 
   return (

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, RefreshCw, Save, Download, Search, Trash2, RotateCcw, CheckSquare, Square, BarChart3, FileText, Settings, ArrowUpDown, ArrowUp, ArrowDown, User, ChevronRight, ChevronDown } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Save, Download, Search, Trash2, RotateCcw, CheckSquare, Square, BarChart3, FileText, Settings, ArrowUpDown, ArrowUp, ArrowDown, User, ChevronRight, ChevronDown, ChevronUp, ShoppingBag, Package, Mail, MapPin, CreditCard, LayoutDashboard } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { ProductImageThumbnail } from './ProductImageThumbnail';
 import {
@@ -14,12 +14,14 @@ import {
   adminRestoreProducts,
   adminGetStats,
   adminGetSyncLogs,
+  adminGetOrders,
   createAdminUser,
 } from '../utils/bigbuy/edge';
 import { AdminProduct, ProductStats, SyncLog, ProductFilters } from '@/types';
 import * as Tabs from '@radix-ui/react-tabs';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { AnalyticsDashboard } from './AnalyticsDashboard';
+import { DashboardOverview } from './DashboardOverview';
 
 type Taxonomy = {
   id: number;
@@ -36,7 +38,7 @@ interface BigBuyAdminProps {
 export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
   const DEFAULT_SYNC_SECRET = '41f4208c52491c360620360a0ae4a9b2c12d37ad2cc53f1f';
   const [syncSecret, setSyncSecret] = useState(() => sessionStorage.getItem('bigbuySyncSecret') || DEFAULT_SYNC_SECRET);
-  const [activeTab, setActiveTab] = useState('sync');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [productLimit, setProductLimit] = useState(100);
   const [selectedTaxonomyIds, setSelectedTaxonomyIds] = useState<number[]>([]);
   const [taxonomies, setTaxonomies] = useState<Taxonomy[]>([]);
@@ -80,6 +82,45 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
   const [logs, setLogs] = useState<SyncLog[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
 
+  // Orders state
+  type OrderRow = {
+    id: string;
+    order_number: string;
+    status: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    phone: string | null;
+    street: string;
+    city: string;
+    postal_code: string;
+    country: string;
+    payment_method: string;
+    subtotal: number;
+    shipping_cost: number;
+    discount: number;
+    total: number;
+    bigbuy_order_ids: string[] | null;
+    shipping_service_name: string | null;
+    shipping_service_delay: string | null;
+    created_at: string;
+  };
+  type OrderItemRow = {
+    id: string;
+    order_id: string;
+    product_id: string;
+    product_sku: string | null;
+    product_name: string;
+    product_price: number;
+    quantity: number;
+    product_image: string | null;
+    variant_sku: string | null;
+  };
+  const [orders, setOrders] = useState<OrderRow[]>([]);
+  const [itemsByOrder, setItemsByOrder] = useState<Record<string, OrderItemRow[]>>({});
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
+
   useEffect(() => {
     if (!syncSecret) return;
     sessionStorage.setItem('bigbuySyncSecret', syncSecret);
@@ -102,6 +143,28 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
       loadLogs();
     }
   }, [activeTab, syncSecret]);
+
+  useEffect(() => {
+    if (activeTab === 'orders' && syncSecret) {
+      loadOrders();
+    }
+  }, [activeTab, syncSecret]);
+
+  const loadOrders = async () => {
+    if (!syncSecret) return;
+    setOrdersLoading(true);
+    try {
+      const res = await adminGetOrders(syncSecret, { limit: 200 });
+      setOrders(res.orders ?? []);
+      setItemsByOrder(res.itemsByOrder ?? {});
+    } catch (e: any) {
+      toast.error('No se pudieron cargar los pedidos', { description: e?.message });
+      setOrders([]);
+      setItemsByOrder({});
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
 
   const filteredTaxonomies = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -446,84 +509,142 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
       }));
   }, [logs]);
 
-  return (
-    <div className="min-h-screen bg-stone-50">
-      <div className="bg-white border-b border-stone-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
-          <button onClick={onBack} className="flex items-center gap-2 text-stone-600 hover:text-stone-900">
-            <ArrowLeft className="h-5 w-5" />
-            Volver
-          </button>
-          <div className="text-center">
-            <div className="text-lg text-stone-900 font-medium">Admin BigBuy</div>
-            <div className="text-xs text-stone-500">Gestión completa de productos y sincronización</div>
-          </div>
-          <div className="w-24" />
-        </div>
-      </div>
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'sync', label: 'Sincronización', icon: Settings },
+    { id: 'products', label: 'Productos', icon: Package },
+    { id: 'orders', label: 'Compras', icon: ShoppingBag },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'stats', label: 'Estadísticas', icon: BarChart3 },
+    { id: 'logs', label: 'Logs', icon: FileText },
+    { id: 'admin-user', label: 'Crear Admin', icon: User },
+  ] as const;
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {!syncSecret && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3 mb-6">
-            <div className="text-red-600 font-bold text-lg">!</div>
-            <div className="flex-1">
-              <div className="text-red-900 font-medium">Introduce el BIGBUY_SYNC_SECRET</div>
-              <div className="text-sm text-red-700 mt-1">
-                Necesitas introducir el sync secret para poder usar las funciones de administración.
-              </div>
+  const currentLabel = navItems.find((n) => n.id === activeTab)?.label ?? 'Dashboard';
+
+  return (
+    <div className="min-h-screen flex bg-[#f0f0f1]">
+      {/* Sidebar - colores corporativos (verde + rosa) */}
+      <aside className="hidden lg:flex flex-col w-64 flex-shrink-0 text-white shadow-lg" style={{ backgroundColor: '#008080' }}>
+        <div className="p-4 border-b border-white/20" style={{ backgroundColor: '#008080' }}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-[#FFC1CC] flex items-center justify-center shadow-md">
+              <LayoutDashboard className="h-5 w-5 text-[#2d3748]" />
+            </div>
+            <div>
+              <div className="font-semibold text-white">eBaby</div>
+              <div className="text-xs text-white/80">Panel Admin</div>
             </div>
           </div>
-        )}
+        </div>
+        <nav className="flex-1 py-4 overflow-y-auto scrollbar-teal" style={{ backgroundColor: '#008080' }}>
+          <div className="px-3 text-[11px] font-semibold uppercase tracking-wider text-white/70 mb-2">Menú</div>
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors rounded-r-lg mx-2 ${
+                  isActive
+                    ? 'bg-[#FFC1CC] text-[#2d3748] font-medium shadow-sm'
+                    : 'bg-transparent text-white/90 hover:bg-white/15 hover:text-white'
+                }`}
+              >
+                <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? 'text-[#2d3748]' : 'opacity-90'}`} />
+                <span className="text-sm">{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+        <div className="p-4 border-t border-white/20" style={{ backgroundColor: '#008080' }}>
+          <button
+            onClick={onBack}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-left text-white/90 hover:bg-white/15 hover:text-white rounded-lg transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span className="text-sm">Volver al sitio</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 min-w-0 flex flex-col">
+        {/* Top bar */}
+        <header className="sticky top-0 z-10 flex items-center justify-between h-14 px-4 lg:px-8 bg-white border-b border-slate-200/80 shadow-sm">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onBack}
+              className="lg:hidden flex items-center gap-2 p-2 -ml-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-base font-semibold text-slate-900">{currentLabel}</h1>
+              <p className="text-xs text-slate-500">eBaby Admin</p>
+            </div>
+          </div>
+          {/* Mobile nav pills - colores corporativos */}
+          <div className="flex gap-1 overflow-x-auto max-w-[50vw] lg:hidden scrollbar-hide">
+            {navItems.slice(0, 5).map((item) => {
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    isActive
+                      ? 'bg-[#FFC1CC] text-[#2d3748]'
+                      : 'bg-[#E0F7FA] text-[#2d3748] hover:bg-[#FFC1CC]/50'
+                  }`}
+                >
+                  {item.label.split(' ')[0]}
+                </button>
+              );
+            })}
+          </div>
+        </header>
+
+        <div className="flex-1 p-4 lg:p-8 overflow-auto">
+          {!syncSecret && (
+            <div className="mb-6 rounded-lg bg-amber-50 border border-amber-200 p-4 flex items-center gap-3">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-bold text-lg">!</div>
+              <div className="flex-1">
+                <div className="font-semibold text-amber-900">Introduce el BIGBUY_SYNC_SECRET</div>
+                <div className="text-sm text-amber-700 mt-0.5">
+                  Necesitas el sync secret para usar las funciones de administración.
+                </div>
+              </div>
+            </div>
+          )}
 
         <Tabs.Root value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <Tabs.List className="flex gap-2 border-b border-stone-200">
-            <Tabs.Trigger
-              value="sync"
-              className="px-4 py-2 text-sm font-medium text-stone-600 border-b-2 border-transparent data-[state=active]:border-stone-900 data-[state=active]:text-stone-900 hover:text-stone-900 transition-colors"
-            >
-              <Settings className="h-4 w-4 inline mr-2" />
-              Sincronización
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="products"
-              className="px-4 py-2 text-sm font-medium text-stone-600 border-b-2 border-transparent data-[state=active]:border-stone-900 data-[state=active]:text-stone-900 hover:text-stone-900 transition-colors"
-            >
-              <FileText className="h-4 w-4 inline mr-2" />
-              Productos
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="analytics"
-              className="px-4 py-2 text-sm font-medium text-stone-600 border-b-2 border-transparent data-[state=active]:border-stone-900 data-[state=active]:text-stone-900 hover:text-stone-900 transition-colors"
-            >
-              <BarChart3 className="h-4 w-4 inline mr-2" />
-              Analytics
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="stats"
-              className="px-4 py-2 text-sm font-medium text-stone-600 border-b-2 border-transparent data-[state=active]:border-stone-900 data-[state=active]:text-stone-900 hover:text-stone-900 transition-colors"
-            >
-              <BarChart3 className="h-4 w-4 inline mr-2" />
-              Estadísticas
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="logs"
-              className="px-4 py-2 text-sm font-medium text-stone-600 border-b-2 border-transparent data-[state=active]:border-stone-900 data-[state=active]:text-stone-900 hover:text-stone-900 transition-colors"
-            >
-              <FileText className="h-4 w-4 inline mr-2" />
-              Logs
-            </Tabs.Trigger>
-            <Tabs.Trigger
-              value="admin-user"
-              className="px-4 py-2 text-sm font-medium text-stone-600 border-b-2 border-transparent data-[state=active]:border-stone-900 data-[state=active]:text-stone-900 hover:text-stone-900 transition-colors"
-            >
-              <User className="h-4 w-4 inline mr-2" />
-              Crear Admin
-            </Tabs.Trigger>
+          <Tabs.List className="sr-only">
+            {navItems.map((n) => (
+              <Tabs.Trigger key={n.id} value={n.id} />
+            ))}
           </Tabs.List>
+
+          {/* Dashboard Tab */}
+          <Tabs.Content value="dashboard" className="space-y-6">
+            {syncSecret ? (
+              <DashboardOverview
+                syncSecret={syncSecret}
+                onNavigateToOrders={() => setActiveTab('orders')}
+                onNavigateToProducts={() => setActiveTab('products')}
+                onNavigateToSync={() => setActiveTab('sync')}
+              />
+            ) : (
+              <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center text-slate-500">
+                Introduce el BIGBUY_SYNC_SECRET en Sincronización para ver el dashboard
+              </div>
+            )}
+          </Tabs.Content>
 
           {/* Sync Tab */}
           <Tabs.Content value="sync" className="space-y-6">
-            <div className="bg-white rounded-xl p-6 border border-stone-200 space-y-4">
+            <div className="bg-white rounded-lg p-6 border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)] space-y-4">
               <div className="grid sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2">
                   <label className="block text-sm text-stone-700 mb-2">BIGBUY_SYNC_SECRET</label>
@@ -555,7 +676,7 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
                 <button
                   onClick={loadConfig}
                   disabled={loading}
-                  className="px-4 py-2.5 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 disabled:opacity-60"
+                  className="px-4 py-2.5 bg-white border border-[#8c8f94] rounded hover:bg-[#f6f7f7] disabled:opacity-60"
                 >
                   <Download className="h-4 w-4 inline mr-2" />
                   Cargar config
@@ -563,7 +684,7 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
                 <button
                   onClick={saveConfig}
                   disabled={loading}
-                  className="px-4 py-2.5 bg-stone-900 text-white rounded-lg hover:bg-stone-800 disabled:opacity-60"
+                  className="px-4 py-2.5 bg-[#2271b1] text-white rounded border-0 hover:bg-[#135e96] disabled:opacity-60"
                 >
                   <Save className="h-4 w-4 inline mr-2" />
                   Guardar config
@@ -571,7 +692,7 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
                 <button
                   onClick={loadTaxonomies}
                   disabled={loading}
-                  className="px-4 py-2.5 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 disabled:opacity-60"
+                  className="px-4 py-2.5 bg-white border border-[#8c8f94] rounded hover:bg-[#f6f7f7] disabled:opacity-60"
                 >
                   <RefreshCw className="h-4 w-4 inline mr-2" />
                   Cargar taxonomías
@@ -579,7 +700,7 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
                 <button
                   onClick={runSync}
                   disabled={syncing}
-                  className="px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-60"
+                  className="px-4 py-2.5 bg-[#2271b1] text-white rounded border-0 hover:bg-[#135e96] disabled:opacity-60"
                 >
                   <RefreshCw className={`h-4 w-4 inline mr-2 ${syncing ? 'animate-spin' : ''}`} />
                   Sync catálogo
@@ -587,7 +708,7 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
                 <button
                   onClick={runSyncFull}
                   disabled={syncingFull}
-                  className="px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-60"
+                  className="px-4 py-2.5 bg-[#00a32a] text-white rounded border-0 hover:bg-[#008a20] disabled:opacity-60"
                 >
                   <RefreshCw className={`h-4 w-4 inline mr-2 ${syncingFull ? 'animate-spin' : ''}`} />
                   Sync completo
@@ -595,7 +716,7 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
                 <button
                   onClick={runSyncStock}
                   disabled={syncingStock}
-                  className="px-4 py-2.5 bg-white border border-stone-300 rounded-lg hover:bg-stone-50 disabled:opacity-60"
+                  className="px-4 py-2.5 bg-white border border-[#8c8f94] rounded hover:bg-[#f6f7f7] disabled:opacity-60"
                 >
                   <RefreshCw className={`h-4 w-4 inline mr-2 ${syncingStock ? 'animate-spin' : ''}`} />
                   Sync stock
@@ -603,10 +724,10 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
               </div>
             </div>
 
-            <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
-              <div className="p-4 border-b border-stone-200 flex items-center gap-3">
+            <div className="bg-white rounded-lg border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)] overflow-hidden">
+              <div className="p-4 border-b border-[#c3c4c7] flex items-center gap-3">
                 <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                   <input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
@@ -619,14 +740,14 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
                 </div>
               </div>
 
-              <div className="max-h-[520px] overflow-y-auto divide-y divide-stone-100">
+              <div className="max-h-[520px] overflow-y-auto divide-y divide-slate-100">
                 {filteredTaxonomies.map((t) => {
                   const checked = selectedTaxonomyIds.includes(t.id);
                   const isParentTaxonomy = t.parentTaxonomy === 0 || t.parentTaxonomy === null;
                   return (
                     <label
                       key={t.id}
-                      className={`flex items-start gap-3 p-4 cursor-pointer hover:bg-stone-50 ${
+                      className={`flex items-start gap-3 p-4 cursor-pointer hover:bg-slate-50 ${
                         !isParentTaxonomy ? 'opacity-60' : ''
                       }`}
                     >
@@ -669,7 +790,7 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
 
           {/* Products Tab */}
           <Tabs.Content value="products" className="space-y-6">
-            <div className="bg-white rounded-xl p-6 border border-stone-200">
+            <div className="bg-white rounded-lg p-6 border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)]">
               <div className="flex flex-col sm:flex-row gap-4 mb-4">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
@@ -1063,6 +1184,189 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
             )}
           </Tabs.Content>
 
+          {/* Orders Tab */}
+          <Tabs.Content value="orders" className="space-y-6">
+            <div className="bg-white rounded-lg border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)] overflow-hidden">
+              <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
+                <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  <ShoppingBag className="h-5 w-5 text-slate-600" />
+                  Todos los pedidos
+                </h3>
+                <button
+                  onClick={loadOrders}
+                  disabled={ordersLoading}
+                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-60 flex items-center gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${ordersLoading ? 'animate-spin' : ''}`} />
+                  Actualizar
+                </button>
+              </div>
+              {ordersLoading ? (
+                <div className="p-12 text-center text-slate-500">Cargando pedidos…</div>
+              ) : orders.length === 0 ? (
+                <div className="p-12 text-center text-slate-500">No hay pedidos registrados</div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {orders.map((order) => {
+                    const items = itemsByOrder[order.id] ?? [];
+                    const isExpanded = expandedOrderId === order.id;
+                    return (
+                      <div key={order.id} className="bg-white hover:bg-slate-50/50 transition-colors">
+                        <button
+                          onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
+                          className="w-full p-4 flex items-center justify-between text-left"
+                        >
+                          <div className="flex items-center gap-4 min-w-0">
+                            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                              <Package className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-slate-900 flex items-center gap-2">
+                                {order.order_number}
+                                <span
+                                  className={`text-xs px-2 py-0.5 rounded-full ${
+                                    order.status === 'completed'
+                                      ? 'bg-green-100 text-green-700'
+                                      : order.status === 'failed'
+                                        ? 'bg-red-100 text-red-700'
+                                        : order.status === 'cancelled'
+                                          ? 'bg-slate-100 text-slate-600'
+                                          : 'bg-amber-100 text-amber-700'
+                                  }`}
+                                >
+                                  {order.status}
+                                </span>
+                              </div>
+                              <div className="text-sm text-slate-600 mt-0.5">
+                                {order.first_name} {order.last_name} · {order.email}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 flex-shrink-0">
+                            <div className="text-right hidden sm:block">
+                              <div className="text-sm font-medium text-slate-900">
+                                {Number(order.total).toFixed(2)} €
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                {new Date(order.created_at).toLocaleDateString('es-ES', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </div>
+                            </div>
+                            {isExpanded ? (
+                              <ChevronUp className="h-5 w-5 text-slate-400" />
+                            ) : (
+                              <ChevronDown className="h-5 w-5 text-slate-400" />
+                            )}
+                          </div>
+                        </button>
+                        {isExpanded && (
+                          <div className="px-4 pb-4 pt-0 border-t border-slate-100 bg-slate-50/50">
+                            <div className="rounded-xl bg-white border border-slate-200 p-4 space-y-4 mt-4">
+                              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div className="flex items-start gap-3">
+                                  <Mail className="h-4 w-4 text-slate-400 mt-0.5" />
+                                  <div>
+                                    <div className="text-xs font-medium text-slate-500 uppercase tracking-wide">Contacto</div>
+                                    <div className="text-sm text-slate-900">{order.email}</div>
+                                    {order.phone && (
+                                      <div className="text-sm text-slate-600">{order.phone}</div>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                  <MapPin className="h-4 w-4 text-slate-400 mt-0.5" />
+                                  <div>
+                                    <div className="text-xs font-medium text-slate-500 uppercase tracking-wide">Dirección</div>
+                                    <div className="text-sm text-slate-900">
+                                      {order.street}, {order.postal_code} {order.city}, {order.country}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="flex items-start gap-3">
+                                  <CreditCard className="h-4 w-4 text-slate-400 mt-0.5" />
+                                  <div>
+                                    <div className="text-xs font-medium text-slate-500 uppercase tracking-wide">Pago / Envío</div>
+                                    <div className="text-sm text-slate-900">{order.payment_method}</div>
+                                    {order.shipping_service_name && (
+                                      <div className="text-sm text-slate-600">{order.shipping_service_name}</div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Productos</div>
+                                <div className="space-y-2">
+                                  {items.map((it) => (
+                                    <div
+                                      key={it.id}
+                                      className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100"
+                                    >
+                                      {it.product_image ? (
+                                        <img
+                                          src={it.product_image}
+                                          alt=""
+                                          className="w-12 h-12 rounded object-cover"
+                                        />
+                                      ) : (
+                                        <div className="w-12 h-12 rounded bg-slate-200 flex items-center justify-center">
+                                          <Package className="h-6 w-6 text-slate-400" />
+                                        </div>
+                                      )}
+                                      <div className="flex-1 min-w-0">
+                                        <div className="font-medium text-slate-900 truncate">{it.product_name}</div>
+                                        <div className="text-xs text-slate-500">
+                                          SKU: {it.product_sku || it.variant_sku || it.product_id} · Cantidad: {it.quantity}
+                                        </div>
+                                      </div>
+                                      <div className="text-sm font-semibold text-slate-900">
+                                        {(Number(it.product_price) * it.quantity).toFixed(2)} €
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="flex flex-wrap justify-between gap-4 pt-4 border-t border-slate-200">
+                                <div className="space-y-1 text-sm">
+                                  <div className="flex justify-between gap-8">
+                                    <span className="text-slate-600">Subtotal</span>
+                                    <span>{Number(order.subtotal).toFixed(2)} €</span>
+                                  </div>
+                                  <div className="flex justify-between gap-8">
+                                    <span className="text-slate-600">Envío</span>
+                                    <span>{Number(order.shipping_cost).toFixed(2)} €</span>
+                                  </div>
+                                  {Number(order.discount) > 0 && (
+                                    <div className="flex justify-between gap-8 text-green-600">
+                                      <span>Descuento</span>
+                                      <span>-{Number(order.discount).toFixed(2)} €</span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="text-lg font-bold text-slate-900">
+                                  Total: {Number(order.total).toFixed(2)} €
+                                </div>
+                              </div>
+                              {order.bigbuy_order_ids && order.bigbuy_order_ids.length > 0 && (
+                                <div className="text-xs text-slate-500">
+                                  BigBuy IDs: {order.bigbuy_order_ids.join(', ')}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </Tabs.Content>
+
           {/* Stats Tab */}
           <Tabs.Content value="stats" className="space-y-6">
             {statsLoading ? (
@@ -1072,26 +1376,26 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
             ) : stats ? (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-white rounded-xl p-6 border border-stone-200">
-                    <div className="text-sm text-stone-600 mb-1">Total Productos</div>
-                    <div className="text-3xl font-bold text-stone-900">{stats.totalProducts}</div>
+                  <div className="bg-white rounded-lg p-6 border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)]">
+                    <div className="text-sm text-slate-600 mb-1">Total Productos</div>
+                    <div className="text-3xl font-bold text-slate-900">{stats.totalProducts}</div>
                   </div>
-                  <div className="bg-white rounded-xl p-6 border border-stone-200">
-                    <div className="text-sm text-stone-600 mb-1">Con Stock</div>
+                  <div className="bg-white rounded-lg p-6 border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)]">
+                    <div className="text-sm text-slate-600 mb-1">Con Stock</div>
                     <div className="text-3xl font-bold text-green-600">{stats.productsWithStock}</div>
                   </div>
-                  <div className="bg-white rounded-xl p-6 border border-stone-200">
-                    <div className="text-sm text-stone-600 mb-1">Sin Stock</div>
+                  <div className="bg-white rounded-lg p-6 border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)]">
+                    <div className="text-sm text-slate-600 mb-1">Sin Stock</div>
                     <div className="text-3xl font-bold text-red-600">{stats.productsWithoutStock}</div>
                   </div>
-                  <div className="bg-white rounded-xl p-6 border border-stone-200">
-                    <div className="text-sm text-stone-600 mb-1">Eliminados</div>
+                  <div className="bg-white rounded-lg p-6 border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)]">
+                    <div className="text-sm text-slate-600 mb-1">Eliminados</div>
                     <div className="text-3xl font-bold text-orange-600">{stats.deletedProducts}</div>
                   </div>
                 </div>
 
                 {stats.lastSync && (
-                  <div className="bg-white rounded-xl p-6 border border-stone-200">
+                  <div className="bg-white rounded-lg p-6 border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)]">
                     <h3 className="text-lg font-medium text-stone-900 mb-4">Última Sincronización</h3>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
                       <div>
@@ -1121,7 +1425,7 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
                 )}
 
                 {chartData.length > 0 && (
-                  <div className="bg-white rounded-xl p-6 border border-stone-200">
+                  <div className="bg-white rounded-lg p-6 border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)]">
                     <h3 className="text-lg font-medium text-stone-900 mb-4">Sincronizaciones Recientes</h3>
                     <ResponsiveContainer width="100%" height={300}>
                       <LineChart data={chartData}>
@@ -1136,7 +1440,7 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
                 )}
               </>
             ) : (
-              <div className="bg-white rounded-xl p-8 border border-stone-200 text-center text-stone-500">
+              <div className="bg-white rounded-lg p-8 border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)] text-center text-slate-500">
                 No hay estadísticas disponibles
               </div>
             )}
@@ -1144,7 +1448,7 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
 
           {/* Logs Tab */}
           <Tabs.Content value="logs" className="space-y-6">
-            <div className="bg-white rounded-xl border border-stone-200 overflow-hidden">
+            <div className="bg-white rounded-lg border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)] overflow-hidden">
               {logsLoading ? (
                 <div className="p-8 text-center text-stone-500">Cargando logs…</div>
               ) : logs.length === 0 ? (
@@ -1207,7 +1511,7 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
 
           {/* Create Admin User Tab */}
           <Tabs.Content value="admin-user" className="space-y-6">
-            <div className="bg-white rounded-xl p-6 border border-stone-200">
+            <div className="bg-white rounded-lg p-6 border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)]">
               <h3 className="text-lg font-semibold text-stone-900 mb-4">Crear Usuario Administrador</h3>
               <p className="text-sm text-stone-600 mb-6">
                 Crea un nuevo usuario con permisos de administrador. Este usuario podrá acceder al panel de administración.
@@ -1244,7 +1548,7 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
                 <button
                   onClick={handleCreateAdmin}
                   disabled={creatingAdmin || !syncSecret || !adminEmail || !adminPassword}
-                  className="w-full px-4 py-3 bg-stone-900 text-white rounded-lg hover:bg-stone-800 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+                  className="w-full px-4 py-3 bg-[#2271b1] text-white rounded border-0 hover:bg-[#135e96] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
                 >
                   {creatingAdmin ? 'Creando usuario...' : 'Crear Usuario Admin'}
                 </button>
@@ -1258,7 +1562,8 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
             </div>
           </Tabs.Content>
         </Tabs.Root>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

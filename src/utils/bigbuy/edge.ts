@@ -269,6 +269,53 @@ export function orderCreate(input: {
   return edgeRequest<any>("/bigbuy/order/create", { method: "POST", body: input });
 }
 
+export function adminGetOrders(syncSecret: string, opts?: { limit?: number; offset?: number }) {
+  const params = new URLSearchParams();
+  if (opts?.limit) params.append("limit", String(opts.limit));
+  if (opts?.offset) params.append("offset", String(opts.offset));
+  const query = params.toString();
+  return edgeRequest<{
+    orders: Array<{
+      id: string;
+      order_number: string;
+      status: string;
+      email: string;
+      first_name: string;
+      last_name: string;
+      phone: string | null;
+      street: string;
+      city: string;
+      postal_code: string;
+      country: string;
+      payment_method: string;
+      subtotal: number;
+      shipping_cost: number;
+      discount: number;
+      total: number;
+      bigbuy_order_ids: string[] | null;
+      shipping_service_name: string | null;
+      shipping_service_delay: string | null;
+      created_at: string;
+      user_id: string | null;
+      session_id: string | null;
+    }>;
+    itemsByOrder: Record<string, Array<{
+      id: string;
+      order_id: string;
+      product_id: string;
+      product_sku: string | null;
+      product_name: string;
+      product_price: number;
+      quantity: number;
+      product_image: string | null;
+      variant_sku: string | null;
+    }>>;
+  }>(`/admin/orders${query ? `?${query}` : ""}`, {
+    method: "GET",
+    headers: { "x-bigbuy-sync-secret": syncSecret },
+  });
+}
+
 export function createAdminUser(syncSecret: string, email: string, password: string) {
   return edgeRequest<{ ok: boolean; message: string; userId: string; email: string }>(
     "/admin/create-user",

@@ -2698,6 +2698,49 @@ app.get("/make-server-335110ef/bigbuy/admin/stats", requireSyncSecret(), async (
   }
 });
 
+// Get all orders (admin - eBaby orders from public.orders)
+app.get("/make-server-335110ef/admin/orders", requireSyncSecret(), async (c) => {
+  try {
+    const limit = Math.min(Number(c.req.query("limit")) || 100, 500);
+    const offset = Number(c.req.query("offset")) || 0;
+    const supabase = getServiceSupabase();
+
+    const { data: orders, error: ordersErr } = await supabase
+      .from("orders")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (ordersErr) throw ordersErr;
+
+    if (!orders?.length) {
+      return c.json({ orders: [], itemsByOrder: {} });
+    }
+
+    const orderIds = orders.map((o: any) => o.id);
+    const { data: items, error: itemsErr } = await supabase
+      .from("order_items")
+      .select("*")
+      .in("order_id", orderIds)
+      .order("created_at");
+
+    if (itemsErr) throw itemsErr;
+
+    const itemsByOrder: Record<string, any[]> = {};
+    for (const o of orders) {
+      itemsByOrder[o.id] = [];
+    }
+    for (const it of items || []) {
+      const arr = itemsByOrder[it.order_id];
+      if (arr) arr.push(it);
+    }
+
+    return c.json({ orders, itemsByOrder });
+  } catch (e: any) {
+    return c.json({ error: e?.message || "Internal error" }, 500);
+  }
+});
+
 // Get sync logs
 app.get("/make-server-335110ef/bigbuy/admin/sync-logs", requireSyncSecret(), async (c) => {
   try {

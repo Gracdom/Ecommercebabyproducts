@@ -1,4 +1,5 @@
-import { Heart, Mail, Phone, MapPin, Instagram, Facebook, Twitter, Youtube, CreditCard, Shield, Award } from 'lucide-react';
+import { Heart, Mail, MessageCircle, Instagram, Facebook, Twitter, Youtube, CreditCard, Shield, Award } from 'lucide-react';
+import { navigate } from '@/utils/navigate';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -14,7 +15,7 @@ export function Footer() {
               <div>
                 <div className="mb-3 flex items-center min-h-[2.5rem]">
                   <img
-                    src="/logo.png"
+                    src="/logo-white.png"
                     alt="e-baby"
                     className="h-10 w-auto shrink-0 object-contain"
                     onError={(e) => {
@@ -33,25 +34,18 @@ export function Footer() {
                 </p>
               </div>
 
-              {/* Contact Info */}
+              {/* Contact Info - Solo WhatsApp y Email */}
               <div className="space-y-3">
-                <div className="flex items-start gap-3">
-                  <MapPin className="h-5 w-5 text-white/80 flex-shrink-0 mt-0.5" />
-                  <span className="text-sm text-white/90">
-                    Calle Mayor 123<br />
-                    28013 Madrid, España
-                  </span>
-                </div>
                 <div className="flex items-center gap-3">
-                  <Phone className="h-5 w-5 text-white/80 flex-shrink-0" />
-                  <a href="tel:+34900123456" className="text-sm text-white/90 hover:text-white transition-colors">
-                    +34 900 123 456
+                  <MessageCircle className="h-5 w-5 text-white/80 flex-shrink-0" />
+                  <a href="https://wa.me/34910202911" target="_blank" rel="noopener noreferrer" className="text-sm text-white/90 hover:text-white transition-colors">
+                    +34 910 202 911 (WhatsApp)
                   </a>
                 </div>
                 <div className="flex items-center gap-3">
                   <Mail className="h-5 w-5 text-white/80 flex-shrink-0" />
-                  <a href="mailto:hola@babyonly.com" className="text-sm text-white/90 hover:text-white transition-colors">
-                    hola@babyonly.com
+                  <a href="mailto:info@ebaby-shop.com" className="text-sm text-white/90 hover:text-white transition-colors">
+                    info@ebaby-shop.com
                   </a>
                 </div>
               </div>
@@ -104,7 +98,7 @@ export function Footer() {
                   <li key={item}>
                     <button 
                       onClick={() => {
-                        window.location.hash = '#category';
+                        navigate('/categoria');
                       }}
                       className="text-white/80 hover:text-white transition-colors text-sm text-left w-full font-medium"
                     >
@@ -119,18 +113,22 @@ export function Footer() {
             <div>
               <h4 className="text-sm font-semibold mb-5 text-white uppercase tracking-wider">Ayuda</h4>
               <ul className="space-y-3">
-                {['Centro de ayuda', 'Seguimiento de pedido', 'Envíos y entregas', 'Devoluciones', 'Tallas', 'Contacto', 'FAQs'].map((item) => (
-                  <li key={item}>
-                    <button 
-                      onClick={() => {
-                        console.log(`Navigate to help: ${item}`);
-                      }}
-                      className="text-white/80 hover:text-white transition-colors text-sm text-left w-full font-medium"
-                    >
-                      {item}
-                    </button>
-                  </li>
-                ))}
+                <li>
+                  <button 
+                    onClick={() => { navigate('/contacto'); }}
+                    className="text-white/80 hover:text-white transition-colors text-sm text-left w-full font-medium"
+                  >
+                    Contacto
+                  </button>
+                </li>
+                <li>
+                  <button 
+                    onClick={() => { navigate('/categoria'); }}
+                    className="text-white/80 hover:text-white transition-colors text-sm text-left w-full font-medium"
+                  >
+                    Catálogo
+                  </button>
+                </li>
               </ul>
             </div>
 
@@ -203,30 +201,36 @@ export function Footer() {
                 <span>en España</span>
               </div>
               
-              <div className="flex items-center gap-6 text-sm">
+              <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm">
                 <button 
-                  onClick={() => console.log('Navigate to Privacy')}
+                  onClick={() => { navigate('/aviso-legal'); }}
+                  className="text-white/80 hover:text-white transition-colors font-medium"
+                >
+                  Aviso Legal
+                </button>
+                <button 
+                  onClick={() => { navigate('/privacidad'); }}
                   className="text-white/80 hover:text-white transition-colors font-medium"
                 >
                   Privacidad
                 </button>
                 <button 
-                  onClick={() => console.log('Navigate to Terms')}
+                  onClick={() => { navigate('/terminos'); }}
                   className="text-white/80 hover:text-white transition-colors font-medium"
                 >
                   Términos
                 </button>
                 <button 
-                  onClick={() => console.log('Navigate to Cookies')}
+                  onClick={() => { navigate('/cookies'); }}
                   className="text-white/80 hover:text-white transition-colors font-medium"
                 >
                   Cookies
                 </button>
                 <button 
-                  onClick={() => console.log('Navigate to Legal')}
+                  onClick={() => { import('@/utils/navigate').then(({ navigate }) => navigate('/contacto')); }}
                   className="text-white/80 hover:text-white transition-colors font-medium"
                 >
-                  Accesibilidad
+                  Contacto
                 </button>
               </div>
             </div>

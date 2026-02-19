@@ -20,6 +20,11 @@ import { ExitIntentPopup } from './components/ExitIntentPopup';
 // import { RecommendedProducts } from './components/RecommendedProducts';
 import { CheckoutPage, OrderData } from './components/CheckoutPage';
 import { OrderConfirmation } from './components/OrderConfirmation';
+import { ContactPage } from './components/pages/ContactPage';
+import { AvisoLegal } from './components/pages/AvisoLegal';
+import { Privacidad } from './components/pages/Privacidad';
+import { TerminosCondiciones } from './components/pages/TerminosCondiciones';
+import { PoliticaCookies } from './components/pages/PoliticaCookies';
 import { WhatsAppButton } from './components/WhatsAppButton';
 // import { FeaturedProducts } from './components/FeaturedProducts';
 import { FeaturesSection } from './components/FeaturesSection';
@@ -30,6 +35,7 @@ import { BrandCarousel } from './components/BrandCarousel';
 import { GenderPredictor } from './components/GenderPredictor';
 import { GenderPredictorBanner } from './components/GenderPredictorBanner';
 import { BigBuyAdmin } from './components/BigBuyAdmin';
+import { AdminLogin } from './components/AdminLogin';
 import { useWishlist } from './components/WishlistManager';
 import { useAuth } from './hooks/useAuth';
 import { LoginModal } from './components/LoginModal';
@@ -39,8 +45,15 @@ import { toast } from 'sonner@2.0.3';
 import { Product } from './types';
 import { fetchCatalogProducts, fetchCategories, fetchProductsByCategory, type CategoryInfo } from './utils/ebaby/catalog';
 import { createProductSlug, createSlug } from './utils/slug';
+import {
+  getOrCreateSessionId,
+  loadCartFromDb,
+  saveCartToDb,
+  clearCartInDb,
+} from './utils/ebaby/cart-db';
+import { createOrderInDb } from './utils/ebaby/orders-db';
 
-type View = 'home' | 'category' | 'product' | 'wishlist' | 'checkout' | 'confirmation' | 'gender-predictor' | 'admin' | 'login' | 'signup' | 'profile';
+type View = 'home' | 'category' | 'product' | 'wishlist' | 'checkout' | 'confirmation' | 'gender-predictor' | 'admin' | 'login' | 'signup' | 'profile' | 'contact' | 'aviso-legal' | 'privacidad' | 'terminos' | 'cookies';
 
 export default function App() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -63,7 +76,7 @@ export default function App() {
   const { wishlist, addToWishlist, removeFromWishlist, isInWishlist, wishlistCount } = useWishlist();
   
   // Auth integration
-  const { user, isAdmin, loading: authLoading } = useAuth();
+  const { user, isAdmin, loading: authLoading, signOut } = useAuth();
 
   // Load categories from ebaby_productos (once on mount)
   useEffect(() => {
@@ -113,41 +126,47 @@ export default function App() {
     return () => window.removeEventListener('categorySelected', handleCategorySelected as EventListener);
   }, []);
 
-  // Hash-based navigation (/#admin, #product/..., #category, etc.)
+  // Path-based navigation (/admin, /categoria, /producto/..., /contacto, etc.)
   useEffect(() => {
-    const applyHash = () => {
-      const hash = window.location.hash;
-      
+    const applyPath = () => {
+      // Redirigir hashes antiguos (#admin, #categoria...) a paths
+      const hash = window.location.hash.slice(1);
+      if (hash) {
+        const hashToPath: Record<string, string> = {
+          admin: '/admin',
+          category: '/categoria',
+          contact: '/contacto',
+          'aviso-legal': '/aviso-legal',
+          privacidad: '/privacidad',
+          terminos: '/terminos',
+          cookies: '/cookies',
+        };
+        const pathFromHash = hashToPath[hash] ?? (hash.startsWith('product/') ? `/producto/${hash.replace('product/', '')}` : '/');
+        window.history.replaceState(null, '', pathFromHash);
+      }
+      const path = window.location.pathname.replace(/\/$/, '') || '/';
+
       // Check for category selection in sessionStorage
       const storedCategory = sessionStorage.getItem('selectedCategory');
       const storedSubCategory = sessionStorage.getItem('selectedSubCategory');
-      if (storedCategory && hash === '#category') {
+      if (storedCategory && path === '/categoria') {
         setSelectedCategory(storedCategory);
         setSelectedSubCategory(storedSubCategory && storedSubCategory !== 'null' ? storedSubCategory : null);
       }
-      
-      // Admin route
-      if (hash === '#admin') {
-        if (isAdmin) {
-          setCurrentView('admin');
-        } else {
-          toast.error('Acceso denegado', {
-            description: 'Necesitas permisos de administrador para acceder al panel.',
-          });
-          window.location.hash = '';
-          setShowLoginModal(true);
-        }
+
+      // Admin route: siempre mostrar vista admin (login o panel según auth)
+      if (path === '/admin') {
+        setCurrentView('admin');
         return;
       }
-      
-      // Product route (#product/nombre-del-producto)
-      if (hash.startsWith('#product/')) {
-        const productSlug = hash.replace('#product/', '');
-        // Buscar producto por slug del nombre (prioritario), luego por SKU o ID (retrocompatibilidad)
+
+      // Product route (/producto/nombre-del-producto)
+      if (path.startsWith('/producto/')) {
+        const productSlug = path.replace('/producto/', '');
         const product = allProducts.find(p => {
           const nameSlug = createProductSlug(p);
-          return nameSlug === productSlug || 
-                 p.sku === productSlug || 
+          return nameSlug === productSlug ||
+                 p.sku === productSlug ||
                  p.id.toString() === productSlug ||
                  `product-${p.id}` === productSlug ||
                  `producto-${p.id}` === productSlug;
@@ -159,43 +178,93 @@ export default function App() {
         }
         return;
       }
-      
+
       // Category route
-      if (hash === '#category') {
+      if (path === '/categoria') {
         setCurrentView('category');
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
-      
-      // Home route (empty hash or #home)
-      if (!hash || hash === '#home') {
-        setCurrentView('home');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
+
+      // Contact and Legal routes
+      if (path === '/contacto') { setCurrentView('contact'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+      if (path === '/aviso-legal') { setCurrentView('aviso-legal'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+      if (path === '/privacidad') { setCurrentView('privacidad'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+      if (path === '/terminos') { setCurrentView('terminos'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+      if (path === '/cookies') { setCurrentView('cookies'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+
+      // Home route
+      setCurrentView('home');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     };
-    
-    applyHash();
-    window.addEventListener('hashchange', applyHash);
-    window.addEventListener('popstate', applyHash);
-    return () => {
-      window.removeEventListener('hashchange', applyHash);
-      window.removeEventListener('popstate', applyHash);
-    };
+
+    applyPath();
+    window.addEventListener('popstate', applyPath);
+    return () => window.removeEventListener('popstate', applyPath);
   }, [isAdmin, allProducts]);
 
-  // Load cart from localStorage on mount
+  // Load cart: from DB first, fallback to localStorage (migración)
   useEffect(() => {
-    const savedCart = localStorage.getItem('cartItems');
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
-    }
-  }, []);
+    if (authLoading) return;
+    const sessionId = getOrCreateSessionId();
+    const uid = user?.id ?? null;
 
-  // Save cart to localStorage whenever it changes
+    const load = async () => {
+      const dbCart = await loadCartFromDb(uid, sessionId);
+      if (dbCart.length > 0) {
+        setCartItems(dbCart);
+        return;
+      }
+      // Usuario recién logueado: fusionar carrito de sesión con carrito de usuario
+      if (uid) {
+        const sessionCart = await loadCartFromDb(null, sessionId);
+        if (sessionCart.length > 0) {
+          const userCart = await loadCartFromDb(uid, null);
+          const merged = [...userCart];
+          for (const si of sessionCart) {
+            const existing = merged.find((m) => m.id === si.id && m.variantSku === si.variantSku);
+            if (existing) {
+              existing.quantity = (existing.quantity ?? 1) + (si.quantity ?? 1);
+            } else {
+              merged.push({ ...si });
+            }
+          }
+          setCartItems(merged);
+          await saveCartToDb(merged, uid, null);
+          await clearCartInDb(null, sessionId);
+          return;
+        }
+      }
+      const savedCart = localStorage.getItem('cartItems');
+      if (savedCart) {
+        try {
+          const parsed = JSON.parse(savedCart) as Product[];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setCartItems(parsed);
+            saveCartToDb(parsed, uid, uid ? null : sessionId);
+          }
+        } catch {
+          /* ignore */
+        }
+      }
+    };
+    load();
+  }, [authLoading, user?.id]);
+
+  // Save cart: localStorage (inmediato) + BD (debounced)
   useEffect(() => {
     localStorage.setItem('cartItems', JSON.stringify(cartItems));
   }, [cartItems]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    const sessionId = getOrCreateSessionId();
+    const uid = user?.id ?? null;
+    const t = setTimeout(() => {
+      saveCartToDb(cartItems, uid, sessionId);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [cartItems, authLoading, user?.id]);
 
   // Load recently viewed from localStorage
   useEffect(() => {
@@ -285,7 +354,7 @@ export default function App() {
     setCurrentView('product');
     // Update URL without page reload - usar nombre del producto como slug
     const productSlug = createProductSlug(product);
-    window.history.pushState({ view: 'product', productId: product.id }, '', `#product/${productSlug}`);
+    window.history.pushState({ view: 'product', productId: product.id }, '', `/producto/${productSlug}`);
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -310,7 +379,8 @@ export default function App() {
   const cartCount = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
   return (
-    <div className="min-h-screen min-h-[100dvh] bg-white pb-24 lg:pb-0" style={{ backgroundColor: '#FFFFFF' }}>
+    <div className={`min-h-screen min-h-[100dvh] bg-white ${currentView !== 'admin' ? 'pb-24 lg:pb-0' : ''}`} style={{ backgroundColor: '#FFFFFF' }}>
+          {currentView !== 'admin' && (
           <Header
             cartCount={cartCount}
             wishlistCount={wishlistCount}
@@ -325,7 +395,7 @@ export default function App() {
             }}
             onLogoClick={() => {
               // Navigate to home and update URL
-              window.history.pushState({ view: 'home' }, '', window.location.pathname);
+              window.history.pushState({ view: 'home' }, '', '/');
               setCurrentView('home');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
@@ -333,6 +403,7 @@ export default function App() {
             onProductClick={handleProductClick}
             categories={categories}
           />
+          )}
       
       {currentView === 'home' ? (
         <>
@@ -343,7 +414,7 @@ export default function App() {
               sessionStorage.removeItem('selectedSubCategory');
               setSelectedCategory(null);
               setSelectedSubCategory(null);
-              window.history.pushState({ view: 'category' }, '', '#category');
+              window.history.pushState({ view: 'category' }, '', '/categoria');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
@@ -352,7 +423,7 @@ export default function App() {
               sessionStorage.removeItem('selectedSubCategory');
               setSelectedCategory(null);
               setSelectedSubCategory(null);
-              window.history.pushState({ view: 'category' }, '', '#category');
+              window.history.pushState({ view: 'category' }, '', '/categoria');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
@@ -365,7 +436,7 @@ export default function App() {
               sessionStorage.removeItem('selectedSubCategory');
               setSelectedCategory(categoryName);
               setSelectedSubCategory(null);
-              window.history.pushState({ view: 'category' }, '', '#category');
+              window.history.pushState({ view: 'category' }, '', '/categoria');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
@@ -381,14 +452,14 @@ export default function App() {
               sessionStorage.removeItem('selectedSubCategory');
               setSelectedCategory(null);
               setSelectedSubCategory(null);
-              window.history.pushState({ view: 'category' }, '', '#category');
+              window.history.pushState({ view: 'category' }, '', '/categoria');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           /> */}
           <CategoryDirectory 
             onCategoryClick={(categoryName) => {
-              window.history.pushState({ view: 'category' }, '', '#category');
+              window.history.pushState({ view: 'category' }, '', '/categoria');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
               // Could filter by category in the future
@@ -405,7 +476,7 @@ export default function App() {
               sessionStorage.removeItem('selectedSubCategory');
               setSelectedCategory(null);
               setSelectedSubCategory(null);
-              window.history.pushState({ view: 'category' }, '', '#category');
+              window.history.pushState({ view: 'category' }, '', '/categoria');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
@@ -438,7 +509,7 @@ export default function App() {
               setSelectedSubCategory(null);
               // Reload all products
               fetchCatalogProducts().then(setAllProducts).catch(console.error);
-              window.history.pushState({ view: 'home' }, '', window.location.pathname);
+              window.history.pushState({ view: 'home' }, '', '/');
               setCurrentView('home');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
@@ -470,7 +541,7 @@ export default function App() {
             allProducts={allProducts}
             onAddToCart={addToCart}
             onBack={() => {
-              window.history.pushState({ view: 'category' }, '', '#category');
+              window.history.pushState({ view: 'category' }, '', '/categoria');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
@@ -486,15 +557,34 @@ export default function App() {
         <CheckoutPage
           items={cartItems}
           onBack={() => {
-            window.history.pushState({ view: 'home' }, '', window.location.pathname);
+            window.history.pushState({ view: 'home' }, '', '/');
             setCurrentView('home');
             setIsCartOpen(true);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
-          onComplete={(data) => {
+          onComplete={async (data) => {
+            const sessionId = getOrCreateSessionId();
+            const uid = user?.id ?? null;
+            await createOrderInDb({
+              orderNumber: data.orderId,
+              userId: uid,
+              sessionId,
+              customerInfo: data.customerInfo,
+              shippingAddress: data.shippingAddress,
+              paymentMethod: data.paymentMethod,
+              subtotal: cartItems.reduce((s, i) => s + i.price * (i.quantity ?? 1), 0),
+              shippingCost: data.shippingOption?.cost ?? 0,
+              discount: 0,
+              total: data.total,
+              items: cartItems,
+              bigbuyOrderIds: data.bigbuyOrderIds,
+              shippingServiceName: data.shippingOption?.serviceName,
+              shippingServiceDelay: data.shippingOption?.delay,
+            });
+            await clearCartInDb(uid, sessionId);
             setOrderData(data);
             setCurrentView('confirmation');
-            setCartItems([]); // Clear cart after successful order
+            setCartItems([]);
           }}
         />
       ) : currentView === 'confirmation' && orderData ? (
@@ -509,7 +599,7 @@ export default function App() {
         <GenderPredictor
           onComplete={(gender) => {
             // Redirect to category page filtered by gender
-            window.history.pushState({ view: 'category' }, '', '#category');
+            window.history.pushState({ view: 'category' }, '', '/categoria');
             setCurrentView('category');
             window.scrollTo({ top: 0, behavior: 'smooth' });
             toast.success(`¡Descubre productos perfectos para tu ${gender === 'boy' ? 'niño' : 'niña'}!`, {
@@ -520,33 +610,114 @@ export default function App() {
           onBack={() => setCurrentView('home')}
         />
       ) : currentView === 'admin' ? (
-        isAdmin ? (
+        authLoading ? (
+          <div className="min-h-screen flex items-center justify-center bg-[#f0f0f1]">
+            <div className="flex flex-col items-center gap-4">
+              <div className="h-10 w-10 border-2 border-[#2271b1] border-t-transparent rounded-full animate-spin" />
+              <p className="text-slate-600 text-sm">Cargando...</p>
+            </div>
+          </div>
+        ) : !user ? (
+          <AdminLogin
+            onBack={() => {
+              window.history.pushState({ view: 'home' }, '', '/');
+              setCurrentView('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+        ) : isAdmin ? (
           <BigBuyAdmin
             onBack={() => {
-              window.history.pushState({ view: 'home' }, '', window.location.pathname);
+              window.history.pushState({ view: 'home' }, '', '/');
               setCurrentView('home');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           />
         ) : (
-          <div className="min-h-screen flex items-center justify-center">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold text-stone-900 mb-4">Acceso denegado</h2>
-              <p className="text-stone-600 mb-6">Necesitas permisos de administrador para acceder al panel.</p>
-              <button
-                onClick={() => {
-                  window.history.pushState({ view: 'home' }, '', window.location.pathname);
-                  setCurrentView('home');
-                  setShowLoginModal(true);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                className="px-6 py-3 bg-stone-900 text-white rounded-lg hover:bg-stone-800"
-              >
-                Iniciar sesión
-              </button>
+          <div className="min-h-screen flex items-center justify-center bg-[#f0f0f1]">
+            <div className="bg-white rounded-xl border border-[#c3c4c7] p-8 max-w-md text-center">
+              <h2 className="text-xl font-semibold text-slate-900 mb-2">Acceso denegado</h2>
+              <p className="text-slate-600 mb-6">
+                Tu cuenta no tiene permisos de administrador para acceder al panel.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={async () => {
+                    await signOut();
+                  }}
+                  className="px-6 py-2.5 border border-[#8c8f94] text-slate-700 rounded hover:bg-slate-50 font-medium"
+                >
+                  Cerrar sesión
+                </button>
+                <button
+                  onClick={() => {
+                    window.history.pushState({ view: 'home' }, '', '/');
+                    setCurrentView('home');
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="px-6 py-2.5 bg-[#2271b1] text-white rounded hover:bg-[#135e96] font-medium"
+                >
+                  Volver al inicio
+                </button>
+              </div>
             </div>
           </div>
         )
+      ) : currentView === 'contact' ? (
+        <>
+          <ContactPage
+            onBack={() => {
+              window.history.replaceState(null, '', '/');
+              setCurrentView('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+          <Footer />
+        </>
+      ) : currentView === 'aviso-legal' ? (
+        <>
+          <AvisoLegal
+            onBack={() => {
+              window.history.replaceState(null, '', '/');
+              setCurrentView('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+          <Footer />
+        </>
+      ) : currentView === 'privacidad' ? (
+        <>
+          <Privacidad
+            onBack={() => {
+              window.history.replaceState(null, '', '/');
+              setCurrentView('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+          <Footer />
+        </>
+      ) : currentView === 'terminos' ? (
+        <>
+          <TerminosCondiciones
+            onBack={() => {
+              window.history.replaceState(null, '', '/');
+              setCurrentView('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+          <Footer />
+        </>
+      ) : currentView === 'cookies' ? (
+        <>
+          <PoliticaCookies
+            onBack={() => {
+              window.history.replaceState(null, '', '/');
+              setCurrentView('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+          <Footer />
+        </>
       ) : null}
 
       {/* Auth Modals */}
@@ -572,7 +743,7 @@ export default function App() {
         onAdminClick={() => {
           if (isAdmin) {
             setCurrentView('admin');
-            window.location.hash = '#admin';
+            window.history.pushState({ view: 'admin' }, '', '/admin');
           }
         }}
       />
@@ -607,25 +778,28 @@ export default function App() {
 
       <ExitIntentPopup />
 
-      <MobileBottomNav
-        cartCount={cartCount}
-        currentView={currentView}
-        onHomeClick={() => {
-          window.history.pushState({ view: 'home' }, '', window.location.pathname);
-          setCurrentView('home');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        onCategoriesClick={() => {
-          window.history.pushState({ view: 'category' }, '', '#category');
-          setCurrentView('category');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
-        onCartClick={() => setIsCartOpen(true)}
-      />
+      {currentView !== 'admin' && (
+        <>
+          <MobileBottomNav
+            cartCount={cartCount}
+            currentView={currentView}
+            onHomeClick={() => {
+              window.history.pushState({ view: 'home' }, '', '/');
+              setCurrentView('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onCategoriesClick={() => {
+              window.history.pushState({ view: 'category' }, '', '/categoria');
+              setCurrentView('category');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onCartClick={() => setIsCartOpen(true)}
+          />
+          <WhatsAppButton />
+        </>
+      )}
 
       <ToastNotifications />
-
-      <WhatsAppButton />
     </div>
   );
 }

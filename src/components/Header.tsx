@@ -1,4 +1,5 @@
 import { ShoppingCart, Search, Menu, Heart, User } from 'lucide-react';
+import { navigate } from '@/utils/navigate';
 import { SearchAutocomplete } from './SearchAutocomplete';
 import { MegaMenu } from './MegaMenu';
 import { Product } from '../types';
@@ -49,7 +50,7 @@ export function Header({
             <div className="flex items-center min-w-0">
               <button 
                 onClick={() => {
-                  window.location.hash = '#category';
+                  navigate('/categoria');
                 }}
                 className="lg:hidden mr-2 sm:mr-4 p-2.5 sm:p-3 text-[#2d3748] hover:bg-[#FFC1CC]/20 rounded-2xl transition-all duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
                 aria-label="Abrir menú"
@@ -64,7 +65,7 @@ export function Header({
                   if (onLogoClick) {
                     onLogoClick();
                   } else {
-                    window.location.hash = '';
+                    navigate('/');
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }
                 }}
@@ -162,7 +163,7 @@ export function Header({
                   sessionStorage.removeItem('selectedSubCategory');
                 }
               }
-              window.history.pushState({ view: 'category', categoryName, subcategoryName }, '', '#category');
+              window.history.pushState({ view: 'category', categoryName, subcategoryName }, '', '/categoria');
               window.scrollTo({ top: 0, behavior: 'smooth' });
               // Trigger custom event to notify App.tsx
               window.dispatchEvent(new CustomEvent('categorySelected', { 
@@ -180,7 +181,7 @@ export function Header({
               <button 
                 key={item} 
                 onClick={() => {
-                  window.location.hash = '#category';
+                  navigate('/categoria');
                 }}
                 className="flex items-center gap-1 px-4 py-3 text-sm text-[#2d3748] hover:text-[#FF6B9D] active:bg-[#FFC1CC]/10 whitespace-nowrap rounded-2xl hover:bg-[#FFC1CC]/10 transition-all duration-200 font-semibold min-h-[44px] flex-shrink-0"
               >
