@@ -6,9 +6,10 @@ import type { Product } from '@/types';
 
 interface ExitIntentPopupProps {
   cartItems?: Product[];
+  sessionId?: string;
 }
 
-export function ExitIntentPopup({ cartItems = [] }: ExitIntentPopupProps) {
+export function ExitIntentPopup({ cartItems = [], sessionId }: ExitIntentPopupProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [hasShown, setHasShown] = useState(false);
   const [email, setEmail] = useState('');
@@ -51,7 +52,7 @@ export function ExitIntentPopup({ cartItems = [] }: ExitIntentPopupProps) {
           price: (i.price ?? 0) * (i.quantity ?? 1),
         }));
         const cartTotal = cartItems.reduce((s, i) => s + (i.price ?? 0) * (i.quantity ?? 1), 0);
-        await sendAbandonedCart({ email, items, cartTotal });
+        await sendAbandonedCart({ email, items, cartTotal, session_id: sessionId });
       } else {
         await sendNewsletterWelcome(email);
       }

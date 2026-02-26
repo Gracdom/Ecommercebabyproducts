@@ -33,10 +33,13 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
     return candidates.filter((p) => !cartIds.has(p.id)).slice(0, 3);
   })();
 
+  const IVA_RATE = 0.21;
   const subtotal = items.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
   // Coste de envío fijo para el cliente
   const shipping = items.length > 0 ? 6 : 0;
-  const total = subtotal + shipping;
+  const baseImponible = subtotal + shipping;
+  const iva = baseImponible * IVA_RATE;
+  const total = baseImponible + iva;
 
   if (!isOpen) return null;
 
@@ -175,6 +178,10 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
               <div className="flex justify-between">
                 <span className="text-[#9ca3af]">Envío</span>
                 <span className="font-medium text-[#5e544e]">€{shipping.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#9ca3af]">IVA (21%)</span>
+                <span className="text-[#5e544e] font-medium">€{iva.toFixed(2)}</span>
               </div>
               <div className="flex justify-between pt-3 border-t border-[#e6dfd9] mt-2">
                 <span className="text-[#5e544e] text-base font-medium">Total</span>

@@ -326,6 +326,94 @@ export function adminGetOrders(syncSecret: string, opts?: { limit?: number; offs
   });
 }
 
+export function adminGetGenderSubmissions(syncSecret: string, opts?: { limit?: number; offset?: number }) {
+  const params = new URLSearchParams();
+  if (opts?.limit) params.append("limit", String(opts.limit));
+  if (opts?.offset) params.append("offset", String(opts.offset));
+  const query = params.toString();
+  return edgeRequest<{
+    submissions: Array<{
+      id: string;
+      pregnancy_weeks: number;
+      name: string;
+      email: string;
+      phone: string;
+      ultrasound_type: string;
+      ultrasound_url: string | null;
+      created_at: string;
+    }>;
+  }>(`/admin/gender-submissions${query ? `?${query}` : ""}`, {
+    method: "GET",
+    headers: { "x-bigbuy-sync-secret": syncSecret },
+  });
+}
+
+export function adminEnsureEcografiasBucket(syncSecret: string) {
+  return edgeRequest<{ ok: boolean; message: string }>("/admin/ensure-ecografias-bucket", {
+    method: "POST",
+    headers: { "x-bigbuy-sync-secret": syncSecret },
+  });
+}
+
+function buildPredictorFormData(params: {
+  pregnancy_weeks: number;
+  name: string;
+  email: string;
+  phone: string;
+  ultrasound_type: string;
+  file: File;
+}): FormData {
+  const formData = new FormData();
+  formData.append("pregnancy_weeks", String(params.pregnancy_weeks));
+  formData.append("name", params.name.trim());
+  formData.append("email", params.email.trim().toLowerCase());
+  formData.append("phone", params.phone.trim());
+  formData.append("ultrasound_type", params.ultrasound_type);
+  formData.append("file", params.file);
+  return formData;
+}
+
+/** Envía el formulario completo del predictor (imagen + datos) por backend. Todo se guarda con service role. */
+export async function submitGenderPredictor(params: {
+  pregnancy_weeks: number;
+  name: string;
+  email: string;
+  phone: string;
+  ultrasound_type: string;
+  file: File;
+}): Promise<{ ok: boolean; error?: string }> {
+  const urlsToTry = [
+    `${EDGE_BASE_URL}/gender-predictor/submit`,
+    EDGE_BASE_URL,
+  ];
+  let lastError = "";
+  for (const url of urlsToTry) {
+    const formData = buildPredictorFormData(params);
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${supabaseAnonKey}` },
+        body: formData,
+      });
+    } catch (e: any) {
+      return { ok: false, error: "No se pudo conectar con el servidor. Comprueba la red o vuelve a intentarlo." };
+    }
+    const text = await res.text();
+    let json: { error?: string } = {};
+    try {
+      json = text ? JSON.parse(text) : {};
+    } catch {
+      json = {};
+    }
+    if (res.ok) return { ok: true };
+    lastError = json?.error || text || res.statusText;
+    if (res.status === 404 && url !== urlsToTry[urlsToTry.length - 1]) continue;
+    return { ok: false, error: lastError };
+  }
+  return { ok: false, error: lastError || "Not Found" };
+}
+
 export function createAdminUser(syncSecret: string, email: string, password: string) {
   return edgeRequest<{ ok: boolean; message: string; userId: string; email: string }>(
     "/admin/create-user",
@@ -352,10 +440,50 @@ export function sendAbandonedCart(params: {
   email: string;
   items: Array<{ name: string; quantity: number; price: number }>;
   cartTotal: number;
+  session_id?: string;
 }) {
-  return edgeRequest<{ ok: boolean }>("/email/abandoned-cart", {
+  return edgeRequest<{ ok: boolean }>("/make-server-335110ef/email/abandoned-cart", {
     method: "POST",
     body: params,
+  });
+}
+
+/** Guardar abandono de checkout (ej. cuando cancelan Stripe) sin enviar email. */
+export function saveAbandonedCheckout(params: {
+  session_id?: string;
+  email?: string;
+  items: Array<{ name: string; quantity: number; price: number }>;
+  cartTotal: number;
+  source?: "checkout_cancel" | "manual";
+}) {
+  return edgeRequest<{ ok: boolean }>("/make-server-335110ef/abandoned-checkout", {
+    method: "POST",
+    body: { ...params, source: params.source ?? "checkout_cancel" },
+  });
+}
+
+export function adminGetAbandonedCheckouts(
+  syncSecret: string,
+  opts?: { limit?: number; offset?: number }
+) {
+  const params = new URLSearchParams();
+  if (opts?.limit) params.append("limit", String(opts.limit));
+  if (opts?.offset) params.append("offset", String(opts.offset));
+  const query = params.toString();
+  return edgeRequest<{
+    abandoned: Array<{
+      id: string;
+      session_id: string | null;
+      user_id: string | null;
+      email: string | null;
+      cart_items: Array<{ name: string; quantity: number; price: number }>;
+      cart_total: number;
+      source: string;
+      created_at: string;
+    }>;
+  }>(`/make-server-335110ef/admin/abandoned-checkouts${query ? `?${query}` : ""}`, {
+    method: "GET",
+    headers: { "x-bigbuy-sync-secret": syncSecret },
   });
 }
 

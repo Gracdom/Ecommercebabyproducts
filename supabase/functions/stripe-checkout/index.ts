@@ -189,6 +189,8 @@ async function handleWebhook(rawBody: string, signature: string): Promise<void> 
   };
 
   const total = Number(metadata.total) || 0;
+  const subtotal = Number(metadata.subtotal) || 0;
+  const shippingCost = Number(metadata.shippingCost) || 0;
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
@@ -213,8 +215,8 @@ async function handleWebhook(rawBody: string, signature: string): Promise<void> 
           address: shippingAddress.address ?? "",
           selected_shipping_service_id: metadata.carrierName ?? null,
           selected_shipping_service_name: metadata.serviceName ?? null,
-          shipping_cost: Number(metadata.shippingCost) || null,
-          subtotal: Number(metadata.subtotal) || null,
+          shipping_cost: shippingCost || null,
+          subtotal: subtotal || null,
           total,
           payment_method: "stripe",
           bigbuy_orders: null,
@@ -224,6 +226,105 @@ async function handleWebhook(rawBody: string, signature: string): Promise<void> 
       });
     } catch (_e) {
       /* ignore */
+    }
+
+    try {
+      const orderNumber = internalReference;
+      const orderPayload = {
+        order_number: orderNumber,
+        user_id: null,
+        session_id: null,
+        status: "completed",
+        email: shippingAddress.email ?? "",
+        first_name: shippingAddress.firstName ?? "",
+        last_name: shippingAddress.lastName ?? "",
+        phone: shippingAddress.phone ?? null,
+        street: (shippingAddress.address ?? "").slice(0, 500),
+        city: (shippingAddress.town ?? "").slice(0, 200),
+        postal_code: (shippingAddress.postcode ?? "").slice(0, 20),
+        country: (shippingAddress.country ?? "ES").slice(0, 2),
+        payment_method: "stripe",
+        subtotal: subtotal || 0,
+        shipping_cost: shippingCost || 0,
+        discount: 0,
+        total,
+        bigbuy_order_ids: [],
+        shipping_service_name: metadata.serviceName ?? null,
+        shipping_service_delay: metadata.serviceDelay ?? null,
+      };
+      const orderRes = await fetch(`${supabaseUrl}/rest/v1/orders`, {
+        method: "POST",
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+          "Content-Type": "application/json",
+          Prefer: "return=representation",
+        },
+        body: JSON.stringify(orderPayload),
+      });
+      if (orderRes.ok) {
+        const createdOrders = await orderRes.json();
+        const orderId = Array.isArray(createdOrders) ? createdOrders[0]?.id : createdOrders?.id;
+        if (orderId) {
+          const itemsDetail: Array<{ id: string; sku: string; name: string; price: number; quantity: number; image?: string }> = [];
+          const count = Math.min(Number(metadata.itemsDetailCount) || 0, 50);
+          for (let i = 0; i < count; i++) {
+            const raw = metadata[`itemsDetail_${i}`];
+            if (raw) {
+              try {
+                const it = JSON.parse(raw);
+                if (it && (it.quantity || 0) > 0) itemsDetail.push(it);
+              } catch {
+                /* skip */
+              }
+            }
+          }
+          if (itemsDetail.length === 0) {
+            try {
+              const products = JSON.parse(metadata.products || "[]");
+              if (Array.isArray(products)) {
+                for (const p of products) {
+                  itemsDetail.push({
+                    id: p.reference ?? "",
+                    sku: p.reference ?? "",
+                    name: "Producto",
+                    price: 0,
+                    quantity: Number(p.quantity) || 1,
+                  });
+                }
+              }
+            } catch {
+              /* ignore */
+            }
+          }
+          const orderItemsPayload = itemsDetail
+            .filter((it) => (it.quantity || 0) > 0)
+            .map((it) => ({
+              order_id: orderId,
+              product_id: String(it.id || it.sku || ""),
+              product_sku: it.sku || null,
+              product_name: (it.name || "Producto").slice(0, 500),
+              product_price: Number(it.price) || 0,
+              quantity: it.quantity || 1,
+              product_image: (it.image && String(it.image).slice(0, 1000)) || null,
+              variant_sku: it.sku || null,
+            }));
+          if (orderItemsPayload.length > 0) {
+            await fetch(`${supabaseUrl}/rest/v1/order_items`, {
+              method: "POST",
+              headers: {
+                apikey: serviceKey,
+                Authorization: `Bearer ${serviceKey}`,
+                "Content-Type": "application/json",
+                Prefer: "return=minimal",
+              },
+              body: JSON.stringify(orderItemsPayload),
+            });
+          }
+        }
+      }
+    } catch (orderErr) {
+      console.error("Stripe webhook: insert orders/order_items failed", orderErr);
     }
   }
 

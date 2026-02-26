@@ -102,13 +102,29 @@ app.post("/make-server-335110ef/email/abandoned-cart", async (c) => {
     const email = String(body?.email ?? "").trim().toLowerCase();
     const items: Array<{ name: string; quantity: number; price: number }> = Array.isArray(body?.items) ? body.items : [];
     const cartTotal = Number(body?.cartTotal) || 0;
+    const sessionId = body?.session_id ? String(body.session_id).slice(0, 128) : null;
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return c.json({ error: "Email invÃƒÆ’Ã‚Â¡lido" }, 400);
     }
 
+    // Guardar en abandoned_checkouts para el panel admin
+    try {
+      const supabase = getServiceSupabase();
+      await supabase.from("abandoned_checkouts").insert({
+        session_id: sessionId,
+        user_id: null,
+        email,
+        cart_items: items,
+        cart_total: cartTotal,
+        source: "exit_intent",
+      });
+    } catch (_e) {
+      // no fallar si la tabla no existe aún
+    }
+
     const itemsList = items
-      .map((i) => `ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ ${i.name} x${i.quantity} - ${Number(i.price || 0).toFixed(2)} ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬`)
+      .map((i) => `• ${i.name} x${i.quantity} - ${Number(i.price || 0).toFixed(2)} €`)
       .join("<br>") || "Productos en tu carrito";
 
     // Email 1: inmediato
@@ -482,6 +498,149 @@ app.post("/make-server-335110ef/stripe/webhook", async (c) => {
 });
 
 // -----------------------------
+// Gender predictor: envío completo por backend (subida + insert con service role)
+// -----------------------------
+const ECOGRAFIAS_BUCKET = "ecografias";
+const ECOGRAFIAS_PREFIX = "uploads/";
+const ALLOWED_MIMES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
+const MAX_FILE_MB = 5;
+
+async function ensureEcografiasBucket(supabase: any) {
+  const { data: buckets } = await supabase.storage.listBuckets();
+  const exists = buckets?.some((b: any) => b.name === ECOGRAFIAS_BUCKET);
+  if (exists) return;
+  await supabase.storage.createBucket(ECOGRAFIAS_BUCKET, {
+    public: true,
+    fileSizeLimit: 5242880,
+    allowedMimeTypes: ALLOWED_MIMES,
+  });
+}
+
+async function handleGenderPredictorSubmit(c: any) {
+  let formData: FormData;
+  try {
+    formData = await c.req.formData();
+  } catch (e: any) {
+    return c.json({ error: "No se recibieron datos del formulario" }, 400);
+  }
+  const file = formData.get("file") ?? formData.get("ecografia");
+  const pregnancy_weeks = Number(formData.get("pregnancy_weeks")) || 0;
+  const name = String(formData.get("name") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const ultrasound_type = String(formData.get("ultrasound_type") ?? "").trim();
+
+  if (!name) return c.json({ error: "El nombre es obligatorio" }, 400);
+  if (!email) return c.json({ error: "El correo es obligatorio" }, 400);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return c.json({ error: "Correo no válido" }, 400);
+  if (!phone) return c.json({ error: "El teléfono es obligatorio" }, 400);
+  if (pregnancy_weeks < 6 || pregnancy_weeks > 20) return c.json({ error: "Semanas de embarazo deben ser entre 6 y 20" }, 400);
+  if (!ultrasound_type) return c.json({ error: "El tipo de ecografía es obligatorio" }, 400);
+  if (!file || !(file instanceof File)) return c.json({ error: "Debes subir la ecografía" }, 400);
+
+  const ext = (file.name.split(".").pop() || "").toLowerCase();
+  const allowedExts = ["jpg", "jpeg", "png", "webp", "gif"];
+  const mimeOk = ALLOWED_MIMES.includes(file.type);
+  const extOk = allowedExts.includes(ext);
+  if (!mimeOk && !extOk) {
+    return c.json({ error: "Solo se permiten imágenes: JPEG, PNG, WebP o GIF" }, 400);
+  }
+  if (file.size > MAX_FILE_MB * 1024 * 1024) {
+    return c.json({ error: `El archivo no puede superar ${MAX_FILE_MB} MB` }, 400);
+  }
+
+  const supabase = getServiceSupabase();
+  await ensureEcografiasBucket(supabase);
+
+  const safeExt = allowedExts.includes(ext) ? ext : "jpg";
+  const path = `${ECOGRAFIAS_PREFIX}${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${safeExt}`;
+  const contentType = ALLOWED_MIMES.includes(file.type) ? file.type : (safeExt === "png" ? "image/png" : safeExt === "gif" ? "image/gif" : safeExt === "webp" ? "image/webp" : "image/jpeg");
+
+  const { error: uploadError } = await supabase.storage.from(ECOGRAFIAS_BUCKET).upload(path, await file.arrayBuffer(), {
+    contentType,
+    upsert: false,
+  });
+  if (uploadError) {
+    console.error("Upload ecografia:", uploadError);
+    return c.json({ error: "No se pudo subir la imagen: " + uploadError.message }, 500);
+  }
+  const { data: urlData } = supabase.storage.from(ECOGRAFIAS_BUCKET).getPublicUrl(path);
+  const ultrasound_url = urlData?.publicUrl ?? null;
+
+  const { error: insertError } = await supabase.from("gender_predictor_submissions").insert({
+    pregnancy_weeks,
+    name,
+    email,
+    phone,
+    ultrasound_type,
+    ultrasound_url,
+  });
+  if (insertError) {
+    console.error("Insert gender submission:", insertError);
+    return c.json({ error: "No se pudo guardar en la base de datos: " + insertError.message }, 500);
+  }
+  return c.json({ ok: true, message: "Envío recibido correctamente" });
+}
+
+const handleSubmitWrap = async (c: any) => {
+  try {
+    return await handleGenderPredictorSubmit(c);
+  } catch (e: any) {
+    console.error("Gender predictor submit:", e);
+    return c.json({ error: e?.message ?? "Error en el envío" }, 500);
+  }
+};
+
+app.post("/make-server-335110ef/gender-predictor/submit", handleSubmitWrap);
+app.post("/gender-predictor/submit", handleSubmitWrap);
+// Por si Supabase solo pasa el path relativo sin prefijo
+app.post("/submit", handleSubmitWrap);
+// POST a raíz con multipart = envío predictor (por si la URL llega sin path)
+app.post("/", async (c) => {
+  const ct = c.req.header("content-type") || "";
+  if (!ct.includes("multipart/form-data")) return c.json({ error: "Not found" }, 404);
+  return handleSubmitWrap(c);
+});
+
+// Legacy: solo subir imagen (por si se usa por separado)
+app.post("/make-server-335110ef/gender-predictor/upload-ecografia", async (c) => {
+  try {
+    const formData = await c.req.formData();
+    const file = formData.get("file") ?? formData.get("ecografia");
+    if (!file || !(file instanceof File)) return c.json({ error: "Falta el archivo" }, 400);
+    if (!ALLOWED_MIMES.includes(file.type)) return c.json({ error: "Solo imágenes JPEG, PNG, WebP, GIF" }, 400);
+    if (file.size > MAX_FILE_MB * 1024 * 1024) return c.json({ error: `Máximo ${MAX_FILE_MB} MB` }, 400);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${ECOGRAFIAS_PREFIX}${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+    const supabase = getServiceSupabase();
+    const { error } = await supabase.storage.from(ECOGRAFIAS_BUCKET).upload(path, await file.arrayBuffer(), { contentType: file.type, upsert: false });
+    if (error) throw error;
+    const { data: urlData } = supabase.storage.from(ECOGRAFIAS_BUCKET).getPublicUrl(path);
+    return c.json({ url: urlData?.publicUrl ?? null });
+  } catch (e: any) {
+    return c.json({ error: e?.message ?? "Error subiendo la imagen" }, 500);
+  }
+});
+app.post("/gender-predictor/upload-ecografia", async (c) => {
+  try {
+    const formData = await c.req.formData();
+    const file = formData.get("file") ?? formData.get("ecografia");
+    if (!file || !(file instanceof File)) return c.json({ error: "Falta el archivo" }, 400);
+    if (!ALLOWED_MIMES.includes(file.type)) return c.json({ error: "Solo imágenes JPEG, PNG, WebP, GIF" }, 400);
+    if (file.size > MAX_FILE_MB * 1024 * 1024) return c.json({ error: `Máximo ${MAX_FILE_MB} MB` }, 400);
+    const ext = file.name.split(".").pop() || "jpg";
+    const path = `${ECOGRAFIAS_PREFIX}${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
+    const supabase = getServiceSupabase();
+    const { error } = await supabase.storage.from(ECOGRAFIAS_BUCKET).upload(path, await file.arrayBuffer(), { contentType: file.type, upsert: false });
+    if (error) throw error;
+    const { data: urlData } = supabase.storage.from(ECOGRAFIAS_BUCKET).getPublicUrl(path);
+    return c.json({ url: urlData?.publicUrl ?? null });
+  } catch (e: any) {
+    return c.json({ error: e?.message ?? "Error subiendo la imagen" }, 500);
+  }
+});
+
+// -----------------------------
 // Admin (protected)
 // -----------------------------
 
@@ -760,9 +919,170 @@ app.get("/make-server-335110ef/admin/orders", requireSyncSecret(), async (c) => 
 });
 
 // -----------------------------
-// Si ninguna ruta coincide, intentar dispatch Stripe (evita 404 para POST/GET con _action)
+// Abandoned checkouts: guardar sin email (ej. canceló Stripe) y listar en admin
+app.post("/make-server-335110ef/abandoned-checkout", async (c) => {
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const sessionId = body?.session_id ? String(body.session_id).slice(0, 128) : null;
+    const email = body?.email ? String(body.email).trim().toLowerCase().slice(0, 255) : null;
+    const items: Array<{ name: string; quantity: number; price: number }> = Array.isArray(body?.items) ? body.items : [];
+    const cartTotal = Number(body?.cartTotal) || 0;
+    const source = body?.source === "checkout_cancel" ? "checkout_cancel" : "manual";
+
+    if (items.length === 0 && !email) {
+      return c.json({ error: "Se necesitan items o email" }, 400);
+    }
+
+    const supabase = getServiceSupabase();
+    await supabase.from("abandoned_checkouts").insert({
+      session_id: sessionId,
+      user_id: null,
+      email,
+      cart_items: items,
+      cart_total: cartTotal,
+      source,
+    });
+    return c.json({ ok: true });
+  } catch (e: any) {
+    return c.json({ error: e?.message ?? "Error guardando abandono" }, 500);
+  }
+});
+app.post("/abandoned-checkout", async (c) => {
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const sessionId = body?.session_id ? String(body.session_id).slice(0, 128) : null;
+    const email = body?.email ? String(body.email).trim().toLowerCase().slice(0, 255) : null;
+    const items: Array<{ name: string; quantity: number; price: number }> = Array.isArray(body?.items) ? body.items : [];
+    const cartTotal = Number(body?.cartTotal) || 0;
+    const source = body?.source === "checkout_cancel" ? "checkout_cancel" : "manual";
+
+    if (items.length === 0 && !email) {
+      return c.json({ error: "Se necesitan items o email" }, 400);
+    }
+
+    const supabase = getServiceSupabase();
+    await supabase.from("abandoned_checkouts").insert({
+      session_id: sessionId,
+      user_id: null,
+      email,
+      cart_items: items,
+      cart_total: cartTotal,
+      source,
+    });
+    return c.json({ ok: true });
+  } catch (e: any) {
+    return c.json({ error: e?.message ?? "Error guardando abandono" }, 500);
+  }
+});
+
+async function handleGetAbandonedCheckouts(c: any) {
+  const limit = Math.min(Number(c.req.query("limit")) || 100, 200);
+  const offset = Number(c.req.query("offset")) || 0;
+  const supabase = getServiceSupabase();
+  const { data: list, error } = await supabase
+    .from("abandoned_checkouts")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (error) throw error;
+  return c.json({ abandoned: list ?? [] });
+}
+app.get("/make-server-335110ef/admin/abandoned-checkouts", requireSyncSecret(), async (c) => {
+  try {
+    return await handleGetAbandonedCheckouts(c);
+  } catch (e: any) {
+    return c.json({ error: e?.message || "Internal error" }, 500);
+  }
+});
+app.get("/admin/abandoned-checkouts", requireSyncSecret(), async (c) => {
+  try {
+    return await handleGetAbandonedCheckouts(c);
+  } catch (e: any) {
+    return c.json({ error: e?.message || "Internal error" }, 500);
+  }
+});
+
+// -----------------------------
+// Admin: Gender predictor submissions
+async function handleGetGenderSubmissions(c: any) {
+  const limit = Math.min(Number(c.req.query("limit")) || 100, 200);
+  const offset = Number(c.req.query("offset")) || 0;
+  const supabase = getServiceSupabase();
+  const { data: submissions, error } = await supabase
+    .from("gender_predictor_submissions")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+  if (error) throw error;
+  return c.json({ submissions: submissions ?? [] });
+}
+app.get("/make-server-335110ef/admin/gender-submissions", requireSyncSecret(), async (c) => {
+  try {
+    return await handleGetGenderSubmissions(c);
+  } catch (e: any) {
+    return c.json({ error: e?.message || "Internal error" }, 500);
+  }
+});
+app.get("/admin/gender-submissions", requireSyncSecret(), async (c) => {
+  try {
+    return await handleGetGenderSubmissions(c);
+  } catch (e: any) {
+    return c.json({ error: e?.message || "Internal error" }, 500);
+  }
+});
+
+// Crear bucket de ecografías si no existe (para subida de imágenes del predictor)
+app.post("/make-server-335110ef/admin/ensure-ecografias-bucket", requireSyncSecret(), async (c) => {
+  try {
+    const supabase = getServiceSupabase();
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const exists = buckets?.some((b: any) => b.name === "ecografias");
+    if (exists) {
+      return c.json({ ok: true, message: "Bucket 'ecografias' ya existe" });
+    }
+    const { error } = await supabase.storage.createBucket("ecografias", {
+      public: true,
+      fileSizeLimit: 5242880,
+      allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+    });
+    if (error) throw error;
+    return c.json({ ok: true, message: "Bucket 'ecografias' creado correctamente" });
+  } catch (e: any) {
+    return c.json({ error: e?.message || "Error creando bucket" }, 500);
+  }
+});
+app.post("/admin/ensure-ecografias-bucket", requireSyncSecret(), async (c) => {
+  try {
+    const supabase = getServiceSupabase();
+    const { data: buckets } = await supabase.storage.listBuckets();
+    const exists = buckets?.some((b: any) => b.name === "ecografias");
+    if (exists) {
+      return c.json({ ok: true, message: "Bucket 'ecografias' ya existe" });
+    }
+    const { error } = await supabase.storage.createBucket("ecografias", {
+      public: true,
+      fileSizeLimit: 5242880,
+      allowedMimeTypes: ["image/jpeg", "image/png", "image/webp", "image/gif"],
+    });
+    if (error) throw error;
+    return c.json({ ok: true, message: "Bucket 'ecografias' creado correctamente" });
+  } catch (e: any) {
+    return c.json({ error: e?.message || "Error creando bucket" }, 500);
+  }
+});
+
+// -----------------------------
+// Si ninguna ruta coincide: predictor submit (multipart) o Stripe
 app.notFound(async (c) => {
   if (c.req.method === "POST") {
+    const ct = c.req.header("content-type") || "";
+    if (ct.includes("multipart/form-data")) {
+      try {
+        return await handleSubmitWrap(c);
+      } catch (e: any) {
+        return c.json({ error: e?.message ?? "Error en el envío" }, 500);
+      }
+    }
     try {
       return await wrapStripePost(dispatchStripePost)(c);
     } catch (_) {

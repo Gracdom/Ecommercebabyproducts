@@ -79,11 +79,14 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
       .filter((p) => Boolean(p.reference) && p.quantity > 0);
   }, [items]);
 
-  // Calculations
+  // Calculations (IVA 21% sobre base imponible = subtotal + envío)
+  const IVA_RATE = 0.21;
   const subtotal = items.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
   const shipping = items.length > 0 ? 6 : 0;
   const discount = 0;
-  const total = subtotal + shipping;
+  const baseImponible = subtotal + shipping;
+  const iva = baseImponible * IVA_RATE;
+  const total = baseImponible + iva;
 
   const handleApplyCoupon = () => {
     if (couponCode.toLowerCase() === 'welcome10') {
@@ -122,7 +125,7 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
         }
         const origin = window.location.origin;
         const successUrl = `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
-        const cancelUrl = `${origin}/checkout`;
+        const cancelUrl = `${origin}/checkout?cancelled=1`;
         const stripeItems = [
           ...items.map((i) => {
             const img = i.images?.[0] ?? i.image;
@@ -134,7 +137,16 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
             };
           }),
           ...(shipping > 0 ? [{ name: 'Envío estándar', quantity: 1, price: shipping }] : []),
+          ...(iva > 0 ? [{ name: 'IVA (21%)', quantity: 1, price: Math.round(iva * 100) / 100 }] : []),
         ];
+        const itemsDetail = items.map((i) => ({
+          id: String(i.id),
+          sku: (i.variantSku || i.sku || '').slice(0, 64),
+          name: String(i.name ?? 'Producto').slice(0, 120),
+          price: Number(i.price) || 0,
+          quantity: i.quantity ?? 1,
+          image: ((i.images?.[0] ?? i.image) ?? '').slice(0, 300),
+        }));
         const metadata: Record<string, string> = {
           internalReference,
           firstName: String(firstName ?? ''),
@@ -145,13 +157,18 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
           town: String(city ?? ''),
           address: `${street}${apartment ? ', ' + apartment : ''}`,
           products: JSON.stringify(bigbuyItems),
+          itemsDetailCount: String(itemsDetail.length),
           carrierName: 'standard',
           serviceName: 'Envío estándar',
           serviceDelay: '',
           subtotal: String(subtotal),
           total: String(total),
           shippingCost: String(shipping),
+          iva: String(iva),
         };
+        itemsDetail.forEach((it, idx) => {
+          metadata[`itemsDetail_${idx}`] = JSON.stringify(it);
+        });
         const { url } = await createStripeCheckoutSession({
           items: stripeItems,
           customerEmail: email.trim(),
@@ -553,6 +570,10 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
                   <span className={shipping === 0 ? 'text-primary' : 'text-stone-900'}>
                     {shipping === 0 ? 'GRATIS' : `€${shipping.toFixed(2)}`}
                   </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-stone-600">IVA (21%)</span>
+                  <span className="text-stone-900">€{iva.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between pt-4 border-t border-stone-200">
                   <span className="text-lg text-stone-900">Total</span>

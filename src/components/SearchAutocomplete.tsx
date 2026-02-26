@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, TrendingUp, Clock, X } from 'lucide-react';
 import { Product } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -16,17 +16,58 @@ const trendingSearches = [
   'Chupetes premium'
 ];
 
+/** Normaliza texto para búsqueda: minúsculas y sin acentos */
+function normalize(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '');
+}
+
+/** Puntúa un producto según la relevancia respecto a los tokens de búsqueda */
+function scoreProduct(product: Product, tokens: string[]): number {
+  if (tokens.length === 0) return 0;
+  const nameNorm = normalize(product.name);
+  const categoryNorm = normalize(product.category);
+  const subNorm = normalize(product.subCategory ?? '');
+  const brandNorm = normalize(product.brand ?? '');
+  const descNorm = normalize((product.description ?? '') + ' ' + (product.shortDescription ?? ''));
+
+  let score = 0;
+  for (const token of tokens) {
+    if (!token.length) continue;
+    if (nameNorm === token) score += 100;
+    else if (nameNorm.startsWith(token)) score += 50;
+    else if (nameNorm.includes(token)) score += 30;
+    else if (categoryNorm.includes(token) || subNorm.includes(token)) score += 20;
+    else if (brandNorm.includes(token)) score += 15;
+    else if (descNorm.includes(token)) score += 5;
+  }
+  return score;
+}
+
 export function SearchAutocomplete({ products, onProductClick }: SearchAutocompleteProps) {
   const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const wrapperRef = useRef<HTMLDivElement>(null);
+
+  // Debounce búsqueda (300ms) para no filtrar en cada tecla
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query.trim()), 300);
+    return () => clearTimeout(t);
+  }, [query]);
 
   // Load recent searches from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('recentSearches');
     if (saved) {
-      setRecentSearches(JSON.parse(saved));
+      try {
+        setRecentSearches(JSON.parse(saved));
+      } catch {
+        setRecentSearches([]);
+      }
     }
   }, []);
 
@@ -42,14 +83,19 @@ export function SearchAutocomplete({ products, onProductClick }: SearchAutocompl
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const filteredProducts = query.trim()
-    ? products
-        .filter((p) =>
-          p.name.toLowerCase().includes(query.toLowerCase()) ||
-          p.category.toLowerCase().includes(query.toLowerCase())
-        )
-        .slice(0, 5)
-    : [];
+  const filteredProducts = useMemo(() => {
+    if (!debouncedQuery) return [];
+    const tokens = normalize(debouncedQuery)
+      .split(/\s+/)
+      .filter((t) => t.length > 0);
+    if (tokens.length === 0) return [];
+
+    const scored = products
+      .map((p) => ({ product: p, score: scoreProduct(p, tokens) }))
+      .filter(({ score }) => score > 0)
+      .sort((a, b) => b.score - a.score);
+    return scored.map(({ product }) => product).slice(0, 8);
+  }, [products, debouncedQuery]);
 
   const handleSearch = (searchQuery: string) => {
     setQuery(searchQuery);
@@ -105,11 +151,20 @@ export function SearchAutocomplete({ products, onProductClick }: SearchAutocompl
       {/* Dropdown */}
       {isOpen && (
         <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-stone-200 rounded-lg shadow-xl z-50 max-h-[500px] overflow-y-auto">
+          {/* Buscando... (mientras debounce) */}
+          {query.trim() && query.trim() !== debouncedQuery && (
+            <div className="px-4 py-6 text-center">
+              <p className="text-sm text-stone-500">Buscando...</p>
+            </div>
+          )}
+
           {/* Search Results */}
-          {query.trim() && filteredProducts.length > 0 && (
+          {debouncedQuery && filteredProducts.length > 0 && (
             <div className="border-b border-stone-100">
               <div className="px-4 py-2 bg-stone-50">
-                <p className="text-xs text-stone-600">Resultados de búsqueda</p>
+                <p className="text-xs text-stone-600">
+                  {filteredProducts.length} resultado{filteredProducts.length !== 1 ? 's' : ''}
+                </p>
               </div>
               {filteredProducts.map((product) => (
                 <button
@@ -134,10 +189,10 @@ export function SearchAutocomplete({ products, onProductClick }: SearchAutocompl
           )}
 
           {/* No Results */}
-          {query.trim() && filteredProducts.length === 0 && (
+          {debouncedQuery && filteredProducts.length === 0 && (
             <div className="p-8 text-center">
               <p className="text-sm text-stone-600">No se encontraron productos</p>
-              <p className="text-xs text-stone-500 mt-1">Intenta con otros términos de búsqueda</p>
+              <p className="text-xs text-stone-500 mt-1">Prueba con otras palabras o sin acentos (ej. bebe, ropa)</p>
             </div>
           )}
 

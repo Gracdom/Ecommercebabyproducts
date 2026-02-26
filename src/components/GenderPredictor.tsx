@@ -1,53 +1,16 @@
-import { useState, useEffect } from 'react';
-import { Baby, Heart, Sparkles, ArrowRight, Mail, Check, Star, TrendingUp, Users, Gift, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
+import { Baby, ChevronRight, ChevronLeft, Mail, User, Phone, Calendar, Upload, Image, Sparkles } from 'lucide-react';
+import { submitGenderPredictor } from '@/utils/bigbuy/edge';
 
-interface Question {
-  id: number;
-  question: string;
-  options: { text: string; value: 'boy' | 'girl'; emoji: string }[];
-}
+const PREGNANCY_WEEKS = Array.from({ length: 15 }, (_, i) => i + 6); // 6 a 20
 
-const questions: Question[] = [
-  {
-    id: 1,
-    question: '¿Qué tipo de antojos tienes más?',
-    options: [
-      { text: 'Dulces y chocolate', value: 'girl', emoji: '🍫' },
-      { text: 'Salados y carnes', value: 'boy', emoji: '🥓' },
-    ],
-  },
-  {
-    id: 2,
-    question: '¿Cómo describirías tu energía durante el embarazo?',
-    options: [
-      { text: 'Más activa y enérgica', value: 'boy', emoji: '⚡' },
-      { text: 'Más tranquila y relajada', value: 'girl', emoji: '🌸' },
-    ],
-  },
-  {
-    id: 3,
-    question: '¿Qué color te atrae más en este momento?',
-    options: [
-      { text: 'Azules y verdes', value: 'boy', emoji: '💙' },
-      { text: 'Rosas y morados', value: 'girl', emoji: '💗' },
-    ],
-  },
-  {
-    id: 4,
-    question: '¿Cómo está tu piel durante el embarazo?',
-    options: [
-      { text: 'Más clara y radiante', value: 'boy', emoji: '✨' },
-      { text: 'Con más imperfecciones', value: 'girl', emoji: '🌺' },
-    ],
-  },
-  {
-    id: 5,
-    question: '¿Qué sensación tienes en tu intuición?',
-    options: [
-      { text: 'Siento que es niño', value: 'boy', emoji: '👦' },
-      { text: 'Siento que es niña', value: 'girl', emoji: '👧' },
-    ],
-  },
+const ULTRASOUND_TYPES = [
+  { value: '2d', label: 'Ecografía 2D' },
+  { value: '3d', label: 'Ecografía 3D' },
+  { value: '4d', label: 'Ecografía 4D' },
+  { value: 'transvaginal', label: 'Ecografía transvaginal' },
+  { value: 'abdominal', label: 'Ecografía abdominal' },
+  { value: 'otra', label: 'Otra' },
 ];
 
 interface GenderPredictorProps {
@@ -55,452 +18,292 @@ interface GenderPredictorProps {
   onBack: () => void;
 }
 
-export function GenderPredictor({ onComplete, onBack }: GenderPredictorProps) {
-  const [step, setStep] = useState<'landing' | 'quiz' | 'email' | 'calculating' | 'result'>('landing');
-  const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [answers, setAnswers] = useState<('boy' | 'girl')[]>([]);
+export function GenderPredictor({ onBack }: GenderPredictorProps) {
+  const [step, setStep] = useState<'landing' | 1 | 2 | 'submitting' | 'success'>(1);
+  const [pregnancyWeeks, setPregnancyWeeks] = useState<number>(12);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [result, setResult] = useState<'boy' | 'girl' | null>(null);
-  const [progress, setProgress] = useState(0);
+  const [phone, setPhone] = useState('');
+  const [ultrasoundFile, setUltrasoundFile] = useState<File | null>(null);
+  const [ultrasoundType, setUltrasoundType] = useState('');
+  const [submitError, setSubmitError] = useState('');
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
-  useEffect(() => {
-    if (step === 'calculating') {
-      const timer = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(timer);
-            // Calculate result
-            const boyCount = answers.filter(a => a === 'boy').length;
-            const girlCount = answers.filter(a => a === 'girl').length;
-            const predictedGender = boyCount > girlCount ? 'boy' : 'girl';
-            setResult(predictedGender);
-            setTimeout(() => setStep('result'), 500);
-            return 100;
-          }
-          return prev + 2;
-        });
-      }, 30);
-      return () => clearInterval(timer);
-    }
-  }, [step, answers]);
+  const validateStep1 = (): boolean => {
+    const err: Record<string, string> = {};
+    if (!name.trim()) err.name = 'El nombre es obligatorio';
+    if (!email.trim()) err.email = 'El correo es obligatorio';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) err.email = 'Correo no válido';
+    if (!phone.trim()) err.phone = 'El teléfono es obligatorio';
+    setValidationErrors(err);
+    return Object.keys(err).length === 0;
+  };
 
-  const handleAnswer = (value: 'boy' | 'girl') => {
-    const newAnswers = [...answers, value];
-    setAnswers(newAnswers);
+  const validateStep2 = (): boolean => {
+    const err: Record<string, string> = {};
+    if (!ultrasoundFile) err.ultrasoundFile = 'Debes subir la ecografía';
+    if (!ultrasoundType) err.ultrasoundType = 'Selecciona el tipo de ecografía';
+    setValidationErrors(err);
+    return Object.keys(err).length === 0;
+  };
 
-    if (currentQuestion < questions.length - 1) {
-      setCurrentQuestion(currentQuestion + 1);
-    } else {
-      setStep('email');
+  const handleNext = () => {
+    if (step === 1 && validateStep1()) setStep(2);
+  };
+
+  const handleSubmit = async () => {
+    if (step !== 2 || !validateStep2() || !ultrasoundFile) return;
+    setSubmitError('');
+    setStep('submitting');
+
+    try {
+      const result = await submitGenderPredictor({
+        pregnancy_weeks: pregnancyWeeks,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        phone: phone.trim(),
+        ultrasound_type: ultrasoundType,
+        file: ultrasoundFile,
+      });
+      if (result.error) throw new Error(result.error);
+      setStep('success');
+    } catch (e: any) {
+      setSubmitError(e?.message ?? 'Error al enviar. Inténtalo de nuevo.');
+      setStep(2);
     }
   };
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email) {
-      setStep('calculating');
-    }
-  };
+  const cardClass =
+    'bg-white/90 backdrop-blur-sm rounded-2xl sm:rounded-3xl border-2 border-white/60 shadow-xl shadow-stone-200/50';
 
-  const handleViewProducts = () => {
-    if (result) {
-      onComplete(result);
-    }
-  };
+  const inputClass =
+    'w-full px-4 py-3.5 rounded-xl border-2 bg-white/80 border-stone-200 focus:border-[#83b5b6] focus:ring-2 focus:ring-[#83b5b6]/20 outline-none transition-all text-stone-900 placeholder-stone-400';
 
-  // Landing Page
-  if (step === 'landing') {
+  const labelClass = 'block text-sm font-semibold text-stone-700 mb-1.5';
+
+  // Success: mensaje final
+  if (step === 'success') {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#83b5b6]/10 relative overflow-hidden">
-        {/* Animated background */}
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute top-20 left-20 w-96 h-96 bg-gradient-to-br from-[#dcbaba] to-[#c8a8a8] rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-br from-[#9fb3b8] to-[#8ea2a7] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-          <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-gradient-to-br from-[#a09085] to-[#dcbaba] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
+      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#83b5b6]/10 relative overflow-hidden flex items-center justify-center px-4 py-12">
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-[#FFC1CC] rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-10 w-72 h-72 bg-[#83b5b6] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
         </div>
-
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
-          {/* Back button */}
+        <div className={`${cardClass} p-8 sm:p-12 max-w-lg w-full text-center relative z-10`}>
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-[#83b5b6] to-[#FFC1CC] rounded-2xl mb-6">
+            <Sparkles className="h-10 w-10 text-white" />
+          </div>
+          <h2 className="text-2xl sm:text-3xl font-bold text-stone-900 mb-3">
+            Analizando, pronto recibirás el resultado...
+          </h2>
+          <p className="text-stone-600 mb-8">
+            Hemos recibido tu ecografía y datos. Nuestro equipo revisará la información y te enviaremos el resultado a <strong>{email}</strong>.
+          </p>
           <button
+            type="button"
             onClick={onBack}
-            className="mb-8 text-stone-600 hover:text-stone-900 transition-colors flex items-center gap-2"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#83b5b6] text-white font-semibold hover:bg-[#6a9a9b] transition-colors"
           >
-            <ChevronRight className="h-4 w-4 rotate-180" />
-            <span>Volver a la tienda</span>
+            <ChevronRight className="h-5 w-5 rotate-180" />
+            Volver a la tienda
           </button>
-
-          <div className="text-center space-y-8">
-            {/* Icon */}
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-3xl shadow-2xl mb-6 animate-bounce">
-              <Baby className="h-12 w-12 text-accent" />
-            </div>
-
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm px-4 py-2 rounded-full border border-white/50 shadow-lg">
-              <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-              <span className="text-sm text-stone-900 font-medium">+50,000 predicciones realizadas</span>
-            </div>
-
-            {/* Headline */}
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl text-stone-900 leading-tight">
-              ¿Será niño o niña?
-            </h1>
-
-            <p className="text-2xl text-stone-700 max-w-3xl mx-auto leading-relaxed">
-              Descubre el género de tu bebé con nuestro predictor basado en síntomas y tradiciones. ¡Es gratis y divertido!
-            </p>
-
-            {/* Benefits */}
-            <div className="grid sm:grid-cols-3 gap-6 max-w-3xl mx-auto pt-8">
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg hover:scale-105 transition-all duration-300">
-                <div className="w-12 h-12 bg-gradient-to-br from-accent to-[#c8a8a8] rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Star className="h-6 w-6 text-white" />
-                </div>
-                <div className="text-lg font-medium text-stone-900 mb-2">85% Precisión</div>
-                <div className="text-sm text-stone-600">Según nuestras mamás</div>
-              </div>
-
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg hover:scale-105 transition-all duration-300">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#9fb3b8] to-[#8ea2a7] rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <TrendingUp className="h-6 w-6 text-white" />
-                </div>
-                <div className="text-lg font-medium text-stone-900 mb-2">5 Preguntas</div>
-                <div className="text-sm text-stone-600">Rápido y divertido</div>
-              </div>
-
-              <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/50 shadow-lg hover:scale-105 transition-all duration-300">
-                <div className="w-12 h-12 bg-gradient-to-br from-primary to-[#7a8f85] rounded-xl flex items-center justify-center mx-auto mb-4">
-                  <Gift className="h-6 w-6 text-white" />
-                </div>
-                <div className="text-lg font-medium text-stone-900 mb-2">Descuentos</div>
-                <div className="text-sm text-stone-600">En productos baby</div>
-              </div>
-            </div>
-
-            {/* CTA */}
-            <button
-              onClick={() => setStep('quiz')}
-              className="group relative px-12 py-6 bg-gradient-to-r from-primary via-[#7a8f85] to-accent text-white rounded-2xl text-xl font-medium overflow-hidden transition-all duration-300 hover:shadow-2xl hover:scale-105 mt-8"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-accent to-[#c8a8a8] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative flex items-center gap-3">
-                <span>Comenzar predicción</span>
-                <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
-              </div>
-            </button>
-
-            <p className="text-sm text-stone-500">
-              100% gratis • Sin registro • Resultado instantáneo
-            </p>
-
-            {/* Social Proof */}
-            <div className="flex items-center justify-center gap-6 pt-12">
-              <div className="flex -space-x-3">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <div
-                    key={i}
-                    className="w-12 h-12 rounded-full bg-gradient-to-br from-primary to-accent border-4 border-white"
-                  />
-                ))}
-              </div>
-              <div className="text-left">
-                <div className="flex items-center gap-1 mb-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-[#dccf9d] text-[#dccf9d]" />
-                  ))}
-                </div>
-                <div className="text-sm text-stone-700 font-medium">+50,000 mamás han predicho aquí</div>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     );
   }
 
-  // Quiz
-  if (step === 'quiz') {
-    const progressPercentage = ((currentQuestion + 1) / questions.length) * 100;
-    const currentQ = questions[currentQuestion];
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#83b5b6]/10 relative overflow-hidden">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
-          {/* Progress Bar */}
-          <div className="mb-12">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm text-stone-600 font-medium">
-                Pregunta {currentQuestion + 1} de {questions.length}
-              </span>
-              <span className="text-sm text-stone-600 font-medium">
-                {Math.round(progressPercentage)}%
-              </span>
-            </div>
-            <div className="h-3 bg-white/50 rounded-full overflow-hidden shadow-inner">
-              <div
-                className="h-full bg-gradient-to-r from-primary via-[#7a8f85] to-accent rounded-full transition-all duration-500"
-                style={{ width: `${progressPercentage}%` }}
-              />
-            </div>
-          </div>
-
-          {/* Question Card */}
-          <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-2xl border-2 border-white/50 animate-in fade-in slide-in-from-bottom duration-500">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-2xl mb-6">
-                <Baby className="h-8 w-8 text-white" />
-              </div>
-              <h2 className="text-3xl sm:text-4xl text-stone-900 mb-4">
-                {currentQ.question}
-              </h2>
-            </div>
-
-            {/* Options */}
-            <div className="space-y-4">
-              {currentQ.options.map((option, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleAnswer(option.value)}
-                  className="w-full p-6 bg-stone-50 hover:bg-gradient-to-r hover:from-primary/10 hover:to-accent/10 rounded-2xl border-2 border-stone-200 hover:border-accent transition-all duration-300 hover:scale-105 hover:shadow-lg group"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="text-4xl">{option.emoji}</div>
-                    <div className="flex-1 text-left">
-                      <div className="text-lg text-stone-900 font-medium group-hover:text-primary transition-colors">
-                        {option.text}
-                      </div>
-                    </div>
-                    <ArrowRight className="h-6 w-6 text-stone-400 group-hover:text-primary transition-all group-hover:translate-x-1" />
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Back button */}
-          {currentQuestion > 0 && (
-            <button
-              onClick={() => {
-                setCurrentQuestion(currentQuestion - 1);
-                setAnswers(answers.slice(0, -1));
-              }}
-              className="mt-6 text-stone-600 hover:text-stone-900 transition-colors flex items-center gap-2 mx-auto"
-            >
-              <ChevronRight className="h-4 w-4 rotate-180" />
-              <span>Pregunta anterior</span>
-            </button>
-          )}
-        </div>
-      </div>
-    );
-  }
-
-  // Email Capture
-  if (step === 'email') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#83b5b6]/10 flex items-center justify-center px-4">
-        <div className="max-w-lg w-full">
-          <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-2xl border-2 border-white/50 animate-in fade-in slide-in-from-bottom duration-500">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-primary to-accent rounded-2xl mb-6">
-                <Mail className="h-10 w-10 text-white" />
-              </div>
-              <h2 className="text-3xl sm:text-4xl text-stone-900 mb-4">
-                ¡Ya casi está!
-              </h2>
-              <p className="text-lg text-stone-600">
-                Ingresa tu email para recibir el resultado y un <span className="text-accent font-medium">15% de descuento</span> en productos para bebé
-              </p>
-            </div>
-
-            <form onSubmit={handleEmailSubmit} className="space-y-6">
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@email.com"
-                  required
-                  className="w-full pl-12 pr-4 py-4 bg-stone-50 rounded-xl text-stone-900 placeholder-stone-400 focus:outline-none focus:ring-4 focus:ring-primary/20 transition-all text-lg border-2 border-stone-200 focus:border-primary"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-5 bg-gradient-to-r from-primary via-[#7a8f85] to-accent text-white rounded-xl text-lg font-medium hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center justify-center gap-2"
-              >
-                <span>Ver mi resultado</span>
-                <Sparkles className="h-5 w-5" />
-              </button>
-
-              <p className="text-xs text-stone-500 text-center">
-                Al continuar, aceptas recibir emails promocionales. Puedes darte de baja en cualquier momento.
-              </p>
-            </form>
-
-            {/* Benefits */}
-            <div className="mt-8 pt-8 border-t border-stone-200 space-y-3">
-              {['Resultado instantáneo personalizado', '15% descuento en tu primera compra', 'Consejos exclusivos para embarazo'].map((benefit, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Check className="h-4 w-4 text-green-600" />
-                  </div>
-                  <span className="text-sm text-stone-700">{benefit}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Calculating
-  if (step === 'calculating') {
+  // Submitting
+  if (step === 'submitting') {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#83b5b6]/10 flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="inline-flex items-center justify-center w-32 h-32 bg-white rounded-full shadow-2xl mb-8 animate-bounce">
-            <Baby className="h-16 w-16 text-accent animate-pulse" />
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-2xl shadow-xl mb-6 animate-pulse">
+            <Baby className="h-12 w-12 text-[#83b5b6]" />
           </div>
-          
-          <h2 className="text-4xl text-stone-900 mb-6">
-            Analizando tus respuestas...
-          </h2>
-
-          <div className="max-w-md mx-auto mb-8">
-            <div className="h-3 bg-white/50 rounded-full overflow-hidden shadow-inner">
-              <div
-                className="h-full bg-gradient-to-r from-primary via-[#7a8f85] to-accent rounded-full transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            <p className="text-stone-600 mt-3">{progress}%</p>
-          </div>
-
-          <div className="space-y-2 text-stone-600">
-            <p className="animate-pulse">🔮 Consultando tradiciones ancestrales...</p>
-            <p className="animate-pulse" style={{ animationDelay: '0.5s' }}>📊 Analizando patrones de síntomas...</p>
-            <p className="animate-pulse" style={{ animationDelay: '1s' }}>✨ Calculando probabilidades...</p>
-          </div>
+          <h2 className="text-2xl font-bold text-stone-900 mb-2">Enviando...</h2>
+          <p className="text-stone-600">Analizando, pronto recibirás el resultado.</p>
         </div>
       </div>
     );
   }
 
-  // Result
-  if (step === 'result' && result) {
-    const isBoy = result === 'boy';
-    
-    return (
-      <div className={`min-h-screen bg-gradient-to-br ${isBoy ? 'from-[#9fb3b8]/20 via-[#8ea2a7]/20 to-[#fcfbf9]' : 'from-[#dcbaba]/20 via-[#c8a8a8]/20 to-[#fcfbf9]'} relative overflow-hidden`}>
-        {/* Animated confetti background */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(20)].map((_, i) => (
+  // Form steps
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#fcfbf9] via-[#e6dfd9]/30 to-[#83b5b6]/10 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-20 pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-[#FFC1CC] rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-10 w-72 h-72 bg-[#83b5b6] rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-[#e6dfd9] rounded-full blur-3xl opacity-60" style={{ animationDelay: '0.5s' }} />
+      </div>
+
+      <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8 sm:py-12 relative z-10">
+        <button
+          type="button"
+          onClick={onBack}
+          className="mb-6 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/90 text-stone-700 font-medium shadow-md border border-stone-200/80 hover:bg-white transition-colors"
+        >
+          <ChevronRight className="h-4 w-4 rotate-180" />
+          Volver a la tienda
+        </button>
+
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-[#83b5b6] to-[#FFC1CC] rounded-2xl mb-4 shadow-lg">
+            <Baby className="h-7 w-7 text-white" />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-stone-900">Predicción de género</h1>
+          <p className="text-stone-600 mt-1">Paso {step} de 2</p>
+          <div className="mt-3 h-1.5 bg-white/60 rounded-full overflow-hidden max-w-xs mx-auto">
             <div
-              key={i}
-              className={`absolute w-3 h-3 ${isBoy ? 'bg-[#9fb3b8]' : 'bg-[#dcbaba]'} rounded-full animate-ping`}
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 2}s`,
-                animationDuration: `${2 + Math.random() * 2}s`,
-              }}
+              className="h-full bg-gradient-to-r from-[#83b5b6] to-[#FFC1CC] rounded-full transition-all duration-300"
+              style={{ width: step === 1 ? '50%' : '100%' }}
             />
-          ))}
-        </div>
-
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
-          <div className="text-center space-y-8 animate-in fade-in slide-in-from-bottom duration-700">
-            {/* Icon */}
-            <div className={`inline-flex items-center justify-center w-32 h-32 bg-gradient-to-br ${isBoy ? 'from-[#9fb3b8] to-[#8ea2a7]' : 'from-[#dcbaba] to-[#c8a8a8]'} rounded-full shadow-2xl animate-bounce`}>
-              <span className="text-6xl">{isBoy ? '👦' : '👧'}</span>
-            </div>
-
-            {/* Result */}
-            <div>
-              <h2 className="text-5xl sm:text-6xl lg:text-7xl text-stone-900 mb-4">
-                ¡Es {isBoy ? 'niño' : 'niña'}! 🎉
-              </h2>
-              <p className="text-2xl text-stone-700">
-                Según nuestro predictor, ¡vas a tener {isBoy ? 'un hermoso varón' : 'una hermosa niña'}!
-              </p>
-            </div>
-
-            {/* Stats */}
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 border-2 border-white/50 shadow-xl max-w-md mx-auto">
-              <div className="text-lg text-stone-600 mb-4">Tu predicción:</div>
-              <div className="text-6xl font-bold text-stone-900 mb-2">
-                {isBoy ? '65%' : '72%'}
-              </div>
-              <div className="text-stone-600">Probabilidad de {isBoy ? 'niño' : 'niña'}</div>
-            </div>
-
-            {/* Email confirmation */}
-            <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-6 max-w-md mx-auto">
-              <div className="flex items-center gap-3 justify-center">
-                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                  <Check className="h-6 w-6 text-white" />
-                </div>
-                <div className="text-left">
-                  <div className="text-sm text-green-900 font-medium">Resultado enviado a tu email</div>
-                  <div className="text-xs text-green-700">{email}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Discount */}
-            <div className={`bg-gradient-to-r ${isBoy ? 'from-[#9fb3b8] to-[#8ea2a7]' : 'from-[#dcbaba] to-[#c8a8a8]'} text-white rounded-2xl p-8 shadow-2xl max-w-md mx-auto`}>
-              <div className="flex items-center justify-center gap-3 mb-4">
-                <Gift className="h-8 w-8" />
-                <span className="text-3xl font-bold">15% OFF</span>
-              </div>
-              <p className="text-lg mb-6">
-                En productos para {isBoy ? 'niño' : 'niña'}
-              </p>
-              <div className="bg-white/20 backdrop-blur-sm border-2 border-white/30 rounded-xl px-6 py-3 inline-block">
-                <div className="text-xs mb-1">Código de descuento:</div>
-                <div className="text-2xl font-bold tracking-wider">BABY{isBoy ? 'BOY' : 'GIRL'}15</div>
-              </div>
-            </div>
-
-            {/* CTA to products */}
-            <button
-              onClick={handleViewProducts}
-              className={`group px-12 py-6 bg-gradient-to-r ${isBoy ? 'from-[#9fb3b8] to-[#8ea2a7]' : 'from-[#dcbaba] to-[#c8a8a8]'} text-white rounded-2xl text-xl font-medium transition-all duration-300 hover:shadow-2xl hover:scale-105`}
-            >
-              <div className="flex items-center gap-3">
-                <span>Ver productos para {isBoy ? 'niño' : 'niña'}</span>
-                <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
-              </div>
-            </button>
-
-            {/* Social sharing */}
-            <div className="pt-8">
-              <p className="text-stone-600 mb-4">¡Comparte tu resultado!</p>
-              <div className="flex items-center justify-center gap-4">
-                <button className="w-12 h-12 bg-white/80 backdrop-blur-sm hover:bg-[#9fb3b8] hover:text-white rounded-xl flex items-center justify-center transition-all duration-300 border border-stone-200">
-                  <Users className="h-5 w-5" />
-                </button>
-                <button className="w-12 h-12 bg-white/80 backdrop-blur-sm hover:bg-[#dcbaba] hover:text-white rounded-xl flex items-center justify-center transition-all duration-300 border border-stone-200">
-                  <Heart className="h-5 w-5" />
-                </button>
-                <button className="w-12 h-12 bg-white/80 backdrop-blur-sm hover:bg-[#83b5b6] hover:text-white rounded-xl flex items-center justify-center transition-all duration-300 border border-stone-200">
-                  <Star className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Disclaimer */}
-            <p className="text-xs text-stone-500 max-w-2xl mx-auto">
-              * Este predictor es solo para entretenimiento y no sustituye el diagnóstico médico profesional. Consulta con tu médico para saber el género con certeza.
-            </p>
           </div>
         </div>
-      </div>
-    );
-  }
 
-  return null;
+        <div className={cardClass + ' p-6 sm:p-8'}>
+          {step === 1 && (
+            <>
+              <div className="space-y-5">
+                <div>
+                  <label className={labelClass}>
+                    <Calendar className="inline h-4 w-4 mr-1.5 text-stone-500" />
+                    Semanas de embarazo *
+                  </label>
+                  <select
+                    value={pregnancyWeeks}
+                    onChange={(e) => setPregnancyWeeks(Number(e.target.value))}
+                    className={inputClass}
+                    required
+                  >
+                    {PREGNANCY_WEEKS.map((w) => (
+                      <option key={w} value={w}>Semana {w}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className={labelClass}>
+                    <User className="inline h-4 w-4 mr-1.5 text-stone-500" />
+                    Nombre *
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Tu nombre"
+                    className={inputClass + (validationErrors.name ? ' border-red-400' : '')}
+                    required
+                  />
+                  {validationErrors.name && <p className="text-red-500 text-sm mt-1">{validationErrors.name}</p>}
+                </div>
+                <div>
+                  <label className={labelClass}>
+                    <Mail className="inline h-4 w-4 mr-1.5 text-stone-500" />
+                    Correo electrónico *
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="tu@email.com"
+                    className={inputClass + (validationErrors.email ? ' border-red-400' : '')}
+                    required
+                  />
+                  {validationErrors.email && <p className="text-red-500 text-sm mt-1">{validationErrors.email}</p>}
+                </div>
+                <div>
+                  <label className={labelClass}>
+                    <Phone className="inline h-4 w-4 mr-1.5 text-stone-500" />
+                    Teléfono *
+                  </label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+34 600 000 000"
+                    className={inputClass + (validationErrors.phone ? ' border-red-400' : '')}
+                    required
+                  />
+                  {validationErrors.phone && <p className="text-red-500 text-sm mt-1">{validationErrors.phone}</p>}
+                </div>
+              </div>
+              <div className="mt-8 flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#83b5b6] to-[#6a9a9b] text-white font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]"
+                >
+                  Siguiente
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <div className="space-y-5">
+                <div>
+                  <label className={labelClass}>
+                    <Image className="inline h-4 w-4 mr-1.5 text-stone-500" />
+                    Tipo de ecografía *
+                  </label>
+                  <select
+                    value={ultrasoundType}
+                    onChange={(e) => setUltrasoundType(e.target.value)}
+                    className={inputClass + (validationErrors.ultrasoundType ? ' border-red-400' : '')}
+                    required
+                  >
+                    <option value="">Selecciona el tipo</option>
+                    {ULTRASOUND_TYPES.map((t) => (
+                      <option key={t.value} value={t.value}>{t.label}</option>
+                    ))}
+                  </select>
+                  {validationErrors.ultrasoundType && <p className="text-red-500 text-sm mt-1">{validationErrors.ultrasoundType}</p>}
+                </div>
+                <div>
+                  <label className={labelClass}>
+                    <Upload className="inline h-4 w-4 mr-1.5 text-stone-500" />
+                    Subir ecografía *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={(e) => setUltrasoundFile(e.target.files?.[0] ?? null)}
+                      className="block w-full text-sm text-stone-600 file:mr-4 file:py-3 file:px-4 file:rounded-xl file:border-0 file:bg-[#83b5b6]/20 file:text-[#83b5b6] file:font-semibold hover:file:bg-[#83b5b6]/30 file:transition-colors"
+                    />
+                    {ultrasoundFile && <p className="text-sm text-stone-500 mt-2">Archivo: {ultrasoundFile.name}</p>}
+                  </div>
+                  {validationErrors.ultrasoundFile && <p className="text-red-500 text-sm mt-1">{validationErrors.ultrasoundFile}</p>}
+                </div>
+              </div>
+              {submitError && <p className="text-red-500 text-sm mt-2">{submitError}</p>}
+              <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-between">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="inline-flex items-center gap-2 px-5 py-3 rounded-xl border-2 border-stone-200 text-stone-700 font-medium hover:bg-stone-50 transition-colors"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                  Atrás
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-[#83b5b6] to-[#FFC1CC] text-white font-semibold shadow-lg hover:shadow-xl transition-all hover:scale-[1.02]"
+                >
+                  <Sparkles className="h-5 w-5" />
+                  Enviar y recibir resultado
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        <p className="text-xs text-stone-500 text-center mt-6">
+          * Todos los campos son obligatorios. Tus datos se guardan de forma segura.
+        </p>
+      </div>
+    </div>
+  );
 }

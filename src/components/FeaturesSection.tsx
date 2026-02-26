@@ -20,25 +20,24 @@ export function FeaturesSection() {
   ];
 
   return (
-    <section className="py-8 sm:py-10 lg:py-12 bg-white">
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <section className="py-6 sm:py-10 lg:py-12 bg-white" aria-label="Ventajas de compra">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12">
+        {/* Móvil: 3 columnas (uno al lado del otro); tablet/desktop: mismo */}
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-8">
           {features.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
-              <div key={index} className="flex flex-col items-center text-center">
-                {/* Icon - Above the title */}
-                <div className="w-12 h-12 flex items-center justify-center mb-3">
-                  <IconComponent className="w-10 h-10 text-[#83b5b6]" strokeWidth={1.5} />
+              <div
+                key={index}
+                className="flex flex-col items-center text-center sm:p-6 rounded-xl md:rounded-2xl hover:bg-stone-50/50 md:hover:bg-stone-50/30 transition-colors touch-manipulation min-w-0"
+              >
+                <div className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center flex-shrink-0 mb-2 sm:mb-3">
+                  <IconComponent className="w-6 h-6 sm:w-10 sm:h-10 text-[#83b5b6]" strokeWidth={1.5} aria-hidden />
                 </div>
-                
-                {/* Title - Bold */}
-                <h3 className="text-sm font-bold text-[#2d3748] mb-1.5">
+                <h3 className="text-[11px] sm:text-sm font-bold text-[#2d3748] mb-1 sm:mb-1.5 leading-tight px-0.5">
                   {feature.title}
                 </h3>
-                
-                {/* Description - Small and soft */}
-                <p className="text-xs text-gray-500 leading-relaxed max-w-xs">
+                <p className="hidden sm:block text-xs text-stone-500 leading-snug max-w-xs mx-auto">
                   {feature.description}
                 </p>
               </div>

@@ -6,6 +6,7 @@ import { MegaMenu } from './MegaMenu';
 import { Product } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import type { CategoryInfo } from '@/utils/ebaby/catalog';
+import { createSlug } from '@/utils/slug';
 import {
   Sheet,
   SheetContent,
@@ -39,7 +40,6 @@ export function Header({
 }: HeaderProps) {
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const handleCategorySelect = (categoryName: string, subcategoryName?: string) => {
     setMobileMenuOpen(false);
@@ -51,10 +51,11 @@ export function Header({
         sessionStorage.removeItem('selectedSubCategory');
       }
     }
+    const tiendaPath = categoryName ? `/tienda/${createSlug(categoryName)}` : '/tienda';
     window.history.pushState(
       { view: 'category', categoryName, subcategoryName: subcategoryName ?? null },
       '',
-      '/categoria'
+      tiendaPath
     );
     window.scrollTo({ top: 0, behavior: 'smooth' });
     window.dispatchEvent(
@@ -157,18 +158,8 @@ export function Header({
               )}
             </div>
 
-            {/* Acciones: búsqueda (móvil), usuario, wishlist, carrito */}
-            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-              {/* Búsqueda móvil */}
-              <button
-                type="button"
-                onClick={() => setMobileSearchOpen((o) => !o)}
-                className="md:hidden flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl text-stone-600 hover:bg-stone-100 active:bg-stone-200 transition-colors touch-manipulation"
-                aria-label="Buscar"
-              >
-                <Search className="h-5 w-5" strokeWidth={2} />
-              </button>
-
+            {/* Acciones: usuario, wishlist, carrito */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               {/* Usuario - oculto en móvil muy pequeño si hace falta espacio */}
               <button
                 type="button"
@@ -186,16 +177,13 @@ export function Header({
               <button
                 type="button"
                 onClick={onWishlistClick}
-                className="relative flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl text-[#83b5b6] hover:bg-[#83b5b6]/10 transition-colors touch-manipulation"
+                className="relative flex items-center justify-center w-11 h-11 rounded-xl text-[#83b5b6] hover:bg-[#83b5b6]/10 transition-colors"
                 aria-label="Favoritos"
               >
                 <Heart className="h-5 w-5" strokeWidth={2} />
                 {wishlistCount > 0 && (
-                  <span
-                    className="absolute top-0.5 right-0.5 min-w-[1.25rem] h-5 px-1 text-white text-[10px] rounded-full flex items-center justify-center font-bold border-2 border-white"
-                    style={{ backgroundColor: '#83b5b6' }}
-                  >
-                    {wishlistCount}
+                  <span className="absolute top-[-5px] left-5 flex h-4 min-w-[11px] items-center justify-center rounded-full bg-[#83b5b6] px-1 text-[10px] font-bold leading-5 text-white ring-2 ring-white">
+                    {wishlistCount > 99 ? '99+' : wishlistCount}
                   </span>
                 )}
               </button>
@@ -204,46 +192,18 @@ export function Header({
               <button
                 type="button"
                 onClick={onCartClick}
-                className="relative flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl text-[#83b5b6] hover:bg-[#83b5b6]/10 transition-colors touch-manipulation"
+                className="relative flex items-center justify-center w-11 h-11 rounded-xl text-[#83b5b6] hover:bg-[#83b5b6]/10 transition-colors"
                 aria-label="Carrito"
               >
                 <ShoppingCart className="h-5 w-5" strokeWidth={2} />
                 {cartCount > 0 && (
-                  <span
-                    className="absolute top-0.5 right-0.5 min-w-[1.25rem] h-5 text-white text-xs rounded-full flex items-center justify-center font-bold border-2 border-white leading-none"
-                    style={{ backgroundColor: '#83b5b6' }}
-                  >
+                  <span className="absolute top-[-5px] left-5 flex h-4 min-w-[11px] items-center justify-center rounded-full bg-[#83b5b6] px-1 text-[10px] font-bold leading-5 text-white ring-2 ring-white">
                     {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}
               </button>
             </div>
           </div>
-
-          {/* Barra de búsqueda móvil expandible */}
-          {mobileSearchOpen && (
-            <div className="md:hidden pb-3 pt-1 -mx-1 px-1">
-              {products.length > 0 && onProductClick ? (
-                <SearchAutocomplete
-                  products={products}
-                  onProductClick={(p) => {
-                    onProductClick(p);
-                    setMobileSearchOpen(false);
-                  }}
-                />
-              ) : (
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Buscar productos..."
-                    className="w-full px-4 py-3 pl-11 bg-stone-50 border border-stone-200 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-[#FFC1CC]/40"
-                    autoFocus
-                  />
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
-                </div>
-              )}
-            </div>
-          )}
         </div>
       </div>
 
@@ -261,10 +221,11 @@ export function Header({
                   sessionStorage.removeItem('selectedSubCategory');
                 }
               }
+              const tiendaPath = categoryName ? `/tienda/${createSlug(categoryName)}` : '/tienda';
               window.history.pushState(
                 { view: 'category', categoryName, subcategoryName },
                 '',
-                '/categoria'
+                tiendaPath
               );
               window.scrollTo({ top: 0, behavior: 'smooth' });
               window.dispatchEvent(

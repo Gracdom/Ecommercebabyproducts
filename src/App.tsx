@@ -31,8 +31,8 @@ import { WhatsAppButton } from './components/WhatsAppButton';
 import { FeaturesSection } from './components/FeaturesSection';
 import { CategoryBentoGrid } from './components/CategoryBentoGrid';
 import { Testimonials } from './components/Testimonials';
-import { InstagramFeed } from './components/InstagramFeed';
 import { BrandCarousel } from './components/BrandCarousel';
+import { InstagramSection } from './components/InstagramSection';
 import { GenderPredictor } from './components/GenderPredictor';
 import { GenderPredictorBanner } from './components/GenderPredictorBanner';
 import { BigBuyAdmin } from './components/BigBuyAdmin';
@@ -53,6 +53,7 @@ import {
   clearCartInDb,
 } from './utils/ebaby/cart-db';
 import { createOrderInDb } from './utils/ebaby/orders-db';
+import { saveAbandonedCheckout } from './utils/bigbuy/edge';
 
 type View = 'home' | 'category' | 'product' | 'wishlist' | 'checkout' | 'confirmation' | 'gender-predictor' | 'admin' | 'login' | 'signup' | 'profile' | 'contact' | 'aviso-legal' | 'privacidad' | 'terminos' | 'cookies';
 
@@ -68,6 +69,12 @@ function getInitialCartFromStorage(): Product[] {
     /* ignore */
   }
   return [];
+}
+
+/** URL de la tienda: /tienda o /tienda/slug-categoria (ej. /tienda/dormitorio) */
+function getTiendaPath(categoryName: string | null | undefined): string {
+  if (!categoryName?.trim()) return '/tienda';
+  return `/tienda/${createSlug(categoryName.trim())}`;
 }
 
 export default function App() {
@@ -150,7 +157,7 @@ export default function App() {
       if (hash) {
         const hashToPath: Record<string, string> = {
           admin: '/admin',
-          category: '/categoria',
+          category: '/tienda',
           contact: '/contacto',
           'aviso-legal': '/aviso-legal',
           privacidad: '/privacidad',
@@ -160,12 +167,22 @@ export default function App() {
         const pathFromHash = hashToPath[hash] ?? (hash.startsWith('product/') ? `/producto/${hash.replace('product/', '')}` : '/');
         window.history.replaceState(null, '', pathFromHash);
       }
-      const path = window.location.pathname.replace(/\/$/, '') || '/';
+      let path = window.location.pathname.replace(/\/$/, '') || '/';
 
-      // Check for category selection in sessionStorage
+      // Redirigir /categoria a /tienda para URLs consistentes
+      if (path === '/categoria') {
+        window.history.replaceState(null, '', '/tienda');
+        path = '/tienda';
+      } else if (path.startsWith('/categoria/')) {
+        const slug = path.replace(/^\/categoria\/?/, '');
+        window.history.replaceState(null, '', `/tienda/${slug}`);
+        path = `/tienda/${slug}`;
+      }
+
+      // Check for category selection in sessionStorage (solo si ya estamos en tienda sin slug)
       const storedCategory = sessionStorage.getItem('selectedCategory');
       const storedSubCategory = sessionStorage.getItem('selectedSubCategory');
-      if (storedCategory && path === '/categoria') {
+      if (storedCategory && path === '/tienda') {
         setSelectedCategory(storedCategory);
         setSelectedSubCategory(storedSubCategory && storedSubCategory !== 'null' ? storedSubCategory : null);
       }
@@ -195,10 +212,28 @@ export default function App() {
         return;
       }
 
-      // Category route
-      if (path === '/categoria') {
+      // Tienda route: /tienda o /tienda/:categorySlug
+      if (path === '/tienda' || path.startsWith('/tienda/')) {
         setCurrentView('category');
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        if (path === '/tienda') {
+          setSelectedCategory(null);
+          setSelectedSubCategory(null);
+        } else {
+          const categorySlug = path.replace(/^\/tienda\/?/, '').split('/')[0];
+          if (categorySlug && categories.length > 0) {
+            const cat = categories.find((c) => createSlug(c.name) === categorySlug);
+            if (cat) {
+              setSelectedCategory(cat.name);
+              setSelectedSubCategory(null);
+              sessionStorage.setItem('selectedCategory', cat.name);
+              sessionStorage.removeItem('selectedSubCategory');
+            } else {
+              setSelectedCategory(null);
+              setSelectedSubCategory(null);
+            }
+          }
+        }
         return;
       }
 
@@ -251,7 +286,27 @@ export default function App() {
     applyPath();
     window.addEventListener('popstate', applyPath);
     return () => window.removeEventListener('popstate', applyPath);
-  }, [isAdmin, allProducts]);
+  }, [isAdmin, allProducts, categories]);
+
+  // Guardar abandono cuando vuelven de Stripe cancel (checkout?cancelled=1)
+  useEffect(() => {
+    if (currentView !== 'checkout') return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('cancelled') !== '1') return;
+    if (cartItems.length === 0) {
+      window.history.replaceState(null, '', '/checkout');
+      return;
+    }
+    const sessionId = getOrCreateSessionId();
+    const items = cartItems.map((i) => ({
+      name: i.name ?? 'Producto',
+      quantity: i.quantity ?? 1,
+      price: (i.price ?? 0) * (i.quantity ?? 1),
+    }));
+    const cartTotal = cartItems.reduce((s, i) => s + (i.price ?? 0) * (i.quantity ?? 1), 0);
+    saveAbandonedCheckout({ session_id: sessionId, items, cartTotal, source: 'checkout_cancel' }).catch(() => {});
+    window.history.replaceState(null, '', '/checkout');
+  }, [currentView, cartItems]);
 
   // Load cart: from DB first, fallback to localStorage (migración)
   useEffect(() => {
@@ -464,7 +519,7 @@ export default function App() {
               sessionStorage.removeItem('selectedSubCategory');
               setSelectedCategory(null);
               setSelectedSubCategory(null);
-              window.history.pushState({ view: 'category' }, '', '/categoria');
+              window.history.pushState({ view: 'category' }, '', '/tienda');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
@@ -473,7 +528,7 @@ export default function App() {
               sessionStorage.removeItem('selectedSubCategory');
               setSelectedCategory(null);
               setSelectedSubCategory(null);
-              window.history.pushState({ view: 'category' }, '', '/categoria');
+              window.history.pushState({ view: 'category' }, '', '/tienda');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
@@ -486,7 +541,7 @@ export default function App() {
               sessionStorage.removeItem('selectedSubCategory');
               setSelectedCategory(categoryName);
               setSelectedSubCategory(null);
-              window.history.pushState({ view: 'category' }, '', '/categoria');
+              window.history.pushState({ view: 'category' }, '', getTiendaPath(categoryName));
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
@@ -502,17 +557,25 @@ export default function App() {
               sessionStorage.removeItem('selectedSubCategory');
               setSelectedCategory(null);
               setSelectedSubCategory(null);
-              window.history.pushState({ view: 'category' }, '', '/categoria');
+              window.history.pushState({ view: 'category' }, '', '/tienda');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           /> */}
           <CategoryDirectory 
             onCategoryClick={(categoryName) => {
-              window.history.pushState({ view: 'category' }, '', '/categoria');
+              if (categoryName) {
+                sessionStorage.setItem('selectedCategory', categoryName);
+                setSelectedCategory(categoryName);
+                setSelectedSubCategory(null);
+              } else {
+                sessionStorage.removeItem('selectedCategory');
+                setSelectedCategory(null);
+                setSelectedSubCategory(null);
+              }
+              window.history.pushState({ view: 'category' }, '', getTiendaPath(categoryName));
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
-              // Could filter by category in the future
             }} 
           />
           {/* <QuickShop 
@@ -526,18 +589,18 @@ export default function App() {
               sessionStorage.removeItem('selectedSubCategory');
               setSelectedCategory(null);
               setSelectedSubCategory(null);
-              window.history.pushState({ view: 'category' }, '', '/categoria');
+              window.history.pushState({ view: 'category' }, '', '/tienda');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           /> */}
-          <InstagramFeed />
           {/* <RecommendedProducts 
             recentlyViewed={recentlyViewed}
             allProducts={allProducts}
             onProductClick={handleProductClick}
           /> */}
           {/* <LifestyleSection /> */}
+          <InstagramSection />
           <AboutUs />
           {/* <Newsletter /> */}
           <Testimonials />
@@ -579,7 +642,7 @@ export default function App() {
             allProducts={allProducts}
             onAddToCart={addToCart}
             onBack={() => {
-              window.history.pushState({ view: 'category' }, '', '/categoria');
+              window.history.pushState({ view: 'category' }, '', getTiendaPath(selectedCategory));
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
@@ -637,7 +700,7 @@ export default function App() {
         <GenderPredictor
           onComplete={(gender) => {
             // Redirect to category page filtered by gender
-            window.history.pushState({ view: 'category' }, '', '/categoria');
+            window.history.pushState({ view: 'category' }, '', '/tienda');
             setCurrentView('category');
             window.scrollTo({ top: 0, behavior: 'smooth' });
             toast.success(`¡Descubre productos perfectos para tu ${gender === 'boy' ? 'niño' : 'niña'}!`, {
@@ -832,7 +895,7 @@ export default function App() {
 
       <SocialProofPopup />
 
-      <ExitIntentPopup cartItems={cartItems} />
+      <ExitIntentPopup cartItems={cartItems} sessionId={getOrCreateSessionId()} />
 
       {currentView !== 'admin' && (
         <>
@@ -845,7 +908,7 @@ export default function App() {
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
             onCategoriesClick={() => {
-              window.history.pushState({ view: 'category' }, '', '/categoria');
+              window.history.pushState({ view: 'category' }, '', '/tienda');
               setCurrentView('category');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}

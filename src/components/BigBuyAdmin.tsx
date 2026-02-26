@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, RefreshCw, Save, Download, Search, Trash2, RotateCcw, CheckSquare, Square, BarChart3, FileText, Settings, ArrowUpDown, ArrowUp, ArrowDown, User, ChevronRight, ChevronDown, ChevronUp, ShoppingBag, Package, Mail, MapPin, CreditCard, LayoutDashboard } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Save, Download, Search, Trash2, RotateCcw, CheckSquare, Square, BarChart3, FileText, Settings, ArrowUpDown, ArrowUp, ArrowDown, User, ChevronRight, ChevronDown, ChevronUp, ShoppingBag, ShoppingCart, Package, Mail, MapPin, CreditCard, LayoutDashboard, Baby, Image, Phone } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { ProductImageThumbnail } from './ProductImageThumbnail';
 import {
@@ -15,6 +15,9 @@ import {
   adminGetStats,
   adminGetSyncLogs,
   adminGetOrders,
+  adminGetAbandonedCheckouts,
+  adminGetGenderSubmissions,
+  adminEnsureEcografiasBucket,
   createAdminUser,
 } from '../utils/bigbuy/edge';
 import { AdminProduct, ProductStats, SyncLog, ProductFilters } from '@/types';
@@ -121,6 +124,33 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
+  type GenderSubmissionRow = {
+    id: string;
+    pregnancy_weeks: number;
+    name: string;
+    email: string;
+    phone: string;
+    ultrasound_type: string;
+    ultrasound_url: string | null;
+    created_at: string;
+  };
+  const [genderSubmissions, setGenderSubmissions] = useState<GenderSubmissionRow[]>([]);
+  const [genderSubmissionsLoading, setGenderSubmissionsLoading] = useState(false);
+  const [ensuringBucket, setEnsuringBucket] = useState(false);
+
+  type AbandonedRow = {
+    id: string;
+    session_id: string | null;
+    email: string | null;
+    cart_items: Array<{ name: string; quantity: number; price: number }>;
+    cart_total: number;
+    source: string;
+    created_at: string;
+  };
+  const [abandonedList, setAbandonedList] = useState<AbandonedRow[]>([]);
+  const [abandonedLoading, setAbandonedLoading] = useState(false);
+  const [expandedAbandonedId, setExpandedAbandonedId] = useState<string | null>(null);
+
   useEffect(() => {
     if (!syncSecret) return;
     sessionStorage.setItem('bigbuySyncSecret', syncSecret);
@@ -149,6 +179,46 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
       loadOrders();
     }
   }, [activeTab, syncSecret]);
+
+  useEffect(() => {
+    if (activeTab === 'predicciones' && syncSecret) {
+      loadGenderSubmissions();
+    }
+  }, [activeTab, syncSecret]);
+
+  useEffect(() => {
+    if (activeTab === 'abandoned' && syncSecret) {
+      loadAbandonedCheckouts();
+    }
+  }, [activeTab, syncSecret]);
+
+  const loadAbandonedCheckouts = async () => {
+    if (!syncSecret) return;
+    setAbandonedLoading(true);
+    try {
+      const res = await adminGetAbandonedCheckouts(syncSecret, { limit: 200 });
+      setAbandonedList(res.abandoned ?? []);
+    } catch (e: any) {
+      toast.error('No se pudieron cargar los abandonos', { description: e?.message });
+      setAbandonedList([]);
+    } finally {
+      setAbandonedLoading(false);
+    }
+  };
+
+  const loadGenderSubmissions = async () => {
+    if (!syncSecret) return;
+    setGenderSubmissionsLoading(true);
+    try {
+      const res = await adminGetGenderSubmissions(syncSecret, { limit: 200 });
+      setGenderSubmissions(res.submissions ?? []);
+    } catch (e: any) {
+      toast.error('No se pudieron cargar las predicciones', { description: e?.message });
+      setGenderSubmissions([]);
+    } finally {
+      setGenderSubmissionsLoading(false);
+    }
+  };
 
   const loadOrders = async () => {
     if (!syncSecret) return;
@@ -514,6 +584,8 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
     { id: 'sync', label: 'Sincronización', icon: Settings },
     { id: 'products', label: 'Productos', icon: Package },
     { id: 'orders', label: 'Compras', icon: ShoppingBag },
+    { id: 'abandoned', label: 'No compraron', icon: ShoppingCart },
+    { id: 'predicciones', label: 'Predicciones', icon: Baby },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'stats', label: 'Estadísticas', icon: BarChart3 },
     { id: 'logs', label: 'Logs', icon: FileText },
@@ -1362,6 +1434,209 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
                       </div>
                     );
                   })}
+                </div>
+              )}
+            </div>
+          </Tabs.Content>
+
+          {/* Abandonos (quien no completó la compra) */}
+          <Tabs.Content value="abandoned" className="space-y-6">
+            <div className="bg-white rounded-lg border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)] overflow-hidden">
+              <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white">
+                <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5 text-slate-600" />
+                  Carritos / checkouts abandonados
+                </h3>
+                <button
+                  onClick={loadAbandonedCheckouts}
+                  disabled={abandonedLoading}
+                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-60 flex items-center gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${abandonedLoading ? 'animate-spin' : ''}`} />
+                  Actualizar
+                </button>
+              </div>
+              {abandonedLoading ? (
+                <div className="p-12 text-center text-slate-500">Cargando abandonos…</div>
+              ) : abandonedList.length === 0 ? (
+                <div className="p-12 text-center text-slate-500">No hay registros de carritos abandonados</div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {abandonedList.map((row) => {
+                    const isExpanded = expandedAbandonedId === row.id;
+                    const items = Array.isArray(row.cart_items) ? row.cart_items : [];
+                    return (
+                      <div key={row.id} className="bg-white hover:bg-slate-50/50 transition-colors">
+                        <button
+                          onClick={() => setExpandedAbandonedId(isExpanded ? null : row.id)}
+                          className="w-full p-4 flex items-center justify-between text-left"
+                        >
+                          <div className="flex items-center gap-4 min-w-0">
+                            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                              <ShoppingCart className="h-5 w-5 text-amber-600" />
+                            </div>
+                            <div>
+                              <div className="font-semibold text-slate-900 flex items-center gap-2">
+                                {row.email || 'Sin email'}
+                                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                                  {row.source === 'exit_intent' ? 'Exit intent' : row.source === 'checkout_cancel' ? 'Canceló pago' : row.source}
+                                </span>
+                              </div>
+                              <div className="text-sm text-slate-600 mt-0.5">
+                                {items.length} producto(s) · {Number(row.cart_total || 0).toFixed(2)} €
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4 flex-shrink-0">
+                            <div className="text-right hidden sm:block text-xs text-slate-500">
+                              {new Date(row.created_at).toLocaleDateString('es-ES', {
+                                day: '2-digit',
+                                month: 'short',
+                                year: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })}
+                            </div>
+                            {isExpanded ? (
+                              <ChevronUp className="h-5 w-5 text-slate-400" />
+                            ) : (
+                              <ChevronDown className="h-5 w-5 text-slate-400" />
+                            )}
+                          </div>
+                        </button>
+                        {isExpanded && (
+                          <div className="px-4 pb-4 pt-0 border-t border-slate-100 bg-slate-50/50">
+                            <div className="rounded-xl bg-white border border-slate-200 p-4 space-y-4 mt-4">
+                              {row.email && (
+                                <div className="flex items-center gap-2">
+                                  <Mail className="h-4 w-4 text-slate-400" />
+                                  <span className="text-sm text-slate-900">{row.email}</span>
+                                </div>
+                              )}
+                              <div>
+                                <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Productos en el carrito</div>
+                                <div className="space-y-2">
+                                  {items.map((it, idx) => (
+                                    <div
+                                      key={idx}
+                                      className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100"
+                                    >
+                                      <span className="font-medium text-slate-900 truncate">{it.name}</span>
+                                      <span className="text-sm text-slate-600">
+                                        x{it.quantity} · {Number(it.price || 0).toFixed(2)} €
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              <div className="text-sm font-semibold text-slate-900 pt-2 border-t border-slate-200">
+                                Total: {Number(row.cart_total || 0).toFixed(2)} €
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </Tabs.Content>
+
+          {/* Predicciones (formulario predictor de género) */}
+          <Tabs.Content value="predicciones" className="space-y-6">
+            <div className="bg-white rounded-lg border border-[#c3c4c7] shadow-[0_1px_1px_rgba(0,0,0,.04)] overflow-hidden">
+              <div className="p-4 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-gradient-to-r from-slate-50 to-white">
+                <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                  <Baby className="h-5 w-5 text-slate-600" />
+                  Predicciones de género (ecografías)
+                </h3>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={async () => {
+                      if (!syncSecret) return;
+                      setEnsuringBucket(true);
+                      try {
+                        const res = await adminEnsureEcografiasBucket(syncSecret);
+                        toast.success(res.message ?? 'Bucket listo');
+                      } catch (e: any) {
+                        toast.error('Error al crear bucket', { description: e?.message });
+                      } finally {
+                        setEnsuringBucket(false);
+                      }
+                    }}
+                    disabled={ensuringBucket}
+                    className="px-4 py-2 text-sm font-medium text-slate-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 disabled:opacity-60 flex items-center gap-2"
+                    title="Crea el bucket 'ecografias' en Storage si no existe (para que las subidas de ecografías funcionen)"
+                  >
+                    {ensuringBucket ? 'Creando…' : 'Crear bucket ecografías'}
+                  </button>
+                  <button
+                    onClick={loadGenderSubmissions}
+                    disabled={genderSubmissionsLoading}
+                    className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 disabled:opacity-60 flex items-center gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${genderSubmissionsLoading ? 'animate-spin' : ''}`} />
+                    Actualizar
+                  </button>
+                </div>
+              </div>
+              {genderSubmissionsLoading ? (
+                <div className="p-12 text-center text-slate-500">Cargando predicciones…</div>
+              ) : genderSubmissions.length === 0 ? (
+                <div className="p-12 text-center text-slate-500">No hay envíos del predictor de género</div>
+              ) : (
+                <div className="divide-y divide-slate-100">
+                  {genderSubmissions.map((sub) => (
+                    <div key={sub.id} className="p-4 hover:bg-slate-50/50 transition-colors flex flex-col sm:flex-row gap-4">
+                      <div className="flex-shrink-0">
+                        {sub.ultrasound_url ? (
+                          <a
+                            href={sub.ultrasound_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block w-24 h-24 rounded-xl overflow-hidden border-2 border-slate-200 hover:border-[#83b5b6] transition-colors"
+                          >
+                            <img
+                              src={sub.ultrasound_url}
+                              alt="Ecografía"
+                              className="w-full h-full object-cover"
+                            />
+                          </a>
+                        ) : (
+                          <div className="w-24 h-24 rounded-xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center">
+                            <Image className="h-8 w-8 text-slate-400" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-slate-900">{sub.name}</div>
+                        <div className="text-sm text-slate-600 flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                          <span className="flex items-center gap-1">
+                            <Mail className="h-3.5 w-3.5" />
+                            {sub.email}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Phone className="h-3.5 w-3.5" />
+                            {sub.phone}
+                          </span>
+                        </div>
+                        <div className="text-xs text-slate-500 mt-2 flex flex-wrap gap-x-4">
+                          <span>Semana {sub.pregnancy_weeks}</span>
+                          <span>Tipo: {sub.ultrasound_type}</span>
+                          <span>
+                            {new Date(sub.created_at).toLocaleDateString('es-ES', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
