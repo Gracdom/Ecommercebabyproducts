@@ -1,4 +1,4 @@
-import { supabaseAnonKey, supabaseUrl } from "@/utils/supabase/client";
+import { supabase, supabaseAnonKey, supabaseUrl } from "@/utils/supabase/client";
 import type { AdminProduct } from "@/types";
 
 const FUNCTION_NAME = "make-server-335110ef";
@@ -373,7 +373,50 @@ function buildPredictorFormData(params: {
   return formData;
 }
 
-/** Envía el formulario completo del predictor (imagen + datos) por backend. Todo se guarda con service role. */
+const ECOGRAFIAS_BUCKET = "ecografias";
+const ECOGRAFIAS_PREFIX = "uploads/";
+const ALLOWED_EXT = ["jpg", "jpeg", "png", "webp", "gif"];
+
+/** Guarda directamente en Supabase (Storage + tabla) cuando la Edge Function falla (404). */
+async function submitGenderPredictorDirect(params: {
+  pregnancy_weeks: number;
+  name: string;
+  email: string;
+  phone: string;
+  ultrasound_type: string;
+  file: File;
+}): Promise<{ ok: boolean; error?: string }> {
+  const ext = (params.file.name.split(".").pop() || "").toLowerCase();
+  const safeExt = ALLOWED_EXT.includes(ext) ? ext : "jpg";
+  const path = `${ECOGRAFIAS_PREFIX}${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${safeExt}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from(ECOGRAFIAS_BUCKET)
+    .upload(path, params.file, { contentType: params.file.type, upsert: false });
+
+  if (uploadError) {
+    return { ok: false, error: "No se pudo subir la ecografía: " + uploadError.message };
+  }
+
+  const { data: urlData } = supabase.storage.from(ECOGRAFIAS_BUCKET).getPublicUrl(path);
+  const ultrasound_url = urlData?.publicUrl ?? null;
+
+  const { error: insertError } = await supabase.from("gender_predictor_submissions").insert({
+    pregnancy_weeks: params.pregnancy_weeks,
+    name: params.name.trim(),
+    email: params.email.trim().toLowerCase(),
+    phone: params.phone.trim(),
+    ultrasound_type: params.ultrasound_type,
+    ultrasound_url,
+  });
+
+  if (insertError) {
+    return { ok: false, error: "No se pudo guardar los datos: " + insertError.message };
+  }
+  return { ok: true };
+}
+
+/** Envía el formulario del predictor: intenta Edge Function primero; si 404, guarda directo en Supabase. */
 export async function submitGenderPredictor(params: {
   pregnancy_weeks: number;
   name: string;
@@ -408,10 +451,16 @@ export async function submitGenderPredictor(params: {
     }
     if (res.ok) return { ok: true };
     lastError = json?.error || text || res.statusText;
-    if (res.status === 404 && url !== urlsToTry[urlsToTry.length - 1]) continue;
+    if (res.status === 404) {
+      const direct = await submitGenderPredictorDirect(params);
+      if (direct.ok) return { ok: true };
+      return { ok: false, error: direct.error || lastError };
+    }
     return { ok: false, error: lastError };
   }
-  return { ok: false, error: lastError || "Not Found" };
+  const direct = await submitGenderPredictorDirect(params);
+  if (direct.ok) return { ok: true };
+  return { ok: false, error: direct.error || lastError || "Not Found" };
 }
 
 export function createAdminUser(syncSecret: string, email: string, password: string) {

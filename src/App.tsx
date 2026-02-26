@@ -277,18 +277,25 @@ export default function App() {
           return;
         }
         // Acceso directo sin session_id: mostrar página de confirmación de prueba
+        // Preservar params de URL (transaction_id, value, etc.) para pruebas de GTM
+        const urlParams = new URLSearchParams(window.location.search);
+        const demoOrderId = urlParams.get('transaction_id') ?? 'DEMO-' + Date.now();
+        const demoValue = urlParams.has('value') ? Number(urlParams.get('value')) : 0;
+        const demoEmail = urlParams.get('email') ?? 'cliente@ejemplo.com';
+        const demoPhone = urlParams.get('phone') ?? '+34 600 000 000';
+
         setOrderData({
-          orderId: 'DEMO-' + Date.now(),
+          orderId: demoOrderId,
           bigbuyOrderIds: [],
           shippingOption: { serviceName: 'Envío estándar', delay: '4-6 días laborables', cost: 4.95 },
-          customerInfo: { email: 'cliente@ejemplo.com', firstName: 'Cliente', lastName: 'Demo', phone: '+34 600 000 000' },
+          customerInfo: { email: demoEmail, firstName: 'Cliente', lastName: 'Demo', phone: demoPhone },
           shippingAddress: { street: 'Calle Ejemplo 123', city: 'Madrid', postalCode: '28001', country: 'ES' },
           paymentMethod: 'card',
-          total: 0,
+          total: demoValue,
           items: [],
         });
         setCurrentView('confirmation');
-        window.history.replaceState(null, '', '/checkout/success');
+        // No reemplazar la URL: mantener params para que GTM pueda leerlos
         return;
       }
 
