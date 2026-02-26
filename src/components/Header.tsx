@@ -159,7 +159,7 @@ export function Header({
             </div>
 
             {/* Acciones: usuario, wishlist, carrito */}
-            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <div className="flex items-center gap-4 shrink-0 min-w-[50px]">
               {/* Usuario - oculto en móvil muy pequeño si hace falta espacio */}
               <button
                 type="button"
@@ -182,7 +182,7 @@ export function Header({
               >
                 <Heart className="h-5 w-5" strokeWidth={2} />
                 {wishlistCount > 0 && (
-                  <span className="absolute top-[-5px] left-5 flex h-4 min-w-[11px] items-center justify-center rounded-full bg-[#83b5b6] px-1 text-[10px] font-bold leading-5 text-white ring-2 ring-white">
+                  <span className="absolute -top-1 -right-1 flex h-4 w-3 min-w-[20px] items-center justify-center rounded-full bg-[#83b5b6] px-1.5 text-[10px] font-bold leading-5 text-white ring-2 ring-white">
                     {wishlistCount > 99 ? '99+' : wishlistCount}
                   </span>
                 )}
@@ -197,7 +197,7 @@ export function Header({
               >
                 <ShoppingCart className="h-5 w-5" strokeWidth={2} />
                 {cartCount > 0 && (
-                  <span className="absolute top-[-5px] left-5 flex h-4 min-w-[11px] items-center justify-center rounded-full bg-[#83b5b6] px-1 text-[10px] font-bold leading-5 text-white ring-2 ring-white">
+                  <span className="absolute -top-1 -right-1 flex h-4 w-3 min-w-[20px] items-center justify-center rounded-full bg-[#83b5b6] px-1.5 text-[10px] font-bold leading-5 text-white ring-2 ring-white">
                     {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}

@@ -276,6 +276,20 @@ export default function App() {
           loadOrder();
           return;
         }
+        // Acceso directo sin session_id: mostrar página de confirmación de prueba
+        setOrderData({
+          orderId: 'DEMO-' + Date.now(),
+          bigbuyOrderIds: [],
+          shippingOption: { serviceName: 'Envío estándar', delay: '4-6 días laborables', cost: 4.95 },
+          customerInfo: { email: 'cliente@ejemplo.com', firstName: 'Cliente', lastName: 'Demo', phone: '+34 600 000 000' },
+          shippingAddress: { street: 'Calle Ejemplo 123', city: 'Madrid', postalCode: '28001', country: 'ES' },
+          paymentMethod: 'card',
+          total: 0,
+          items: [],
+        });
+        setCurrentView('confirmation');
+        window.history.replaceState(null, '', '/checkout/success');
+        return;
       }
 
       // Home route

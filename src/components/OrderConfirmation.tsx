@@ -210,12 +210,14 @@ export function OrderConfirmation({ orderData, onBackToHome }: OrderConfirmation
             Nuestro equipo de atención al cliente está disponible de lunes a viernes de 9:00 a 18:00
           </p>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-sm">
-            <a href="mailto:info@babyonly.com" className="text-stone-900 hover:underline flex items-center gap-2">
+            <a href="mailto:info@ebaby-shop.com" className="text-stone-900 hover:underline flex items-center gap-2">
               <Mail className="h-4 w-4" />
-              info@babyonly.com
+              info@ebaby-shop.com
             </a>
             <span className="hidden sm:inline text-stone-300">|</span>
-            <span className="text-stone-600">+34 900 123 456</span>
+            <a href="https://wa.me/34910202911" target="_blank" rel="noopener noreferrer" className="text-stone-600 hover:underline">
+              +34 910 202 911
+            </a>
           </div>
         </div>
 
