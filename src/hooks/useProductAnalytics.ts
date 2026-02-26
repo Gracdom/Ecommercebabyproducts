@@ -39,7 +39,7 @@ async function flushEvents() {
     const FUNCTION_NAME = "make-server-335110ef";
     const EDGE_BASE_URL = `${supabaseUrl}/functions/v1/${FUNCTION_NAME}`;
     
-    const res = await fetch(`${EDGE_BASE_URL}/bigbuy/analytics/event`, {
+    const res = await fetch(`${EDGE_BASE_URL}/analytics/event`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

@@ -1,10 +1,18 @@
-import { ShoppingCart, Search, Menu, Heart, User } from 'lucide-react';
+import { useState } from 'react';
+import { ShoppingCart, Search, Menu, Heart, User, ChevronRight } from 'lucide-react';
 import { navigate } from '@/utils/navigate';
 import { SearchAutocomplete } from './SearchAutocomplete';
 import { MegaMenu } from './MegaMenu';
 import { Product } from '../types';
 import { useAuth } from '../hooks/useAuth';
 import type { CategoryInfo } from '@/utils/ebaby/catalog';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { cn } from '@/components/ui/utils';
 
 interface HeaderProps {
   cartCount: number;
@@ -18,45 +26,88 @@ interface HeaderProps {
   categories?: CategoryInfo[];
 }
 
-export function Header({ 
-  cartCount, 
+export function Header({
+  cartCount,
   wishlistCount = 0,
-  onCartClick, 
+  onCartClick,
   onWishlistClick,
   onUserClick,
   onLogoClick,
-  products = [], 
+  products = [],
   onProductClick,
-  categories = []
+  categories = [],
 }: HeaderProps) {
   const { user } = useAuth();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
+
+  const handleCategorySelect = (categoryName: string, subcategoryName?: string) => {
+    setMobileMenuOpen(false);
+    if (categoryName) {
+      sessionStorage.setItem('selectedCategory', categoryName);
+      if (subcategoryName) {
+        sessionStorage.setItem('selectedSubCategory', subcategoryName);
+      } else {
+        sessionStorage.removeItem('selectedSubCategory');
+      }
+    }
+    window.history.pushState(
+      { view: 'category', categoryName, subcategoryName: subcategoryName ?? null },
+      '',
+      '/categoria'
+    );
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.dispatchEvent(
+      new CustomEvent('categorySelected', { detail: { categoryName, subcategoryName: subcategoryName ?? null } })
+    );
+  };
+
+  const displayCategories = categories
+    .map((cat) => ({
+      name: cat.name,
+      id: cat.id,
+      subcategories: cat.subcategories ?? [],
+    }))
+    .sort((a, b) => {
+      if (a.subcategories.length > 0 && b.subcategories.length === 0) return -1;
+      if (a.subcategories.length === 0 && b.subcategories.length > 0) return 1;
+      return a.name.localeCompare(b.name);
+    })
+    .slice(0, 8);
+
   return (
-    <header className="sticky top-0 z-50 backdrop-blur-md shadow-sm" style={{ backgroundColor: '#FFFFFF', borderBottom: 'none' }}>
-      {/* Promo bar - Teal/Petrol blue background */}
-      <div className="text-center py-1 px-4" style={{ 
-        backgroundColor: '#008080',
-        borderBottom: 'none'
-      }}>
-        <p className="text-xs sm:text-sm font-semibold text-white">
-          Envío gratis en pedidos superiores a 50€ · Devolución gratuita en 30 días
+    <header
+      className="sticky top-0 z-50 w-full bg-white shadow-sm"
+      style={{ borderBottom: 'none', paddingTop: 'env(safe-area-inset-top, 0px)' }}
+    >
+      {/* Promo bar - compacto en móvil */}
+      <div
+        className="text-center py-1.5 sm:py-2 px-3 sm:px-4"
+        style={{ backgroundColor: '#008080' }}
+      >
+        <p className="text-[11px] sm:text-sm font-semibold text-white leading-tight">
+          <span className="sm:inline">Envío gratis +50€</span>
+          <span className="hidden sm:inline"> · </span>
+          <span className="sm:inline">Devolución 30 días</span>
         </p>
       </div>
 
-      {/* Main header - Clean white, no heavy borders */}
-      <div style={{ backgroundColor: '#FFFFFF', borderBottom: 'none' }}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
-          <div className="flex items-center justify-between h-16 sm:h-20" style={{ minHeight: '64px' }}>
-            {/* Logo */}
-            <div className="flex items-center min-w-0">
-              <button 
-                onClick={() => {
-                  navigate('/categoria');
-                }}
-                className="lg:hidden mr-2 sm:mr-4 p-2.5 sm:p-3 text-[#2d3748] hover:bg-[#FFC1CC]/20 rounded-2xl transition-all duration-200 min-h-[44px] min-w-[44px] flex items-center justify-center flex-shrink-0"
-                aria-label="Abrir menú"
-              >
-                <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
-              </button>
+      {/* Main header - una sola fila clara */}
+      <div className="bg-white border-b border-stone-100">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-10">
+          <div className="flex items-center justify-between gap-2 h-14 sm:h-16 min-h-[56px]">
+            {/* Hamburger - solo móvil/tablet */}
+            <button
+              type="button"
+              onClick={() => setMobileMenuOpen(true)}
+              className="lg:hidden flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl text-stone-700 hover:bg-stone-100 active:bg-stone-200 transition-colors touch-manipulation"
+              aria-label="Abrir menú"
+            >
+              <Menu className="h-6 w-6" strokeWidth={2} />
+            </button>
+
+            {/* Logo - centrado en móvil cuando hay hamburger, flexible en desktop */}
+            <div className="flex-1 flex justify-center lg:justify-start min-w-0">
               <button
                 type="button"
                 onClick={(e) => {
@@ -69,29 +120,29 @@ export function Header({
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                   }
                 }}
-                className="flex items-center gap-3 hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0 outline-none focus:outline-none"
+                className="flex items-center justify-center lg:justify-start gap-2 sm:gap-3 py-2 outline-none focus:ring-2 focus:ring-[#FFC1CC]/40 focus:ring-offset-2 rounded-xl touch-manipulation"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
                 aria-label="e-baby - Inicio"
               >
                 <img
                   src="/logo.png"
                   alt="e-baby"
-                  className="h-9 sm:h-12 w-auto max-h-12 shrink-0 object-contain"
+                  className="h-8 sm:h-10 lg:h-11 w-auto max-h-12 object-contain shrink-0"
                   onError={(e) => {
-                    const target = e.currentTarget;
-                    target.style.display = 'none';
-                    const fallback = target.nextElementSibling as HTMLElement;
+                    const t = e.currentTarget;
+                    t.style.display = 'none';
+                    const fallback = t.nextElementSibling as HTMLElement;
                     if (fallback) fallback.style.display = 'inline';
                   }}
                 />
-                <span className="text-2xl font-bold text-[#FFC1CC] hidden" style={{ fontFamily: 'inherit' }}>
+                <span className="text-xl font-bold text-[#FFC1CC] hidden" style={{ fontFamily: 'inherit' }}>
                   e-baby
                 </span>
               </button>
             </div>
 
-            {/* Search bar - hidden on mobile - More rounded, softer */}
-            <div className="hidden md:flex flex-1 max-w-xl mx-8">
+            {/* Search - desktop: barra; móvil: icono que abre barra */}
+            <div className="hidden md:flex flex-1 max-w-xl mx-4 lg:mx-6">
               {products.length > 0 && onProductClick ? (
                 <SearchAutocomplete products={products} onProductClick={onProductClick} />
               ) : (
@@ -99,62 +150,109 @@ export function Header({
                   <input
                     type="text"
                     placeholder="Buscar productos..."
-                    className="w-full px-5 py-3.5 pl-12 pr-5 bg-[#F9F9F9] border-2 border-transparent rounded-3xl focus:outline-none focus:ring-2 focus:ring-[#FFC1CC]/50 focus:bg-white focus:border-[#FFC1CC]/30 transition-all shadow-sm hover:shadow-md"
+                    className="w-full px-4 py-2.5 pl-11 bg-stone-50 border border-stone-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-[#FFC1CC]/40 focus:border-[#FFC1CC]/50"
                   />
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#718096]" />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-stone-400" />
                 </div>
               )}
             </div>
 
-            {/* Actions - Carrito en verde corporativo #83b5b6 */}
-            <div className="flex items-center gap-2">
-              <button 
-                onClick={onUserClick}
-                className="hidden sm:flex p-2 items-center justify-center rounded-xl transition-all duration-200 relative hover:opacity-80"
-                style={{ color: '#83b5b6' }}
+            {/* Acciones: búsqueda (móvil), usuario, wishlist, carrito */}
+            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+              {/* Búsqueda móvil */}
+              <button
+                type="button"
+                onClick={() => setMobileSearchOpen((o) => !o)}
+                className="md:hidden flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl text-stone-600 hover:bg-stone-100 active:bg-stone-200 transition-colors touch-manipulation"
+                aria-label="Buscar"
               >
-                <User className="h-4 w-4" strokeWidth={2} />
+                <Search className="h-5 w-5" strokeWidth={2} />
+              </button>
+
+              {/* Usuario - oculto en móvil muy pequeño si hace falta espacio */}
+              <button
+                type="button"
+                onClick={onUserClick}
+                className="hidden sm:flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl text-[#83b5b6] hover:bg-[#83b5b6]/10 transition-colors touch-manipulation relative"
+                aria-label="Mi cuenta"
+              >
+                <User className="h-5 w-5" strokeWidth={2} />
                 {user && (
-                  <span className="absolute top-0.5 right-0.5 h-2 w-2 bg-[#4ade80] rounded-full border border-white" />
+                  <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full border border-white" />
                 )}
               </button>
-              <button 
+
+              {/* Wishlist */}
+              <button
+                type="button"
                 onClick={onWishlistClick}
-                className="relative hidden sm:flex p-2 items-center justify-center rounded-xl transition-all duration-200 hover:opacity-80"
-                style={{ color: '#83b5b6' }}
+                className="relative flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl text-[#83b5b6] hover:bg-[#83b5b6]/10 transition-colors touch-manipulation"
+                aria-label="Favoritos"
               >
-                <Heart className="h-4 w-4" strokeWidth={2} />
+                <Heart className="h-5 w-5" strokeWidth={2} />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[1rem] h-4 px-0.5 text-white text-[10px] rounded-full flex items-center justify-center font-bold border border-white" style={{ backgroundColor: '#83b5b6' }}>
+                  <span
+                    className="absolute top-0.5 right-0.5 min-w-[1.25rem] h-5 px-1 text-white text-[10px] rounded-full flex items-center justify-center font-bold border-2 border-white"
+                    style={{ backgroundColor: '#83b5b6' }}
+                  >
                     {wishlistCount}
                   </span>
                 )}
               </button>
-              <button 
+
+              {/* Carrito */}
+              <button
+                type="button"
                 onClick={onCartClick}
-                className="relative flex p-2.5 items-center justify-center rounded-xl transition-all duration-200 hover:opacity-80 min-h-[44px] min-w-[44px]"
-                style={{ color: '#83b5b6' }}
-                aria-label="Ver carrito"
+                className="relative flex items-center justify-center w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl text-[#83b5b6] hover:bg-[#83b5b6]/10 transition-colors touch-manipulation"
+                aria-label="Carrito"
               >
-                <ShoppingCart className="h-5 w-5 sm:h-4 sm:w-4" strokeWidth={2} />
+                <ShoppingCart className="h-5 w-5" strokeWidth={2} />
                 {cartCount > 0 && (
-                  <span className="absolute top-0 right-0 w-5 h-5 min-w-5 text-white text-xs rounded-full flex items-center justify-center font-bold border-2 border-white leading-none" style={{ backgroundColor: '#83b5b6' }}>
-                    {cartCount}
+                  <span
+                    className="absolute top-0.5 right-0.5 min-w-[1.25rem] h-5 text-white text-xs rounded-full flex items-center justify-center font-bold border-2 border-white leading-none"
+                    style={{ backgroundColor: '#83b5b6' }}
+                  >
+                    {cartCount > 99 ? '99+' : cartCount}
                   </span>
                 )}
               </button>
             </div>
           </div>
+
+          {/* Barra de búsqueda móvil expandible */}
+          {mobileSearchOpen && (
+            <div className="md:hidden pb-3 pt-1 -mx-1 px-1">
+              {products.length > 0 && onProductClick ? (
+                <SearchAutocomplete
+                  products={products}
+                  onProductClick={(p) => {
+                    onProductClick(p);
+                    setMobileSearchOpen(false);
+                  }}
+                />
+              ) : (
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Buscar productos..."
+                    className="w-full px-4 py-3 pl-11 bg-stone-50 border border-stone-200 rounded-2xl text-base focus:outline-none focus:ring-2 focus:ring-[#FFC1CC]/40"
+                    autoFocus
+                  />
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-stone-400" />
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Navigation with Mega Menu - Soft background, no heavy borders */}
-      <div className="bg-white/50 backdrop-blur-sm">
+      {/* Navegación desktop: MegaMenu */}
+      <div className="hidden lg:block bg-white/80 backdrop-blur-sm border-b border-stone-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10">
-          <MegaMenu 
+          <MegaMenu
             categories={categories}
             onCategoryClick={(categoryName, subcategoryName) => {
-              // Store category info in sessionStorage for CategoryPage to use
               if (categoryName) {
                 sessionStorage.setItem('selectedCategory', categoryName);
                 if (subcategoryName) {
@@ -163,34 +261,112 @@ export function Header({
                   sessionStorage.removeItem('selectedSubCategory');
                 }
               }
-              window.history.pushState({ view: 'category', categoryName, subcategoryName }, '', '/categoria');
+              window.history.pushState(
+                { view: 'category', categoryName, subcategoryName },
+                '',
+                '/categoria'
+              );
               window.scrollTo({ top: 0, behavior: 'smooth' });
-              // Trigger custom event to notify App.tsx
-              window.dispatchEvent(new CustomEvent('categorySelected', { 
-                detail: { categoryName, subcategoryName } 
-              }));
-            }} 
+              window.dispatchEvent(
+                new CustomEvent('categorySelected', {
+                  detail: { categoryName, subcategoryName },
+                })
+              );
+            }}
           />
-          
-          {/* Mobile horizontal scroll fallback - touch-friendly, smooth scroll */}
-          <nav 
-            className="flex lg:hidden items-center gap-2 overflow-x-auto scrollbar-hide py-3 -mx-4 px-4"
-            style={{ WebkitOverflowScrolling: 'touch' }}
-          >
-            {['Nuevos', 'Ropa', 'Accesorios', 'Habitación', 'Textil', 'Juguetes', 'Cuidado', 'Paseo', 'Tienda'].map((item) => (
-              <button 
-                key={item} 
-                onClick={() => {
-                  navigate('/categoria');
-                }}
-                className="flex items-center gap-1 px-4 py-3 text-sm text-[#2d3748] hover:text-[#FF6B9D] active:bg-[#FFC1CC]/10 whitespace-nowrap rounded-2xl hover:bg-[#FFC1CC]/10 transition-all duration-200 font-semibold min-h-[44px] flex-shrink-0"
-              >
-                {item}
-              </button>
-            ))}
-          </nav>
         </div>
       </div>
+
+      {/* Móvil: una fila de categorías rápidas (scroll horizontal) */}
+      <div className="lg:hidden bg-white border-b border-stone-100">
+        <nav
+          className="flex items-center gap-1 overflow-x-auto scrollbar-hide py-2.5 px-3 -mx-3"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+          aria-label="Categorías"
+        >
+          {displayCategories.slice(0, 6).map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => handleCategorySelect(cat.name)}
+              className={cn(
+                'flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-medium whitespace-nowrap transition-colors touch-manipulation min-h-[44px] flex items-center',
+                'text-stone-700 bg-stone-50 hover:bg-[#FFC1CC]/15 hover:text-stone-900 active:bg-[#FFC1CC]/25'
+              )}
+            >
+              {cat.name}
+            </button>
+          ))}
+          <button
+            onClick={() => handleCategorySelect('Tienda')}
+            className="flex-shrink-0 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap text-white transition-opacity touch-manipulation min-h-[44px] flex items-center"
+            style={{ backgroundColor: '#84b4b5' }}
+          >
+            Tienda
+          </button>
+        </nav>
+      </div>
+
+      {/* Sheet: menú móvil con todas las categorías */}
+      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+        <SheetContent
+          side="left"
+          className="w-[min(100vw-2rem,320px)] p-0 flex flex-col bg-white border-r border-stone-200"
+        >
+          <SheetHeader className="border-b border-stone-100 px-4 py-3">
+            <SheetTitle className="text-lg font-semibold text-stone-900">
+              Menú
+            </SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto py-2">
+            {displayCategories.map((cat) => (
+              <div key={cat.id} className="border-b border-stone-50 last:border-0">
+                {cat.subcategories.length > 0 ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleCategorySelect(cat.name)}
+                      className="flex w-full items-center justify-between px-4 py-3.5 text-left text-stone-800 font-medium hover:bg-stone-50 active:bg-stone-100 transition-colors touch-manipulation min-h-[48px]"
+                    >
+                      {cat.name}
+                      <ChevronRight className="h-5 w-5 text-stone-400 shrink-0" />
+                    </button>
+                    <div className="pl-4 pb-2">
+                      {cat.subcategories.map((sub) => (
+                        <button
+                          key={sub.id}
+                          type="button"
+                          onClick={() => handleCategorySelect(cat.name, sub.name)}
+                          className="flex w-full items-center px-4 py-2.5 text-sm text-stone-600 hover:bg-[#FFC1CC]/10 hover:text-stone-900 rounded-lg transition-colors touch-manipulation min-h-[44px]"
+                        >
+                          {sub.name}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleCategorySelect(cat.name)}
+                    className="flex w-full items-center px-4 py-3.5 text-left text-stone-800 font-medium hover:bg-stone-50 active:bg-stone-100 transition-colors touch-manipulation min-h-[48px]"
+                  >
+                    {cat.name}
+                  </button>
+                )}
+              </div>
+            ))}
+            <div className="p-3 pt-4">
+              <button
+                type="button"
+                onClick={() => handleCategorySelect('Tienda')}
+                className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl text-white font-semibold transition-opacity active:opacity-90 touch-manipulation"
+                style={{ backgroundColor: '#84b4b5' }}
+              >
+                Tienda
+              </button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
     </header>
   );
 }

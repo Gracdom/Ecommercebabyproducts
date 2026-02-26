@@ -98,7 +98,7 @@ export function SocialProofPopup() {
 
   return (
     <div
-      className={`fixed right-8 z-50 transition-all duration-500 ${
+      className={`fixed right-8 z-40 transition-all duration-500 ${
         isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
       }`}
       style={{ 

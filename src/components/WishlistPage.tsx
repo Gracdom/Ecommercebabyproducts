@@ -12,8 +12,8 @@ interface WishlistPageProps {
 export function WishlistPage({ products, onRemove, onAddToCart, onProductClick }: WishlistPageProps) {
   if (products.length === 0) {
     return (
-      <div className="min-h-screen bg-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="bg-white py-8">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6">
           <h1 className="text-3xl text-stone-900 mb-8">Mi Lista de Deseos</h1>
           <div className="text-center py-16 bg-stone-50 rounded-lg">
             <Heart className="h-16 w-16 text-stone-300 mx-auto mb-4" />
@@ -26,14 +26,16 @@ export function WishlistPage({ products, onRemove, onAddToCart, onProductClick }
   }
 
   return (
-    <div className="min-h-screen bg-white py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl text-stone-900">Mi Lista de Deseos</h1>
-          <p className="text-stone-600">{products.length} {products.length === 1 ? 'producto' : 'productos'}</p>
+    <div className="bg-white py-4">
+      <div className="max-w-5xl mx-auto px-2 sm:px-4 lg:px-6">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h1 className="text-2xl sm:text-3xl text-stone-900">Mi Lista de Deseos</h1>
+          <p className="text-sm sm:text-base text-stone-600">
+            {products.length} {products.length === 1 ? 'producto' : 'productos'}
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5">
           {products.map((product) => (
             <div key={product.id} className="group relative bg-white border border-stone-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
               {/* Remove button */}
@@ -65,7 +67,7 @@ export function WishlistPage({ products, onRemove, onAddToCart, onProductClick }
               <div className="p-4">
                 <h3 
                   onClick={() => onProductClick(product)}
-                  className="text-sm text-stone-900 mb-2 line-clamp-2 cursor-pointer hover:text-stone-700"
+                  className="text-sm text-stone-900 mb-2 line-clamp-2 min-h-[2.5rem] cursor-pointer hover:text-stone-700"
                 >
                   {product.name}
                 </h3>
@@ -80,7 +82,7 @@ export function WishlistPage({ products, onRemove, onAddToCart, onProductClick }
                   </div>
                   <button
                     onClick={() => onAddToCart(product)}
-                    className="bg-stone-900 text-white p-2.5 rounded-lg hover:bg-stone-800 transition-colors"
+                    className="bg-[#83b5b6] hover:bg-[#6fa3a5] text-white p-2.5 rounded-lg transition-colors shadow-sm"
                   >
                     <ShoppingCart className="h-4 w-4" />
                   </button>
@@ -95,7 +97,8 @@ export function WishlistPage({ products, onRemove, onAddToCart, onProductClick }
           <div className="mt-8 flex justify-center">
             <button
               onClick={() => products.forEach(p => onAddToCart(p))}
-              className="bg-stone-900 text-white px-8 py-4 rounded-lg hover:bg-stone-800 transition-colors"
+              className="bg-[#FFC1CC] hover:bg-[#FFB3C1] text-white font-semibold px-8 py-3 rounded-full transition-colors shadow-md"
+              style={{ backgroundColor: '#FFC1CC' }}
             >
               Añadir todos al carrito ({products.length} productos)
             </button>

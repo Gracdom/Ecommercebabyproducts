@@ -1,8 +1,14 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { sendAbandonedCart, sendNewsletterWelcome } from '@/utils/bigbuy/edge';
+import type { Product } from '@/types';
 
-export function ExitIntentPopup() {
+interface ExitIntentPopupProps {
+  cartItems?: Product[];
+}
+
+export function ExitIntentPopup({ cartItems = [] }: ExitIntentPopupProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [hasShown, setHasShown] = useState(false);
   const [email, setEmail] = useState('');
@@ -33,17 +39,30 @@ export function ExitIntentPopup() {
     localStorage.setItem('exit_intent_dismissed', 'true');
   };
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
 
+    try {
+      if (cartItems.length > 0) {
+        const items = cartItems.map((i) => ({
+          name: i.name ?? 'Producto',
+          quantity: i.quantity ?? 1,
+          price: (i.price ?? 0) * (i.quantity ?? 1),
+        }));
+        const cartTotal = cartItems.reduce((s, i) => s + (i.price ?? 0) * (i.quantity ?? 1), 0);
+        await sendAbandonedCart({ email, items, cartTotal });
+      } else {
+        await sendNewsletterWelcome(email);
+      }
+    } catch {
+      // Silenciar error; el usuario ya ve el mensaje de éxito
+    }
+
     setIsSubscribed(true);
     localStorage.setItem('exit_intent_dismissed', 'true');
-    
-    // Auto close after 3 seconds
-    setTimeout(() => {
-      setIsVisible(false);
-    }, 3000);
+
+    setTimeout(() => setIsVisible(false), 3000);
   };
 
   return (

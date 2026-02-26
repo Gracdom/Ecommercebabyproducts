@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, CreditCard, Lock, MapPin, User, Mail, Phone, Home, Building, CheckCircle, Package, Truck, Gift } from 'lucide-react';
+import { ArrowLeft, CreditCard, Lock, MapPin, User, Mail, Phone, Home, CheckCircle, Package, Truck } from 'lucide-react';
 import { Product } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { toast } from 'sonner@2.0.3';
-import { getShippingOptions, orderCheck, orderCreate } from '../utils/bigbuy/edge';
+import { createStripeCheckoutSession } from '../utils/bigbuy/edge';
 import { useProductAnalytics } from '../hooks/useProductAnalytics';
 
 interface CheckoutPageProps {
@@ -54,15 +54,8 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
   const [country, setCountry] = useState('España');
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [saveInfo, setSaveInfo] = useState(false);
-  const [giftWrap, setGiftWrap] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [couponApplied, setCouponApplied] = useState(false);
-
-  // BigBuy shipping options
-  const [shippingOptions, setShippingOptions] = useState<any[]>([]);
-  const [shippingLoading, setShippingLoading] = useState(false);
-  const [shippingError, setShippingError] = useState<string | null>(null);
-  const [selectedShippingOption, setSelectedShippingOption] = useState<any | null>(null);
 
   const [placingOrder, setPlacingOrder] = useState(false);
 
@@ -86,72 +79,11 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
       .filter((p) => Boolean(p.reference) && p.quantity > 0);
   }, [items]);
 
-  const bigbuyItemsKey = useMemo(() => {
-    return bigbuyItems.map(i => `${i.reference}:${i.quantity}`).join('|');
-  }, [bigbuyItems]);
-  
   // Calculations
   const subtotal = items.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
-  const shipping = Number(selectedShippingOption?.cost ?? 0);
-  // Keep these at 0 so the checkout total matches BigBuy (MVP).
-  const giftWrapCost = 0;
+  const shipping = items.length > 0 ? 6 : 0;
   const discount = 0;
   const total = subtotal + shipping;
-
-  // Fetch shipping options whenever address changes (step 2)
-  useEffect(() => {
-    if (step !== 2) return;
-    const pcRaw = String(postalCode ?? "");
-    const pc = pcRaw.replace(/\s+/g, "").trim();
-
-    const isValidPostal = (countryIso: string, postcode: string) => {
-      const iso = String(countryIso || "").toUpperCase();
-      // ES/FR/DE/IT are 5 digits in most cases. PT can be 4 or 4-3.
-      if (iso === "PT") return /^\d{4}(-\d{3})?$/.test(postcode);
-      if (["ES", "FR", "DE", "IT"].includes(iso)) return /^\d{5}$/.test(postcode);
-      return postcode.length >= 4;
-    };
-
-    if (!pc || !isoCountry || !bigbuyItems.length || !isValidPostal(isoCountry, pc)) {
-      // Clear stale options when the address is incomplete/invalid.
-      setShippingLoading(false);
-      setShippingError(null);
-      setShippingOptions([]);
-      setSelectedShippingOption(null);
-      return;
-    }
-
-    let cancelled = false;
-    const t = setTimeout(() => {
-      if (cancelled) return;
-      setShippingLoading(true);
-      setShippingError(null);
-      setSelectedShippingOption(null);
-
-      getShippingOptions({ isoCountry, postcode: pc, items: bigbuyItems })
-        .then((res: any) => {
-          if (cancelled) return;
-          const options = res?.shippingOptions ?? [];
-          setShippingOptions(options);
-          setSelectedShippingOption(options[0] ?? null);
-        })
-        .catch((err: any) => {
-          if (cancelled) return;
-          setShippingOptions([]);
-          setSelectedShippingOption(null);
-          setShippingError(err?.message || 'No se pudieron cargar opciones de envío');
-        })
-        .finally(() => {
-          if (cancelled) return;
-          setShippingLoading(false);
-        });
-    }, 650);
-
-    return () => {
-      cancelled = true;
-      clearTimeout(t);
-    };
-  }, [step, postalCode, isoCountry, bigbuyItemsKey]);
 
   const handleApplyCoupon = () => {
     if (couponCode.toLowerCase() === 'welcome10') {
@@ -165,17 +97,6 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-
-    if (!selectedShippingOption?.shippingService?.serviceName) {
-      toast.error('Selecciona una opción de envío', { duration: 3000 });
-      return;
-    }
-
-    const carrierName = String(selectedShippingOption.shippingService.serviceName).toLowerCase();
-    const bigbuyPaymentMethod =
-      paymentMethod === 'card' ? 'moneybox' :
-      paymentMethod === 'paypal' ? 'paypal' :
-      'bankwire';
 
     const internalReference = `BO-${Date.now()}`;
     const shippingAddress = {
@@ -193,72 +114,61 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
     try {
       setPlacingOrder(true);
 
-      const checkRes: any = await orderCheck({
-        internalReference,
-        language: 'es',
-        paymentMethod: bigbuyPaymentMethod,
-        carrierName,
-        shippingAddress,
-        items: bigbuyItems,
-      });
-
-      if (Array.isArray(checkRes?.errors) && checkRes.errors.length > 0) {
-        throw new Error(checkRes.errors[0]?.message || 'Error validando el pedido en BigBuy');
+      // Stripe: redirigir a Checkout
+      if (paymentMethod === 'card') {
+        if (!items?.length) {
+          toast.error('Carrito vacío', { description: 'Añade productos antes de pagar.', duration: 4000 });
+          return;
+        }
+        const origin = window.location.origin;
+        const successUrl = `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
+        const cancelUrl = `${origin}/checkout`;
+        const stripeItems = [
+          ...items.map((i) => {
+            const img = i.images?.[0] ?? i.image;
+            return {
+              name: String(i.name ?? 'Producto').slice(0, 500),
+              quantity: Math.max(1, Math.min(99, i.quantity ?? 1)),
+              price: Number(i.price) || 0,
+              image: img && String(img).startsWith('http') ? String(img).slice(0, 500) : undefined,
+            };
+          }),
+          ...(shipping > 0 ? [{ name: 'Envío estándar', quantity: 1, price: shipping }] : []),
+        ];
+        const metadata: Record<string, string> = {
+          internalReference,
+          firstName: String(firstName ?? ''),
+          lastName: String(lastName ?? ''),
+          phone: String(phone ?? ''),
+          country: isoCountry,
+          postcode: String(postalCode ?? ''),
+          town: String(city ?? ''),
+          address: `${street}${apartment ? ', ' + apartment : ''}`,
+          products: JSON.stringify(bigbuyItems),
+          carrierName: 'standard',
+          serviceName: 'Envío estándar',
+          serviceDelay: '',
+          subtotal: String(subtotal),
+          total: String(total),
+          shippingCost: String(shipping),
+        };
+        const { url } = await createStripeCheckoutSession({
+          items: stripeItems,
+          customerEmail: email.trim(),
+          successUrl,
+          cancelUrl,
+          metadata,
+        });
+        if (url) {
+          window.location.href = url;
+          return;
+        }
+        toast.error('No se recibió URL de pago', { description: 'Inténtalo de nuevo.', duration: 5000 });
       }
-
-      const createRes: any = await orderCreate({
-        internalReference,
-        language: 'es',
-        paymentMethod: bigbuyPaymentMethod,
-        carrierName,
-        shippingAddress,
-        items: bigbuyItems,
-        meta: {
-          subtotal,
-          shippingCost: shipping,
-          total,
-          selectedCarrier: carrierName,
-          selectedServiceName: selectedShippingOption.shippingService.serviceName,
-        },
-      });
-
-      if (Array.isArray(createRes?.errors) && createRes.errors.length > 0) {
-        throw new Error(createRes.errors[0]?.message || 'Error creando el pedido en BigBuy');
-      }
-
-      const bigbuyOrderIds = (createRes?.orders ?? [])
-        .map((o: any) => String(o?.id ?? '').trim())
-        .filter(Boolean);
-
-      const bigbuyTotal = Array.isArray(checkRes?.orders)
-        ? checkRes.orders.reduce((sum: number, o: any) => sum + Number(o?.total ?? 0), 0)
-        : 0;
-
-      const orderData: OrderData = {
-        orderId: internalReference,
-        bigbuyOrderIds,
-        shippingOption: {
-          serviceName: selectedShippingOption.shippingService.serviceName,
-          delay: selectedShippingOption.shippingService.delay,
-          cost: selectedShippingOption.cost,
-        },
-        customerInfo: { email, firstName, lastName, phone },
-        shippingAddress: { street: `${street}${apartment ? ', ' + apartment : ''}`, city, postalCode, country },
-        paymentMethod,
-        total: bigbuyTotal || total,
-        items,
-      };
-
-      // Track purchase for each product
-      items.forEach((item) => {
-        trackPurchase(item.id, internalReference);
-      });
-
-      onComplete(orderData);
     } catch (err: any) {
       console.error(err);
-      toast.error('No se pudo crear el pedido en BigBuy', {
-        description: err?.message || 'Inténtalo de nuevo',
+      toast.error('No se pudo iniciar el pago seguro', {
+        description: err?.message || 'Comprueba tu conexión o inténtalo más tarde.',
         duration: 6000,
       });
     } finally {
@@ -268,7 +178,8 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
 
   const isStepValid = () => {
     if (step === 1) return email && firstName && lastName;
-    if (step === 2) return street && city && postalCode && country && !!selectedShippingOption;
+    // Paso 2: solo validamos que la dirección esté completa para poder avanzar
+    if (step === 2) return street && city && postalCode && country;
     if (step === 3) return paymentMethod;
     return false;
   };
@@ -435,10 +346,6 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
                       className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900"
                     >
                       <option>España</option>
-                      <option>Portugal</option>
-                      <option>Francia</option>
-                      <option>Alemania</option>
-                      <option>Italia</option>
                     </select>
                   </div>
 
@@ -491,64 +398,7 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
                   </div>
                 </div>
 
-                {/* Shipping Method */}
-                <div className="mt-6 pt-6 border-t border-stone-200">
-                  <h3 className="text-sm text-stone-900 mb-3">Opciones de envío (BigBuy)</h3>
-
-                  {shippingLoading && (
-                    <div className="text-sm text-stone-600">Cargando opciones de envío…</div>
-                  )}
-
-                  {shippingError && (
-                    <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3">
-                      {shippingError}
-                    </div>
-                  )}
-
-                  {!shippingLoading && !shippingError && shippingOptions.length === 0 && (
-                    <div className="text-sm text-stone-600">
-                      Introduce país y código postal para ver opciones de envío.
-                    </div>
-                  )}
-
-                  {!shippingLoading && shippingOptions.length > 0 && (
-                    <div className="space-y-3">
-                      {shippingOptions.map((opt: any, idx: number) => {
-                        const key = `${opt?.shippingService?.id ?? idx}-${opt?.shippingService?.serviceName ?? ''}`;
-                        const checked = (selectedShippingOption?.shippingService?.id ?? null) === (opt?.shippingService?.id ?? null);
-                        const label = opt?.shippingService?.serviceName || opt?.shippingService?.name || 'Envío';
-                        const delay = opt?.shippingService?.delay;
-                        const cost = Number(opt?.cost ?? 0);
-                        return (
-                          <label
-                            key={key}
-                            className={`flex items-center justify-between p-4 border-2 rounded-lg cursor-pointer transition-colors ${
-                              checked ? 'border-stone-900' : 'border-stone-200 hover:border-stone-300'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="radio"
-                                name="shipping"
-                                checked={checked}
-                                onChange={() => setSelectedShippingOption(opt)}
-                                className="text-stone-900"
-                              />
-                              <div className="flex items-center gap-2">
-                                <Truck className="h-5 w-5 text-stone-600" />
-                                <div>
-                                  <p className="text-sm text-stone-900">{label}</p>
-                                  {delay && <p className="text-xs text-stone-600">Entrega estimada: {delay}</p>}
-                                </div>
-                              </div>
-                            </div>
-                            <span className="text-sm text-stone-900">€{cost.toFixed(2)}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
+                {/* Shipping Method - ocultado BigBuy en UI */}
               </div>
             )}
 
@@ -584,61 +434,10 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
                         </div>
                       </div>
                       {paymentMethod === 'card' && (
-                        <div className="space-y-3 pt-3 border-t border-stone-200">
-                          <input
-                            type="text"
-                            placeholder="Número de tarjeta"
-                            className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900"
-                          />
-                          <div className="grid grid-cols-2 gap-3">
-                            <input
-                              type="text"
-                              placeholder="MM/AA"
-                              className="px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900"
-                            />
-                            <input
-                              type="text"
-                              placeholder="CVV"
-                              className="px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900"
-                            />
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Nombre en la tarjeta"
-                            className="w-full px-4 py-3 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-stone-900"
-                          />
-                        </div>
+                        <p className="text-sm text-stone-600 pt-3 border-t border-stone-200">
+                          Serás redirigido a Stripe para pagar de forma segura con tarjeta.
+                        </p>
                       )}
-                    </div>
-                  </label>
-
-                  <label className="flex items-center p-4 border-2 border-stone-200 rounded-lg cursor-pointer hover:border-stone-300 transition-colors">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="paypal"
-                      checked={paymentMethod === 'paypal'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="mr-3"
-                    />
-                    <div className="flex items-center justify-between flex-1">
-                      <span className="text-sm text-stone-900">PayPal</span>
-                      <img src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_37x23.jpg" alt="PayPal" className="h-6" />
-                    </div>
-                  </label>
-
-                  <label className="flex items-center p-4 border-2 border-stone-200 rounded-lg cursor-pointer hover:border-stone-300 transition-colors">
-                    <input
-                      type="radio"
-                      name="payment"
-                      value="bank"
-                      checked={paymentMethod === 'bank'}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="mr-3"
-                    />
-                    <div className="flex items-center justify-between flex-1">
-                      <span className="text-sm text-stone-900">Transferencia bancaria</span>
-                      <Building className="h-5 w-5 text-stone-600" />
                     </div>
                   </label>
                 </div>
@@ -655,23 +454,32 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex gap-4">
-              {step > 1 && (
+            <div className="space-y-2">
+              <div className="flex gap-4">
+                {step > 1 && (
+                  <button
+                    onClick={() => setStep(step - 1)}
+                    className="flex items-center gap-2 px-6 py-3 border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors"
+                  >
+                    <ArrowLeft className="h-5 w-5" />
+                    Anterior
+                  </button>
+                )}
                 <button
-                  onClick={() => setStep(step - 1)}
-                  className="flex items-center gap-2 px-6 py-3 border border-stone-300 rounded-lg hover:bg-stone-50 transition-colors"
+                  onClick={handleContinue}
+                  disabled={!isStepValid() || placingOrder}
+                  className="flex-1 bg-stone-900 text-white py-3 rounded-lg hover:bg-stone-800 transition-colors disabled:bg-stone-300 disabled:cursor-not-allowed"
                 >
-                  <ArrowLeft className="h-5 w-5" />
-                  Anterior
+                  {placingOrder ? 'Procesando…' : step === 3 ? 'Completar pedido' : 'Continuar al siguiente paso'}
                 </button>
+              </div>
+              {!isStepValid() && (
+                <p className="text-xs text-red-600">
+                  {step === 1 && 'Completa email, nombre y apellidos para continuar.'}
+                  {step === 2 && 'Completa dirección, ciudad y código postal para continuar.'}
+                  {step === 3 && 'Selecciona un método de pago para continuar.'}
+                </p>
               )}
-              <button
-                onClick={handleContinue}
-                disabled={!isStepValid() || (step === 2 && shippingLoading) || placingOrder}
-                className="flex-1 bg-stone-900 text-white py-3 rounded-lg hover:bg-stone-800 transition-colors disabled:bg-stone-300 disabled:cursor-not-allowed"
-              >
-                {placingOrder ? 'Procesando…' : step === 3 ? 'Completar pedido' : 'Continuar al siguiente paso'}
-              </button>
             </div>
           </div>
 
@@ -728,26 +536,6 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
                 )}
               </div>
 
-              {/* Gift Wrap */}
-              <label className="flex items-center justify-between p-3 border border-stone-200 rounded-lg cursor-pointer hover:bg-stone-50 mb-6">
-                <div className="flex items-center gap-3">
-                  <input
-                    type="checkbox"
-                    checked={giftWrap}
-                    onChange={(e) => setGiftWrap(e.target.checked)}
-                    className="text-stone-900"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Gift className="h-4 w-4 text-accent" />
-                    <div>
-                      <p className="text-sm text-stone-900">Envoltorio regalo</p>
-                      <p className="text-xs text-stone-600">+ tarjeta personalizada</p>
-                    </div>
-                  </div>
-                </div>
-                <span className="text-sm text-stone-900">€{giftWrapCost.toFixed(2)}</span>
-              </label>
-
               {/* Totals */}
               <div className="space-y-2 text-sm mb-6">
                 <div className="flex justify-between">
@@ -766,12 +554,6 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
                     {shipping === 0 ? 'GRATIS' : `€${shipping.toFixed(2)}`}
                   </span>
                 </div>
-                {giftWrapCost > 0 && (
-                  <div className="flex justify-between">
-                    <span className="text-stone-600">Envoltorio</span>
-                    <span className="text-stone-900">€{giftWrapCost.toFixed(2)}</span>
-                  </div>
-                )}
                 <div className="flex justify-between pt-4 border-t border-stone-200">
                   <span className="text-lg text-stone-900">Total</span>
                   <span className="text-2xl text-stone-900">€{total.toFixed(2)}</span>

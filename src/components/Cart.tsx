@@ -1,7 +1,12 @@
-import { X, Minus, Plus, ShoppingBag, ArrowRight, Gift, Tag, Award } from 'lucide-react';
+import { X, Minus, Plus, ShoppingBag, ArrowRight, Tag } from 'lucide-react';
 import { Product } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
-import { useState } from 'react';
+
+const FALLBACK_PRODUCTS: Product[] = [
+  { id: 201, name: 'Cuddle cloth Animals', price: 16.95, image: '/img/5.webp', category: 'Juguetes' },
+  { id: 202, name: 'Organic cotton rattle', price: 14.95, image: '/img/6.webp', category: 'Juguetes' },
+  { id: 203, name: 'Muselina suave', price: 12.99, image: '/img/7.webp', category: 'Textiles' },
+];
 
 interface CartProps {
   isOpen: boolean;
@@ -10,44 +15,28 @@ interface CartProps {
   onUpdateQuantity: (productId: number, quantity: number) => void;
   onRemove: (productId: number) => void;
   onCheckout: () => void;
+  onAddToCart?: (product: Product) => void;
+  /** Productos del catálogo real para mostrar relacionados */
+  allProducts?: Product[];
 }
 
-const recommendedProducts: Product[] = [
-  {
-    id: 201,
-    name: 'Cuddle cloth Animals',
-    price: 16.95,
-    image: '/img/5.webp',
-    category: 'Juguetes',
-  },
-  {
-    id: 202,
-    name: 'Organic cotton rattle',
-    price: 14.95,
-    image: '/img/6.webp',
-    category: 'Juguetes',
-  },
-];
+export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onCheckout, onAddToCart, allProducts = [] }: CartProps) {
+  // Productos relacionados reales: misma categoría que los del carrito; máximo 3
+  const relatedProducts = (() => {
+    const pool = allProducts.length > 0 ? allProducts : FALLBACK_PRODUCTS;
+    const cartCategories = [...new Set(items.map((i) => i.category).filter(Boolean))] as string[];
+    const cartIds = new Set(items.map((i) => i.id));
+    const sameCategory = pool.filter((p) =>
+      cartCategories.length ? cartCategories.includes(p.category) : true
+    );
+    const candidates = sameCategory.length >= 3 ? sameCategory : pool;
+    return candidates.filter((p) => !cartIds.has(p.id)).slice(0, 3);
+  })();
 
-export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onCheckout }: CartProps) {
-  const [couponCode, setCouponCode] = useState('');
-  const [couponApplied, setCouponApplied] = useState(false);
-  const [giftWrap, setGiftWrap] = useState(false);
-  
   const subtotal = items.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
-  const freeShippingThreshold = 200;
-  const shipping = subtotal >= freeShippingThreshold ? 0 : 4.99;
-  const giftWrapCost = giftWrap ? 2.99 : 0;
-  const discount = couponApplied ? subtotal * 0.1 : 0;
-  const giftThreshold = 75;
-  const total = subtotal + shipping + giftWrapCost - discount;
-  const pointsEarned = Math.floor(total * 2); // 2 points per euro
-
-  const handleApplyCoupon = () => {
-    if (couponCode.toLowerCase() === 'welcome10') {
-      setCouponApplied(true);
-    }
-  };
+  // Coste de envío fijo para el cliente
+  const shipping = items.length > 0 ? 6 : 0;
+  const total = subtotal + shipping;
 
   if (!isOpen) return null;
 
@@ -66,74 +55,20 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-[#e6dfd9] bg-white">
-          <h3 className="text-xl text-[#5e544e] font-medium">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[#e6dfd9] bg-white">
+          <h3 className="text-base text-[#5e544e] font-medium">
             Carrito ({items.reduce((sum, item) => sum + (item.quantity || 1), 0)})
           </h3>
           <button 
             onClick={onClose}
-            className="p-3 hover:bg-[#faf9f8] active:bg-[#f0eeec] rounded-lg transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
+            className="p-2 hover:bg-[#faf9f8] active:bg-[#f0eeec] rounded-lg transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
             aria-label="Cerrar carrito"
           >
-            <X className="h-5 w-5 text-[#9ca3af]" />
+            <X className="h-4 w-4 text-[#9ca3af]" />
           </button>
         </div>
 
-        {/* Progress Bars - Sticky at top */}
-        {items.length > 0 && (
-          <div className="bg-[#faf9f8] p-4 border-b border-[#e6dfd9] space-y-3">
-            {/* Free shipping progress */}
-            {subtotal < freeShippingThreshold && (
-              <div>
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-[#83b5b6]/20 rounded-full flex items-center justify-center">
-                      <ArrowRight className="h-3 w-3 text-[#83b5b6]" />
-                    </div>
-                    <span className="text-[#5e544e]">
-                      <strong>€{(freeShippingThreshold - subtotal).toFixed(2)}</strong> para envío gratis
-                    </span>
-                  </div>
-                </div>
-                <div className="h-2 bg-[#e6dfd9] rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-[#83b5b6] rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min((subtotal / freeShippingThreshold) * 100, 100)}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Free gift progress */}
-            {subtotal >= freeShippingThreshold && subtotal < giftThreshold && (
-              <div>
-                <div className="flex items-center justify-between text-sm mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-[#e2bfb3]/30 rounded-full flex items-center justify-center">
-                      <Gift className="h-3 w-3 text-[#c59a8b]" />
-                    </div>
-                    <span className="text-[#5e544e]">
-                      <strong>€{(giftThreshold - subtotal).toFixed(2)}</strong> para regalo gratis
-                    </span>
-                  </div>
-                </div>
-                <div className="h-2 bg-[#e6dfd9] rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-gradient-to-r from-[#e2bfb3] to-[#c59a8b] rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min((subtotal / giftThreshold) * 100, 100)}%` }}
-                  />
-                </div>
-              </div>
-            )}
-
-            {subtotal >= freeShippingThreshold && subtotal < giftThreshold && (
-              <div className="flex items-center gap-2 text-sm text-[#83b5b6] bg-[#83b5b6]/10 px-3 py-2 rounded-lg font-medium">
-                <ArrowRight className="h-4 w-4" />
-                <span>¡Envío gratis desbloqueado! 🚚</span>
-              </div>
-            )}
-          </div>
-        )}
+        {/* (Sin barras de progreso de envío: coste fijo de 6 €) */}
 
         {/* Scrollable Content: Items + Options */}
         <div className="flex-1 overflow-y-auto p-6 bg-white">
@@ -194,88 +129,37 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
                 ))}
               </div>
 
-              {/* Recommended products */}
-              <div className="border-t border-[#e6dfd9] pt-6">
-                <h4 className="text-sm font-medium text-[#5e544e] mb-4 flex items-center gap-2">
-                  <Tag className="h-4 w-4 text-[#83b5b6]" />
-                  Completa tu compra
-                </h4>
-                <div className="grid gap-3">
-                  {recommendedProducts.slice(0, 2).map((product) => (
-                    <div key={product.id} className="flex gap-3 p-3 border border-[#e6dfd9] rounded-xl hover:border-[#83b5b6]/50 transition-colors bg-[#faf9f8]/50">
-                      <ImageWithFallback
-                        src={product.image}
-                        alt={product.name}
-                        className="w-16 h-16 object-cover rounded-lg"
-                      />
-                      <div className="flex-1">
-                        <p className="text-xs font-medium text-[#5e544e] mb-1 line-clamp-2">{product.name}</p>
-                        <p className="text-sm text-[#83b5b6]">€{product.price.toFixed(2)}</p>
+              {/* Productos relacionados - 3 mini tarjetas */}
+              {relatedProducts.length > 0 && (
+                <div className="border-t border-[#e6dfd9] pt-4">
+                  <h4 className="text-xs font-medium text-[#5e544e] mb-2 flex items-center gap-1.5">
+                    <Tag className="h-3 w-3 text-[#83b5b6] shrink-0" />
+                    Productos relacionados
+                  </h4>
+                  <div className="flex gap-2 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-1">
+                    {relatedProducts.map((product) => (
+                      <div key={product.id} className="flex-shrink-0 w-[72px] snap-start">
+                        <button
+                          onClick={() => onAddToCart?.({ ...product, quantity: 1 })}
+                          className="flex flex-col items-center gap-1 w-full p-1.5 border border-[#e6dfd9] rounded-lg hover:border-[#83b5b6]/50 transition-colors bg-[#faf9f8]/50 group text-left"
+                        >
+                          <div className="w-12 h-12 rounded-md overflow-hidden bg-[#f0eeec] shrink-0">
+                            <ImageWithFallback
+                              src={product.images?.[0] ?? product.image ?? '/img/5.webp'}
+                              alt={product.name}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            />
+                          </div>
+                          <p className="text-[10px] font-medium text-[#5e544e] line-clamp-2 leading-tight w-full">{product.name}</p>
+                          <p className="text-[10px] text-[#83b5b6] font-medium">€{product.price.toFixed(2)}</p>
+                          <span className="text-[10px] text-[#83b5b6] font-medium">+</span>
+                        </button>
                       </div>
-                      <button className="text-xs text-[#5e544e] hover:text-[#83b5b6] font-medium px-3 py-1.5 bg-white border border-[#e6dfd9] rounded-lg shadow-sm hover:shadow transition-all">
-                        Añadir
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Cart Options (Moved to Scrollable Area) */}
-              <div className="border-t border-[#e6dfd9] pt-6 space-y-6">
-                 {/* Coupon Code */}
-                <div>
-                  <label className="text-sm font-medium text-[#5e544e] mb-2 block">Código de descuento</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="WELCOME10"
-                      value={couponCode}
-                      onChange={(e) => setCouponCode(e.target.value)}
-                      disabled={couponApplied}
-                      className="flex-1 px-3 py-2 border border-[#e6dfd9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#83b5b6]/20 text-sm disabled:bg-[#faf9f8] text-[#5e544e] placeholder:text-[#9ca3af]"
-                    />
-                    <button
-                      onClick={handleApplyCoupon}
-                      disabled={couponApplied}
-                      className="bg-[#5e544e] text-white px-4 py-2 rounded-lg hover:bg-[#4a4541] transition-colors text-sm disabled:bg-[#83b5b6]"
-                    >
-                      {couponApplied ? '✓' : 'Aplicar'}
-                    </button>
-                  </div>
-                  {couponApplied && (
-                    <p className="text-xs text-[#83b5b6] mt-1 font-medium">¡Código aplicado! -10% de descuento</p>
-                  )}
-                </div>
-
-                {/* Gift Wrap */}
-                <label className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all ${giftWrap ? 'border-[#c59a8b] bg-[#c59a8b]/5' : 'border-[#e6dfd9] hover:bg-[#faf9f8]'}`}>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={giftWrap}
-                      onChange={(e) => setGiftWrap(e.target.checked)}
-                      className="text-[#c59a8b] rounded focus:ring-[#c59a8b]"
-                    />
-                    <div className="flex items-center gap-2">
-                      <Gift className="h-4 w-4 text-[#c59a8b]" />
-                      <div>
-                        <p className="text-sm font-medium text-[#5e544e]">Envoltorio de regalo</p>
-                        <p className="text-xs text-[#9ca3af]">Incluye tarjeta personalizada</p>
-                      </div>
-                    </div>
-                  </div>
-                  <span className="text-sm font-medium text-[#5e544e]">+ €{giftWrapCost.toFixed(2)}</span>
-                </label>
-
-                {/* Loyalty Points */}
-                <div className="flex items-center gap-2 p-3 bg-[#faf9f8] border border-[#e6dfd9] rounded-xl">
-                  <Award className="h-5 w-5 text-[#83b5b6]" />
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-[#5e544e]">Gana {pointsEarned} puntos</p>
-                    <p className="text-xs text-[#9ca3af]">1 punto = €0.05 de descuento</p>
+                    ))}
                   </div>
                 </div>
-              </div>
+              )}
+
             </div>
           )}
         </div>
@@ -288,24 +172,10 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
                 <span className="text-[#9ca3af]">Subtotal</span>
                 <span className="text-[#5e544e] font-medium">€{subtotal.toFixed(2)}</span>
               </div>
-              {discount > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-[#9ca3af]">Descuento</span>
-                  <span className="text-[#83b5b6] font-medium">-€{discount.toFixed(2)}</span>
-                </div>
-              )}
               <div className="flex justify-between">
                 <span className="text-[#9ca3af]">Envío</span>
-                <span className={`font-medium ${shipping === 0 ? 'text-[#83b5b6]' : 'text-[#5e544e]'}`}>
-                  {shipping === 0 ? 'GRATIS' : `€${shipping.toFixed(2)}`}
-                </span>
+                <span className="font-medium text-[#5e544e]">€{shipping.toFixed(2)}</span>
               </div>
-              {giftWrapCost > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-[#9ca3af]">Envoltorio</span>
-                  <span className="text-[#5e544e] font-medium">€{giftWrapCost.toFixed(2)}</span>
-                </div>
-              )}
               <div className="flex justify-between pt-3 border-t border-[#e6dfd9] mt-2">
                 <span className="text-[#5e544e] text-base font-medium">Total</span>
                 <span className="text-xl text-[#5e544e] font-bold">€{total.toFixed(2)}</span>

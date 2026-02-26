@@ -16,6 +16,7 @@ import { SocialProofPopup } from './components/SocialProofPopup';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { ToastNotifications } from './components/ToastNotifications';
 import { WishlistPage } from './components/WishlistPage';
+import { Dialog, DialogContent, DialogTitle } from './components/ui/dialog';
 import { ExitIntentPopup } from './components/ExitIntentPopup';
 // import { RecommendedProducts } from './components/RecommendedProducts';
 import { CheckoutPage, OrderData } from './components/CheckoutPage';
@@ -55,10 +56,24 @@ import { createOrderInDb } from './utils/ebaby/orders-db';
 
 type View = 'home' | 'category' | 'product' | 'wishlist' | 'checkout' | 'confirmation' | 'gender-predictor' | 'admin' | 'login' | 'signup' | 'profile' | 'contact' | 'aviso-legal' | 'privacidad' | 'terminos' | 'cookies';
 
+function getInitialCartFromStorage(): Product[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const saved = localStorage.getItem('cartItems');
+    if (saved) {
+      const parsed = JSON.parse(saved) as Product[];
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch {
+    /* ignore */
+  }
+  return [];
+}
+
 export default function App() {
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
-  const [cartItems, setCartItems] = useState<Product[]>([]);
+  const [cartItems, setCartItems] = useState<Product[]>(getInitialCartFromStorage);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -71,6 +86,7 @@ export default function App() {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [showProfileModal, setShowProfileModal] = useState(false);
+  const [showWishlistModal, setShowWishlistModal] = useState(false);
   
   // Wishlist integration
   const { wishlist, addToWishlist, removeFromWishlist, isInWishlist, wishlistCount } = useWishlist();
@@ -192,6 +208,40 @@ export default function App() {
       if (path === '/privacidad') { setCurrentView('privacidad'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
       if (path === '/terminos') { setCurrentView('terminos'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
       if (path === '/cookies') { setCurrentView('cookies'); window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+
+      // Checkout routes
+      if (path === '/checkout') {
+        setCurrentView('checkout');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (path === '/checkout/success') {
+        const params = new URLSearchParams(window.location.search);
+        const sessionId = params.get('session_id');
+        if (sessionId) {
+          const loadOrder = (retry = false) =>
+            import('@/utils/bigbuy/edge').then(({ getOrderByStripeSession }) =>
+              getOrderByStripeSession(sessionId)
+                .then((data) => {
+                  setOrderData(data);
+                  setCurrentView('confirmation');
+                  const sid = getOrCreateSessionId();
+                  clearCartInDb(null, sid);
+                  setCartItems([]);
+                  window.history.replaceState(null, '', '/checkout/success');
+                })
+                .catch((err) => {
+                  if (!retry && (err?.message?.includes('Orden no encontrada') || err?.message?.includes('404'))) {
+                    setTimeout(() => loadOrder(true), 2000);
+                  } else {
+                    setCurrentView('home');
+                  }
+                })
+            );
+          loadOrder();
+          return;
+        }
+      }
 
       // Home route
       setCurrentView('home');
@@ -385,7 +435,7 @@ export default function App() {
             cartCount={cartCount}
             wishlistCount={wishlistCount}
             onCartClick={() => setIsCartOpen(true)}
-            onWishlistClick={() => setCurrentView('wishlist')}
+            onWishlistClick={() => setShowWishlistModal(true)}
             onUserClick={() => {
               if (user) {
                 setShowProfileModal(true);
@@ -517,18 +567,6 @@ export default function App() {
             onQuickView={handleQuickView}
             onToggleWishlist={addToWishlist}
             isInWishlist={isInWishlist}
-          />
-          {/* <Newsletter /> */}
-          <BrandCarousel />
-          <Footer />
-        </>
-      ) : currentView === 'wishlist' ? (
-        <>
-          <WishlistPage
-            products={wishlist}
-            onRemove={removeFromWishlist}
-            onAddToCart={addToCart}
-            onProductClick={handleProductClick}
           />
           {/* <Newsletter /> */}
           <BrandCarousel />
@@ -720,6 +758,21 @@ export default function App() {
         </>
       ) : null}
 
+      {/* Wishlist popup */}
+      <Dialog open={showWishlistModal} onOpenChange={setShowWishlistModal}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogTitle className="text-lg font-semibold mb-4">
+            Mi Lista de Deseos
+          </DialogTitle>
+          <WishlistPage
+            products={wishlist}
+            onRemove={removeFromWishlist}
+            onAddToCart={addToCart}
+            onProductClick={handleProductClick}
+          />
+        </DialogContent>
+      </Dialog>
+
       {/* Auth Modals */}
       <LoginModal
         isOpen={showLoginModal}
@@ -752,10 +805,13 @@ export default function App() {
         isOpen={isCartOpen}
         onClose={() => setIsCartOpen(false)}
         items={cartItems}
+        allProducts={allProducts}
         onUpdateQuantity={updateQuantity}
         onRemove={removeFromCart}
+        onAddToCart={addToCart}
         onCheckout={() => {
           setIsCartOpen(false);
+          window.history.pushState({ view: 'checkout' }, '', '/checkout');
           setCurrentView('checkout');
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
@@ -776,7 +832,7 @@ export default function App() {
 
       <SocialProofPopup />
 
-      <ExitIntentPopup />
+      <ExitIntentPopup cartItems={cartItems} />
 
       {currentView !== 'admin' && (
         <>

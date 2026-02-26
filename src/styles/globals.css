@@ -341,3 +341,12 @@ textarea {
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
 }
+
+/* ========================================
+   ZOHO SALESIQ - Ajuste posición en móvil
+   ======================================== */
+@media (max-width: 768px) {
+  #zsiq_float {
+    bottom: 100px !important;
+  }
+}

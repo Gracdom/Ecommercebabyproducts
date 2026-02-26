@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { CheckCircle, Package, Mail, Download, Home, MapPin, CreditCard, Calendar } from 'lucide-react';
 import { OrderData } from './CheckoutPage';
 import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -12,6 +13,29 @@ export function OrderConfirmation({ orderData, onBackToHome }: OrderConfirmation
   const delayStr = orderData.shippingOption?.delay ?? '';
   const delayDays = delayStr ? parseInt((delayStr.match(/\d+/)?.[0] ?? '4'), 10) : 4;
   estimatedDeliveryDate.setDate(estimatedDeliveryDate.getDate() + (Number.isFinite(delayDays) ? delayDays : 4));
+
+  // Disparar evento purchase para Google Tag Manager (GTM)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const w = window as any;
+    w.dataLayer = w.dataLayer || [];
+
+    w.dataLayer.push({
+      event: 'purchase',
+      transaction_id: orderData.orderId,
+      value: Number(orderData.total.toFixed(2)),
+      currency: 'EUR',
+      email: orderData.customerInfo.email,
+      phone: orderData.customerInfo.phone,
+      items: orderData.items.map((item) => ({
+        item_id: item.sku || item.variantSku || String(item.id),
+        item_name: item.name,
+        price: item.price,
+        quantity: item.quantity || 1,
+      })),
+    });
+  }, [orderData]);
 
   return (
     <div className="min-h-screen bg-stone-50">

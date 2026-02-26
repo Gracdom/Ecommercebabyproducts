@@ -82,7 +82,7 @@ export function ProductGrid({
                       }}
                       className={`p-2.5 rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg ${
                         isInWish 
-                          ? 'bg-[#FFC1CC] hover:bg-[#FFB3C1]' 
+                          ? 'bg-red-500 hover:bg-red-600' 
                           : 'bg-white/95 backdrop-blur-sm hover:bg-[#FFC1CC]/20'
                       }`}
                     >

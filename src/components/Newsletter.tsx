@@ -1,18 +1,27 @@
 import { useState } from 'react';
 import { Mail, Sparkles, Gift, ArrowRight, Check } from 'lucide-react';
+import { sendNewsletterWelcome } from '@/utils/bigbuy/edge';
 
 export function Newsletter() {
   const [email, setEmail] = useState('');
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
+    if (!email) return;
+    setError('');
+    setLoading(true);
+    try {
+      await sendNewsletterWelcome(email);
       setIsSubscribed(true);
-      setTimeout(() => {
-        setEmail('');
-        setIsSubscribed(false);
-      }, 3000);
+      setEmail('');
+      setTimeout(() => setIsSubscribed(false), 3000);
+    } catch {
+      setError('No hemos podido enviar el email. Inténtalo de nuevo.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -89,10 +98,11 @@ export function Newsletter() {
                   </div>
                   <button
                     type="submit"
-                    className="group px-8 py-5 bg-[#4a4541] hover:bg-[#2c2a29] text-white rounded-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap"
+                    disabled={loading}
+                    className="group px-8 py-5 bg-[#4a4541] hover:bg-[#2c2a29] disabled:opacity-70 text-white rounded-xl transition-all duration-300 hover:shadow-2xl hover:scale-105 flex items-center justify-center gap-2 whitespace-nowrap disabled:hover:scale-100"
                   >
-                    <span className="font-medium text-lg">Suscribirme</span>
-                    <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
+                    <span className="font-medium text-lg">{loading ? 'Enviando…' : 'Suscribirme'}</span>
+                    {!loading && <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />}
                   </button>
                 </div>
               ) : (
@@ -107,6 +117,9 @@ export function Newsletter() {
               )}
             </div>
 
+            {error && (
+              <p className="text-sm text-red-200 mt-2">{error}</p>
+            )}
             <p className="text-sm text-white/80 mt-4">
               Al suscribirte, aceptas nuestra política de privacidad. Puedes darte de baja en cualquier momento.
             </p>

@@ -18,9 +18,13 @@ interface MegaMenuProps {
   onCategoryClick?: (categoryName: string, subcategoryName?: string) => void;
 }
 
-// Images from /public/categorias: "Category Name (1).webp", "(2).webp", "(3).webp"
+// Usamos un "pool" de imágenes por categoría:
+// public/categorias/"Nombre categoría (1).webp", "(2).webp", "(3).webp"
+// Las subcategorías rotan sobre esas imágenes (y se repiten en bucle).
+const MAX_IMAGES_PER_CATEGORY = 3;
+
 function getSubcategoryImage(categoryName: string, subIndex: number): string {
-  const num = (subIndex % 3) + 1;
+  const num = (subIndex % MAX_IMAGES_PER_CATEGORY) + 1;
   const filename = `${categoryName} (${num}).webp`;
   return `/categorias/${encodeURIComponent(filename)}`;
 }
@@ -79,8 +83,9 @@ export function MegaMenu({ categories = [], onCategoryClick }: MegaMenuProps = {
   };
 
   return (
-    <nav className="hidden lg:flex items-center gap-0 relative">
-      {displayCategories.map((category) => (
+    <nav className="hidden lg:flex items-center gap-0 relative w-full">
+      <div className="flex items-center flex-1">
+        {displayCategories.map((category) => (
         <div
           key={category.name}
           onMouseEnter={() => handleMouseEnter(category.name)}
@@ -166,19 +171,24 @@ export function MegaMenu({ categories = [], onCategoryClick }: MegaMenuProps = {
           )}
         </div>
       ))}
+      </div>
 
-      {/* Tienda - button style */}
-      <button 
-        onClick={() => {
-          if (onCategoryClick) {
-            onCategoryClick('Tienda');
-          }
-        }}
-        className="flex items-center gap-1 px-8 py-2.5 text-sm font-semibold whitespace-nowrap rounded-xl transition-all duration-300 ml-2 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
-        style={{ backgroundColor: '#84b4b5', color: '#ffffff' }}
-      >
-        Tienda
-      </button>
+      {/* Tienda - centrado */}
+      <div className="flex justify-center flex-1">
+        <button 
+          onClick={() => {
+            if (onCategoryClick) {
+              onCategoryClick('Tienda');
+            }
+          }}
+          className="flex items-center gap-1 px-8 py-2.5 text-sm font-semibold whitespace-nowrap rounded-xl transition-all duration-300 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+          style={{ backgroundColor: '#84b4b5', color: '#ffffff' }}
+        >
+          Tienda
+        </button>
+      </div>
+
+      <div className="flex-1" />
     </nav>
   );
 }

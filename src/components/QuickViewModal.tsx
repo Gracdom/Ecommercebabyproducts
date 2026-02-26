@@ -1,4 +1,4 @@
-import { X, Heart, Star, ShoppingCart, TrendingUp, Flame, Package, Truck, Gift, Award } from 'lucide-react';
+import { X, Heart, Star, ShoppingCart, TrendingUp, Flame, Package, Truck, Award } from 'lucide-react';
 import { Product } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from './ui/dialog';
@@ -42,10 +42,10 @@ export function QuickViewModal({ product, isOpen, onClose, onAddToCart }: QuickV
           Detalles rápidos del producto {product.name}. Precio: €{product.price.toFixed(2)}
         </DialogDescription>
         
-        <div className="grid md:grid-cols-2 gap-8 p-6">
+        <div className="grid md:grid-cols-2 gap-6 md:gap-8 p-4 sm:p-6">
           {/* Product Images */}
-          <div className="space-y-4">
-            <div className="relative aspect-square bg-stone-50 rounded-lg overflow-hidden">
+          <div className="space-y-3 sm:space-y-4">
+            <div className="relative aspect-square bg-stone-50 rounded-xl overflow-hidden">
               <ImageWithFallback
                 src={product.image}
                 alt={product.name}
@@ -90,108 +90,117 @@ export function QuickViewModal({ product, isOpen, onClose, onAddToCart }: QuickV
           </div>
 
           {/* Product Details */}
-          <div className="space-y-6">
+          <div className="space-y-5">
             <div>
-              <div className="flex items-start justify-between mb-2">
-                <h2 className="text-2xl text-stone-900 pr-4">{product.name}</h2>
+              {/* Título + wishlist */}
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <h2 className="text-xl sm:text-2xl text-stone-900 pr-4 leading-snug">
+                  {product.name}
+                </h2>
                 <button className="p-2 hover:bg-stone-100 rounded-full">
                   <Heart className="h-5 w-5 text-stone-600" />
                 </button>
               </div>
               
-              {/* Rating */}
-              <div className="flex items-center gap-3 mb-4">
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`h-4 w-4 ${
-                        i < Math.floor(product.rating || 4.5)
-                          ? 'fill-[#dccf9d] text-[#dccf9d]'
-                          : 'text-stone-300'
-                      }`}
-                    />
-                  ))}
-                </div>
-                <span className="text-sm text-stone-600">
-                  {product.rating || 4.5} ({product.reviews || 127} opiniones)
-                </span>
-              </div>
-
-              {/* Price */}
-              <div className="flex items-center gap-3 mb-4">
-                <p className="text-3xl text-stone-900">€ {product.price.toFixed(2)}</p>
-                {product.originalPrice && (
-                  <>
-                    <p className="text-xl text-stone-400 line-through">
-                      € {product.originalPrice.toFixed(2)}
-                    </p>
-                    <span className="bg-destructive text-white px-2 py-1 rounded text-sm">
-                      -{discount}%
-                    </span>
-                  </>
-                )}
-              </div>
-
-              {/* Stock Alert */}
-              {stockLeft < 10 && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center gap-2 mb-4">
-                  <Flame className="h-4 w-4 text-amber-600" />
-                  <span className="text-sm text-amber-800">
-                    ¡Solo quedan <strong>{stockLeft} unidades</strong> en stock!
+              {/* Rating + precio */}
+              <div className="flex flex-col gap-2 mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`h-4 w-4 ${
+                          i < Math.floor(product.rating || 4.5)
+                            ? 'fill-[#dccf9d] text-[#dccf9d]'
+                            : 'text-stone-300'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-xs sm:text-sm text-stone-600">
+                    {product.rating || 4.5} ({product.reviews || 127} opiniones)
                   </span>
                 </div>
-              )}
-            </div>
 
-            {/* Size Selector */}
-            <div>
-              <label className="block text-sm text-stone-700 mb-2">
-                Talla: <strong>{selectedSize}</strong>
-              </label>
-              <div className="flex gap-2">
-                {sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => setSelectedSize(size)}
-                    className={`px-4 py-2 border rounded-lg transition-all ${
-                      selectedSize === size
-                        ? 'border-stone-900 bg-stone-900 text-white'
-                        : 'border-stone-300 hover:border-stone-900'
-                    }`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                <div className="flex items-center gap-3">
+                  <p className="text-2xl sm:text-3xl text-stone-900">
+                    € {product.price.toFixed(2)}
+                  </p>
+                  {product.originalPrice && (
+                    <>
+                      <p className="text-base sm:text-xl text-stone-400 line-through">
+                        € {product.originalPrice.toFixed(2)}
+                      </p>
+                      <span className="bg-destructive text-white px-2 py-1 rounded text-xs sm:text-sm">
+                        -{discount}%
+                      </span>
+                    </>
+                  )}
+                </div>
+
+                {/* Stock Alert */}
+                {stockLeft < 10 && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-center gap-2">
+                    <Flame className="h-4 w-4 text-amber-600" />
+                    <span className="text-sm text-amber-800">
+                      ¡Solo quedan <strong>{stockLeft} unidades</strong> en stock!
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* Quantity Selector */}
-            <div>
-              <label className="block text-sm text-stone-700 mb-2">Cantidad</label>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                  className="px-4 py-2 border border-stone-300 rounded-lg hover:bg-stone-50"
-                >
-                  -
-                </button>
-                <span className="text-lg w-12 text-center">{quantity}</span>
-                <button
-                  onClick={() => setQuantity(Math.min(10, quantity + 1))}
-                  className="px-4 py-2 border border-stone-300 rounded-lg hover:bg-stone-50"
-                >
-                  +
-                </button>
+            {/* Size & Quantity - agrupados */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Size Selector */}
+              <div>
+                <label className="block text-sm text-stone-700 mb-2">
+                  Talla: <strong>{selectedSize}</strong>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {sizes.map((size) => (
+                    <button
+                      key={size}
+                      onClick={() => setSelectedSize(size)}
+                      className={`px-3 py-1.5 border rounded-lg text-sm transition-all ${
+                        selectedSize === size
+                          ? 'border-stone-900 bg-stone-900 text-white'
+                          : 'border-stone-300 hover:border-stone-900'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Quantity Selector */}
+              <div>
+                <label className="block text-sm text-stone-700 mb-2">Cantidad</label>
+                <div className="inline-flex items-center gap-3 border border-stone-300 rounded-lg px-2 py-1.5">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="px-2 py-1 text-lg leading-none hover:text-stone-900"
+                  >
+                    -
+                  </button>
+                  <span className="text-base w-8 text-center">{quantity}</span>
+                  <button
+                    onClick={() => setQuantity(Math.min(10, quantity + 1))}
+                    className="px-2 py-1 text-lg leading-none hover:text-stone-900"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
 
             {/* Add to Cart */}
             <Button
               onClick={handleAddToCart}
-              className="w-full bg-stone-900 text-white py-6 rounded-lg hover:bg-stone-800 transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-stone-900 text-white py-3.5 rounded-lg hover:bg-stone-800 transition-colors flex items-center justify-center gap-2 text-sm sm:text-base"
             >
-              <ShoppingCart className="h-5 w-5" />
+              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
               Añadir al carrito - € {(product.price * quantity).toFixed(2)}
             </Button>
 
@@ -199,19 +208,15 @@ export function QuickViewModal({ product, isOpen, onClose, onAddToCart }: QuickV
             <div className="space-y-3 pt-4 border-t border-stone-200">
               <div className="flex items-center gap-3 text-sm text-stone-700">
                 <Truck className="h-5 w-5 text-stone-500" />
-                <span>Envío gratis en pedidos +50€</span>
+                <span>Envío 24/48h en España (coste fijo 6€)</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-stone-700">
                 <Package className="h-5 w-5 text-stone-500" />
                 <span>Devolución gratuita en 30 días</span>
               </div>
               <div className="flex items-center gap-3 text-sm text-stone-700">
-                <Gift className="h-5 w-5 text-stone-500" />
-                <span>Envoltorio de regalo disponible</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-stone-700">
                 <Award className="h-5 w-5 text-stone-500" />
-                <span>Garantía de calidad premium</span>
+                <span>Algodón orgánico certificado y calidad premium</span>
               </div>
             </div>
 

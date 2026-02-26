@@ -4,6 +4,10 @@ import type { AdminProduct } from "@/types";
 const FUNCTION_NAME = "make-server-335110ef";
 const EDGE_BASE_URL = `${supabaseUrl}/functions/v1/${FUNCTION_NAME}`;
 
+/** Función dedicada solo para Stripe (evita 404 de make-server) */
+const STRIPE_FUNCTION_NAME = "stripe-checkout";
+const STRIPE_EDGE_BASE_URL = `${supabaseUrl}/functions/v1/${STRIPE_FUNCTION_NAME}`;
+
 type HttpMethod = "GET" | "POST";
 
 async function edgeRequest<T>(
@@ -15,7 +19,13 @@ async function edgeRequest<T>(
   },
 ): Promise<T> {
   const method = opts?.method ?? "GET";
-  const url = `${EDGE_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+  // Supabase solo invoca en la URL base: sin subpath. Path vacío = URL exacta; "?..." = query sin barra.
+  const url =
+    path === ""
+      ? EDGE_BASE_URL
+      : path.startsWith("?")
+        ? `${EDGE_BASE_URL}${path}`
+        : `${EDGE_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 
   const res = await fetch(url, {
     method,
@@ -222,7 +232,7 @@ export function adminGetAnalyticsSummary(syncSecret: string, opts?: { productIds
       ml_score: number;
       avg_time_on_page_ms: number;
     }>;
-  }>(`/bigbuy/analytics/summary${params.toString() ? `?${params.toString()}` : ""}`, {
+  }>(`/analytics/summary${params.toString() ? `?${params.toString()}` : ""}`, {
     method: "GET",
     headers: { "x-bigbuy-sync-secret": syncSecret },
   });
@@ -325,6 +335,113 @@ export function createAdminUser(syncSecret: string, email: string, password: str
       body: { email, password },
     }
   );
+}
+
+// -----------------------------
+// Email (Resend)
+// -----------------------------
+
+export function sendNewsletterWelcome(email: string) {
+  return edgeRequest<{ ok: boolean }>("/email/newsletter-welcome", {
+    method: "POST",
+    body: { email },
+  });
+}
+
+export function sendAbandonedCart(params: {
+  email: string;
+  items: Array<{ name: string; quantity: number; price: number }>;
+  cartTotal: number;
+}) {
+  return edgeRequest<{ ok: boolean }>("/email/abandoned-cart", {
+    method: "POST",
+    body: params,
+  });
+}
+
+// -----------------------------
+// Stripe
+// -----------------------------
+
+async function stripeEdgeRequest<T>(
+  opts: { method?: "GET" | "POST"; body?: unknown }
+): Promise<T> {
+  const method = opts.method ?? "POST";
+  const res = await fetch(STRIPE_EDGE_BASE_URL, {
+    method,
+    headers: {
+      Authorization: `Bearer ${supabaseAnonKey}`,
+      ...(opts.body ? { "Content-Type": "application/json" } : {}),
+    },
+    body: opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+
+  const text = await res.text();
+  let json: any = null;
+  try {
+    json = text ? JSON.parse(text) : null;
+  } catch {
+    /* ignore */
+  }
+
+  if (!res.ok) {
+    const msg = json?.error || json?.message || text || `Request failed (${res.status})`;
+    throw new Error(msg);
+  }
+  return (json ?? (text as any)) as T;
+}
+
+/**
+ * Stripe: usa la función stripe-checkout (dedicada, evita 404).
+ */
+export async function createStripeCheckoutSession(params: {
+  items: Array<{ name: string; quantity: number; price: number; image?: string }>;
+  customerEmail: string;
+  successUrl: string;
+  cancelUrl: string;
+  metadata: Record<string, string>;
+}): Promise<{ url: string; sessionId: string }> {
+  const body = {
+    _action: "stripe/create-checkout-session",
+    items: params.items,
+    customerEmail: params.customerEmail,
+    successUrl: params.successUrl,
+    cancelUrl: params.cancelUrl,
+    metadata: params.metadata,
+  };
+  const data = await stripeEdgeRequest<{ url?: string; sessionId?: string; error?: string | { message?: string } }>({
+    method: "POST",
+    body,
+  });
+  if (data?.error) {
+    throw new Error(
+      typeof data.error === "string" ? data.error : data.error?.message ?? "Error creando sesión de pago"
+    );
+  }
+  if (!data?.url) {
+    throw new Error("No se recibió URL de pago de Stripe. Comprueba STRIPE_SECRET_KEY en Supabase.");
+  }
+  return { url: data.url, sessionId: data.sessionId ?? "" };
+}
+
+export async function getOrderByStripeSession(sessionId: string): Promise<{
+  orderId: string;
+  bigbuyOrderIds?: string[];
+  shippingOption?: { serviceName: string; delay?: string; cost?: number };
+  customerInfo: { email: string; firstName: string; lastName: string; phone: string };
+  shippingAddress: { street: string; city: string; postalCode: string; country: string };
+  paymentMethod: string;
+  total: number;
+  items?: unknown[];
+}> {
+  const data = await stripeEdgeRequest<any>({
+    method: "POST",
+    body: { _action: "stripe-order-by-session", session_id: sessionId },
+  });
+  if (data?.error) {
+    throw new Error(typeof data.error === "string" ? data.error : data.error?.message ?? "Orden no encontrada");
+  }
+  return data;
 }
 
 

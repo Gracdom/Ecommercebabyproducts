@@ -1,4 +1,4 @@
-import { Heart, Mail, MessageCircle, Instagram, Facebook, Twitter, Youtube, CreditCard, Shield, Award } from 'lucide-react';
+import { Heart, Mail, MessageCircle, Instagram, Facebook, CreditCard, Shield, Award } from 'lucide-react';
 import { navigate } from '@/utils/navigate';
 
 export function Footer() {
@@ -55,7 +55,7 @@ export function Footer() {
                 <h4 className="text-sm font-semibold mb-4 text-white">Síguenos</h4>
                 <div className="flex gap-3">
                   <a
-                    href="https://instagram.com"
+                    href="https://www.instagram.com/tiendaebaby/"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl border-2 border-white/30"
@@ -63,28 +63,12 @@ export function Footer() {
                     <Instagram className="h-6 w-6 text-white" />
                   </a>
                   <a
-                    href="https://facebook.com"
+                    href="https://www.facebook.com/tiendaebaby"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl border-2 border-white/30"
                   >
                     <Facebook className="h-6 w-6 text-white" />
-                  </a>
-                  <a
-                    href="https://twitter.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl border-2 border-white/30"
-                  >
-                    <Twitter className="h-6 w-6 text-white" />
-                  </a>
-                  <a
-                    href="https://youtube.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-12 h-12 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 shadow-lg hover:shadow-xl border-2 border-white/30"
-                  >
-                    <Youtube className="h-6 w-6 text-white" />
                   </a>
                 </div>
               </div>
