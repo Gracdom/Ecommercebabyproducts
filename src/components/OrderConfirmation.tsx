@@ -15,19 +15,28 @@ export function OrderConfirmation({ orderData, onBackToHome }: OrderConfirmation
   estimatedDeliveryDate.setDate(estimatedDeliveryDate.getDate() + (Number.isFinite(delayDays) ? delayDays : 4));
 
   // Disparar evento purchase para Google Tag Manager (GTM)
+  // Usa parámetros de la URL si existen, si no los de orderData
   useEffect(() => {
     if (typeof window === 'undefined') return;
+
+    const params = new URLSearchParams(window.location.search);
+    const transactionId = params.get('transaction_id') ?? orderData.orderId;
+    const valueParam = params.get('value');
+    const value = valueParam != null ? Number(valueParam) : Number(orderData.total.toFixed(2));
+    const currency = params.get('currency') ?? 'EUR';
+    const email = params.get('email') ?? orderData.customerInfo.email;
+    const phone = params.get('phone') ?? orderData.customerInfo.phone;
 
     const w = window as any;
     w.dataLayer = w.dataLayer || [];
 
     w.dataLayer.push({
       event: 'purchase',
-      transaction_id: orderData.orderId,
-      value: Number(orderData.total.toFixed(2)),
-      currency: 'EUR',
-      email: orderData.customerInfo.email,
-      phone: orderData.customerInfo.phone,
+      transaction_id: transactionId,
+      value,
+      currency,
+      email,
+      phone,
       items: orderData.items.map((item) => ({
         item_id: item.sku || item.variantSku || String(item.id),
         item_name: item.name,
