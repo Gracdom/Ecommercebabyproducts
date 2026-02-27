@@ -344,10 +344,7 @@ app.get("/v1/make-server-335110ef/", wrapStripeGet(dispatchStripeGet));
 app.post("/", wrapStripePost(dispatchStripePost));
 app.get("/", wrapStripeGet(dispatchStripeGet));
 
-// Catch-all: cualquier otro path que envÃƒÆ’Ã‚Â­e Supabase
-app.post("*", wrapStripePost(dispatchStripePost));
-app.get("*", wrapStripeGet(dispatchStripeGet));
-
+// Webhook Stripe - usa body raw para verificar firmaÃƒÆ’Ã‚Â­e Supabase
 // Webhook Stripe - usa body raw para verificar firma
 app.post("/make-server-335110ef/stripe/webhook", async (c) => {
   const signature = c.req.header("Stripe-Signature") ?? "";
@@ -399,6 +396,9 @@ app.post("/make-server-335110ef/stripe/webhook", async (c) => {
     const total = Number(metadata.total) || 0;
     const shippingAddressObj = shippingAddress;
 
+    const subtotal = Number(metadata.subtotal) || 0;
+    const shippingCost = Number(metadata.shippingCost) || 0;
+
     try {
       await supabase.from("bigbuy_orders").insert({
         email: shippingAddressObj?.email ?? "",
@@ -411,14 +411,84 @@ app.post("/make-server-335110ef/stripe/webhook", async (c) => {
         address: shippingAddressObj?.address ?? "",
         selected_shipping_service_id: metadata.carrierName ?? null,
         selected_shipping_service_name: metadata.serviceName ?? null,
-        shipping_cost: Number(metadata.shippingCost) || null,
-        subtotal: Number(metadata.subtotal) || null,
+        shipping_cost: Number.isFinite(shippingCost) ? shippingCost : null,
+        subtotal: Number.isFinite(subtotal) ? subtotal : null,
         total,
         payment_method: "stripe",
         bigbuy_orders: null,
         bigbuy_errors: null,
         bigbuy_raw: null,
       }).select("id").maybeSingle();
+    } catch (_e) { /* ignore */ }
+
+    // Insertar en orders y order_items para que el panel admin muestre los pedidos
+    try {
+      const { data: insertedOrder } = await supabase
+        .from("orders")
+        .insert({
+          order_number: internalReference,
+          user_id: null,
+          session_id: null,
+          status: "completed",
+          email: shippingAddressObj?.email ?? "",
+          first_name: shippingAddressObj?.firstName ?? "",
+          last_name: shippingAddressObj?.lastName ?? "",
+          phone: shippingAddressObj?.phone ?? null,
+          street: (shippingAddressObj?.address ?? "").slice(0, 500),
+          city: (shippingAddressObj?.town ?? "").slice(0, 200),
+          postal_code: (shippingAddressObj?.postcode ?? "").slice(0, 20),
+          country: (shippingAddressObj?.country ?? "ES").slice(0, 2),
+          payment_method: "stripe",
+          subtotal,
+          shipping_cost: shippingCost,
+          discount: 0,
+          total,
+          bigbuy_order_ids: [],
+          shipping_service_name: metadata.serviceName ?? null,
+          shipping_service_delay: metadata.serviceDelay ?? null,
+        })
+        .select("id")
+        .maybeSingle();
+
+      if (insertedOrder?.id) {
+        const itemsDetail: Array<{ id: string; sku: string; name: string; price: number; quantity: number; image?: string }> = [];
+        const count = Math.min(Number(metadata.itemsDetailCount) || 0, 50);
+        for (let i = 0; i < count; i++) {
+          const raw = metadata[`itemsDetail_${i}`];
+          if (raw) {
+            try {
+              const it = JSON.parse(raw);
+              if (it && (it.quantity || 0) > 0) itemsDetail.push(it);
+            } catch { /* skip */ }
+          }
+        }
+        if (itemsDetail.length === 0 && products.length > 0) {
+          for (const p of products) {
+            itemsDetail.push({
+              id: p.reference ?? "",
+              sku: p.reference ?? "",
+              name: "Producto",
+              price: 0,
+              quantity: p.quantity || 1,
+            });
+          }
+        }
+        const orderItemsPayload = itemsDetail
+          .filter((it) => (it.quantity || 0) > 0)
+          .map((it) => ({
+            order_id: insertedOrder.id,
+            product_id: String(it.id || it.sku || ""),
+            product_sku: it.sku || null,
+            product_name: (it.name || "Producto").slice(0, 500),
+            product_price: Number(it.price) || 0,
+            quantity: it.quantity || 1,
+            product_image: (it.image && String(it.image).slice(0, 1000)) || null,
+            variant_sku: it.sku || null,
+          }));
+        if (orderItemsPayload.length > 0) {
+          await supabase.from("order_items").insert(orderItemsPayload);
+        }
+      }
     } catch (_e) { /* ignore */ }
 
     const customerName = [shippingAddressObj?.firstName, shippingAddressObj?.lastName].filter(Boolean).join(" ").trim() || "Cliente";
@@ -876,50 +946,60 @@ app.get("/make-server-335110ef/analytics/summary", requireSyncSecret(), async (c
 
 // -----------------------------
 // Admin Orders (protected - eBaby orders from public.orders)
+async function handleGetOrders(c: any) {
+  const limit = Math.min(Number(c.req.query("limit")) || 100, 500);
+  const offset = Number(c.req.query("offset")) || 0;
+  const supabase = getServiceSupabase();
+
+  const { data: orders, error: ordersErr } = await supabase
+    .from("orders")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .range(offset, offset + limit - 1);
+
+  if (ordersErr) throw ordersErr;
+
+  if (!orders?.length) {
+    return c.json({ orders: [], itemsByOrder: {} });
+  }
+
+  const orderIds = orders.map((o: any) => o.id);
+  const { data: items, error: itemsErr } = await supabase
+    .from("order_items")
+    .select("*")
+    .in("order_id", orderIds)
+    .order("created_at");
+
+  if (itemsErr) throw itemsErr;
+
+  const itemsByOrder: Record<string, any[]> = {};
+  for (const o of orders) {
+    itemsByOrder[o.id] = [];
+  }
+  for (const it of items || []) {
+    const arr = itemsByOrder[it.order_id];
+    if (arr) arr.push(it);
+  }
+
+  return c.json({ orders, itemsByOrder });
+}
 app.get("/make-server-335110ef/admin/orders", requireSyncSecret(), async (c) => {
   try {
-    const limit = Math.min(Number(c.req.query("limit")) || 100, 500);
-    const offset = Number(c.req.query("offset")) || 0;
-    const supabase = getServiceSupabase();
-
-    const { data: orders, error: ordersErr } = await supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (ordersErr) throw ordersErr;
-
-    if (!orders?.length) {
-      return c.json({ orders: [], itemsByOrder: {} });
-    }
-
-    const orderIds = orders.map((o: any) => o.id);
-    const { data: items, error: itemsErr } = await supabase
-      .from("order_items")
-      .select("*")
-      .in("order_id", orderIds)
-      .order("created_at");
-
-    if (itemsErr) throw itemsErr;
-
-    const itemsByOrder: Record<string, any[]> = {};
-    for (const o of orders) {
-      itemsByOrder[o.id] = [];
-    }
-    for (const it of items || []) {
-      const arr = itemsByOrder[it.order_id];
-      if (arr) arr.push(it);
-    }
-
-    return c.json({ orders, itemsByOrder });
+    return await handleGetOrders(c);
+  } catch (e: any) {
+    return c.json({ error: e?.message || "Internal error" }, 500);
+  }
+});
+app.get("/admin/orders", requireSyncSecret(), async (c) => {
+  try {
+    return await handleGetOrders(c);
   } catch (e: any) {
     return c.json({ error: e?.message || "Internal error" }, 500);
   }
 });
 
 // -----------------------------
-// Abandoned checkouts: guardar sin email (ej. canceló Stripe) y listar en admin
+// Abandoned checkouts: guardar por paso (1, 2) o cancelación Stripe
 app.post("/make-server-335110ef/abandoned-checkout", async (c) => {
   try {
     const body = await c.req.json().catch(() => ({}));
@@ -927,7 +1007,8 @@ app.post("/make-server-335110ef/abandoned-checkout", async (c) => {
     const email = body?.email ? String(body.email).trim().toLowerCase().slice(0, 255) : null;
     const items: Array<{ name: string; quantity: number; price: number }> = Array.isArray(body?.items) ? body.items : [];
     const cartTotal = Number(body?.cartTotal) || 0;
-    const source = body?.source === "checkout_cancel" ? "checkout_cancel" : "manual";
+    const validSources = ["checkout_step_1", "checkout_step_2", "checkout_cancel", "manual"];
+    const source = validSources.includes(body?.source) ? body.source : "manual";
 
     if (items.length === 0 && !email) {
       return c.json({ error: "Se necesitan items o email" }, 400);
@@ -938,6 +1019,13 @@ app.post("/make-server-335110ef/abandoned-checkout", async (c) => {
       session_id: sessionId,
       user_id: null,
       email,
+      first_name: body?.first_name ? String(body.first_name).slice(0, 255) : null,
+      last_name: body?.last_name ? String(body.last_name).slice(0, 255) : null,
+      phone: body?.phone ? String(body.phone).slice(0, 50) : null,
+      street: body?.street ? String(body.street).slice(0, 500) : null,
+      city: body?.city ? String(body.city).slice(0, 200) : null,
+      postal_code: body?.postal_code ? String(body.postal_code).slice(0, 20) : null,
+      country: body?.country ? String(body.country).slice(0, 100) : null,
       cart_items: items,
       cart_total: cartTotal,
       source,
@@ -954,7 +1042,8 @@ app.post("/abandoned-checkout", async (c) => {
     const email = body?.email ? String(body.email).trim().toLowerCase().slice(0, 255) : null;
     const items: Array<{ name: string; quantity: number; price: number }> = Array.isArray(body?.items) ? body.items : [];
     const cartTotal = Number(body?.cartTotal) || 0;
-    const source = body?.source === "checkout_cancel" ? "checkout_cancel" : "manual";
+    const validSources = ["checkout_step_1", "checkout_step_2", "checkout_cancel", "manual"];
+    const source = validSources.includes(body?.source) ? body.source : "manual";
 
     if (items.length === 0 && !email) {
       return c.json({ error: "Se necesitan items o email" }, 400);
@@ -965,6 +1054,13 @@ app.post("/abandoned-checkout", async (c) => {
       session_id: sessionId,
       user_id: null,
       email,
+      first_name: body?.first_name ? String(body.first_name).slice(0, 255) : null,
+      last_name: body?.last_name ? String(body.last_name).slice(0, 255) : null,
+      phone: body?.phone ? String(body.phone).slice(0, 50) : null,
+      street: body?.street ? String(body.street).slice(0, 500) : null,
+      city: body?.city ? String(body.city).slice(0, 200) : null,
+      postal_code: body?.postal_code ? String(body.postal_code).slice(0, 20) : null,
+      country: body?.country ? String(body.country).slice(0, 100) : null,
       cart_items: items,
       cart_total: cartTotal,
       source,
@@ -988,6 +1084,13 @@ async function handleGetAbandonedCheckouts(c: any) {
   return c.json({ abandoned: list ?? [] });
 }
 app.get("/make-server-335110ef/admin/abandoned-checkouts", requireSyncSecret(), async (c) => {
+  try {
+    return await handleGetAbandonedCheckouts(c);
+  } catch (e: any) {
+    return c.json({ error: e?.message || "Internal error" }, 500);
+  }
+});
+app.get("/functions/v1/make-server-335110ef/admin/abandoned-checkouts", requireSyncSecret(), async (c) => {
   try {
     return await handleGetAbandonedCheckouts(c);
   } catch (e: any) {
@@ -1071,7 +1174,10 @@ app.post("/admin/ensure-ecografias-bucket", requireSyncSecret(), async (c) => {
   }
 });
 
-// -----------------------------
+// Catch-all: Stripe y otras acciones por _action/action (debe ir al final, despuÃ©s de todas las rutas especÃ­ficas)
+app.post("*", wrapStripePost(dispatchStripePost));
+app.get("*", wrapStripeGet(dispatchStripeGet));
+
 // Si ninguna ruta coincide: predictor submit (multipart) o Stripe
 app.notFound(async (c) => {
   if (c.req.method === "POST") {

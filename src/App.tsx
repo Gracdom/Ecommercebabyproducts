@@ -263,6 +263,11 @@ export default function App() {
                   const sid = getOrCreateSessionId();
                   clearCartInDb(null, sid);
                   setCartItems([]);
+                  try {
+                    sessionStorage.removeItem('checkout_form_draft');
+                  } catch {
+                    /* ignore */
+                  }
                   window.history.replaceState(null, '', '/checkout/success');
                 })
                 .catch((err) => {
@@ -323,9 +328,23 @@ export default function App() {
       name: i.name ?? 'Producto',
       quantity: i.quantity ?? 1,
       price: (i.price ?? 0) * (i.quantity ?? 1),
+      image: (i.images?.[0] ?? i.image) ?? undefined,
     }));
     const cartTotal = cartItems.reduce((s, i) => s + (i.price ?? 0) * (i.quantity ?? 1), 0);
-    saveAbandonedCheckout({ session_id: sessionId, items, cartTotal, source: 'checkout_cancel' }).catch(() => {});
+    let email: string | undefined;
+    try {
+      const draft = sessionStorage.getItem('checkout_form_draft');
+      if (draft) {
+        const parsed = JSON.parse(draft) as { email?: string };
+        if (parsed?.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(parsed.email)) {
+          email = parsed.email;
+        }
+        sessionStorage.removeItem('checkout_form_draft');
+      }
+    } catch {
+      /* ignore */
+    }
+    saveAbandonedCheckout({ session_id: sessionId, email, items, cartTotal, source: 'checkout_cancel' }).catch(() => {});
     window.history.replaceState(null, '', '/checkout');
   }, [currentView, cartItems]);
 
@@ -678,6 +697,7 @@ export default function App() {
       ) : currentView === 'checkout' ? (
         <CheckoutPage
           items={cartItems}
+          sessionId={getOrCreateSessionId()}
           onBack={() => {
             window.history.pushState({ view: 'home' }, '', '/');
             setCurrentView('home');

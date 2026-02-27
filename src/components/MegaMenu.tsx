@@ -18,13 +18,28 @@ interface MegaMenuProps {
   onCategoryClick?: (categoryName: string, subcategoryName?: string) => void;
 }
 
-// Usamos un "pool" de imágenes por categoría:
-// public/categorias/"Nombre categoría (1).webp", "(2).webp", "(3).webp"
-// Las subcategorías rotan sobre esas imágenes (y se repiten en bucle).
-const MAX_IMAGES_PER_CATEGORY = 3;
+// Usamos un mapa para definir cuántas imágenes disponibles hay por categoría.
+// Si una categoría no está en el mapa, se asume el valor por defecto (3).
+const AVAILABLE_IMAGES_PER_CATEGORY: Record<string, number[]> = {
+  'Accesorios': [1, 2, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+  'Actividad y entretenimiento': [1, 2, 3, 4, 5, 6],
+  'Carritos, sillas de paseo y accesorios': [1, 2, 3],
+  'Dormitorio': [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50],
+  'Higiene y cuidado': [1, 2, 3, 6, 8, 14, 19, 22, 23, 24, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39],
+  'Lactancia y alimentación': [1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26],
+};
 
 function getSubcategoryImage(categoryName: string, subIndex: number): string {
-  const num = (subIndex % MAX_IMAGES_PER_CATEGORY) + 1;
+  const availableIndices = AVAILABLE_IMAGES_PER_CATEGORY[categoryName];
+  
+  if (availableIndices && availableIndices.length > 0) {
+    const num = availableIndices[subIndex % availableIndices.length];
+    const filename = `${categoryName} (${num}).webp`;
+    return `/categorias/${encodeURIComponent(filename)}`;
+  }
+
+  // Fallback si no está mapeada la categoría
+  const num = (subIndex % 3) + 1;
   const filename = `${categoryName} (${num}).webp`;
   return `/categorias/${encodeURIComponent(filename)}`;
 }

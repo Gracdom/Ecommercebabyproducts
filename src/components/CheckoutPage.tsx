@@ -3,11 +3,12 @@ import { ArrowLeft, CreditCard, Lock, MapPin, User, Mail, Phone, Home, CheckCirc
 import { Product } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { toast } from 'sonner@2.0.3';
-import { createStripeCheckoutSession } from '../utils/bigbuy/edge';
+import { createStripeCheckoutSession, saveAbandonedCheckout } from '../utils/bigbuy/edge';
 import { useProductAnalytics } from '../hooks/useProductAnalytics';
 
 interface CheckoutPageProps {
   items: Product[];
+  sessionId?: string;
   onBack: () => void;
   onComplete: (orderData: OrderData) => void;
 }
@@ -37,7 +38,7 @@ export interface OrderData {
   items: Product[];
 }
 
-export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
+export function CheckoutPage({ items, sessionId = '', onBack, onComplete }: CheckoutPageProps) {
   const { trackPurchase } = useProductAnalytics();
   const [step, setStep] = useState(1); // 1: Contact, 2: Shipping, 3: Payment
   const [guestCheckout, setGuestCheckout] = useState(true);
@@ -96,6 +97,45 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
 
   const handleContinue = async () => {
     if (step < 3) {
+      // Guardar progreso en abandoned_checkouts al completar cada paso
+      const itemsForSave = items.map((i) => ({
+        name: i.name ?? 'Producto',
+        quantity: i.quantity ?? 1,
+        price: (i.price ?? 0) * (i.quantity ?? 1),
+        image: (i.images?.[0] ?? i.image) ?? undefined,
+      }));
+      const cartTotal = items.reduce((s, i) => s + (i.price ?? 0) * (i.quantity ?? 1), 0) + shipping + iva;
+      try {
+        if (step === 1) {
+          await saveAbandonedCheckout({
+            session_id: sessionId,
+            email: email.trim() || undefined,
+            first_name: firstName || undefined,
+            last_name: lastName || undefined,
+            phone: phone || undefined,
+            items: itemsForSave,
+            cartTotal,
+            source: 'checkout_step_1',
+          });
+        } else if (step === 2) {
+          await saveAbandonedCheckout({
+            session_id: sessionId,
+            email: email.trim() || undefined,
+            first_name: firstName || undefined,
+            last_name: lastName || undefined,
+            phone: phone || undefined,
+            street: street || undefined,
+            city: city || undefined,
+            postal_code: postalCode || undefined,
+            country: country || undefined,
+            items: itemsForSave,
+            cartTotal,
+            source: 'checkout_step_2',
+          });
+        }
+      } catch {
+        /* no bloquear el flujo */
+      }
       setStep(step + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -169,6 +209,15 @@ export function CheckoutPage({ items, onBack, onComplete }: CheckoutPageProps) {
         itemsDetail.forEach((it, idx) => {
           metadata[`itemsDetail_${idx}`] = JSON.stringify(it);
         });
+        // Guardar datos de contacto para recuperar si cancelan en Stripe
+        try {
+          sessionStorage.setItem(
+            'checkout_form_draft',
+            JSON.stringify({ email: email.trim(), firstName, lastName, phone })
+          );
+        } catch {
+          /* ignore */
+        }
         const { url } = await createStripeCheckoutSession({
           items: stripeItems,
           customerEmail: email.trim(),

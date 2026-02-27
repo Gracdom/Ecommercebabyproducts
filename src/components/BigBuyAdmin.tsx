@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ArrowLeft, RefreshCw, Save, Download, Search, Trash2, RotateCcw, CheckSquare, Square, BarChart3, FileText, Settings, ArrowUpDown, ArrowUp, ArrowDown, User, ChevronRight, ChevronDown, ChevronUp, ShoppingBag, ShoppingCart, Package, Mail, MapPin, CreditCard, LayoutDashboard, Baby, Image, Phone } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Save, Download, Search, Trash2, RotateCcw, CheckSquare, Square, BarChart3, FileText, Settings, ArrowUpDown, ArrowUp, ArrowDown, User, ChevronRight, ChevronDown, ChevronUp, ShoppingBag, ShoppingCart, Package, Mail, MapPin, CreditCard, LayoutDashboard, Baby, Image, Phone, X, Info, Calendar } from 'lucide-react';
 import { toast } from 'sonner@2.0.3';
 import { ProductImageThumbnail } from './ProductImageThumbnail';
 import {
@@ -19,6 +19,7 @@ import {
   adminGetGenderSubmissions,
   adminEnsureEcografiasBucket,
   createAdminUser,
+  sendAbandonedCart,
 } from '../utils/bigbuy/edge';
 import { AdminProduct, ProductStats, SyncLog, ProductFilters } from '@/types';
 import * as Tabs from '@radix-ui/react-tabs';
@@ -142,14 +143,22 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
     id: string;
     session_id: string | null;
     email: string | null;
-    cart_items: Array<{ name: string; quantity: number; price: number }>;
+    first_name?: string | null;
+    last_name?: string | null;
+    phone?: string | null;
+    street?: string | null;
+    city?: string | null;
+    postal_code?: string | null;
+    country?: string | null;
+    cart_items: Array<{ name: string; quantity: number; price: number; image?: string }>;
     cart_total: number;
     source: string;
     created_at: string;
   };
   const [abandonedList, setAbandonedList] = useState<AbandonedRow[]>([]);
   const [abandonedLoading, setAbandonedLoading] = useState(false);
-  const [expandedAbandonedId, setExpandedAbandonedId] = useState<string | null>(null);
+  const [abandonedDetailRow, setAbandonedDetailRow] = useState<AbandonedRow | null>(null);
+  const [sendingEmailId, setSendingEmailId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!syncSecret) return;
@@ -203,6 +212,30 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
       setAbandonedList([]);
     } finally {
       setAbandonedLoading(false);
+    }
+  };
+
+  const handleSendReminderEmail = async (row: AbandonedRow) => {
+    if (!syncSecret) return;
+    if (!row.email) {
+      toast.error('No hay email registrado para este carrito');
+      return;
+    }
+    
+    setSendingEmailId(row.id);
+    try {
+      await sendAbandonedCart({
+        email: row.email,
+        items: row.cart_items,
+        cartTotal: row.cart_total,
+        session_id: row.session_id || undefined,
+        syncSecret,
+      });
+      toast.success('Correo de recordatorio enviado a ' + row.email);
+    } catch (e: any) {
+      toast.error('Error al enviar el correo', { description: e?.message });
+    } finally {
+      setSendingEmailId(null);
     }
   };
 
@@ -1461,84 +1494,187 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
               ) : abandonedList.length === 0 ? (
                 <div className="p-12 text-center text-slate-500">No hay registros de carritos abandonados</div>
               ) : (
+                <>
                 <div className="divide-y divide-slate-100">
                   {abandonedList.map((row) => {
-                    const isExpanded = expandedAbandonedId === row.id;
                     const items = Array.isArray(row.cart_items) ? row.cart_items : [];
+                    const stepLabel = row.source === 'checkout_step_1' ? 'Paso 1 (Contacto)' : row.source === 'checkout_step_2' ? 'Paso 2 (Envío)' : row.source === 'checkout_cancel' ? 'Canceló en pago (Paso 3)' : row.source === 'exit_intent' ? 'Exit intent' : row.source;
                     return (
-                      <div key={row.id} className="bg-white hover:bg-slate-50/50 transition-colors">
-                        <button
-                          onClick={() => setExpandedAbandonedId(isExpanded ? null : row.id)}
-                          className="w-full p-4 flex items-center justify-between text-left"
-                        >
-                          <div className="flex items-center gap-4 min-w-0">
-                            <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
-                              <ShoppingCart className="h-5 w-5 text-amber-600" />
-                            </div>
-                            <div>
-                              <div className="font-semibold text-slate-900 flex items-center gap-2">
-                                {row.email || 'Sin email'}
-                                <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                                  {row.source === 'exit_intent' ? 'Exit intent' : row.source === 'checkout_cancel' ? 'Canceló pago' : row.source}
+                      <div key={row.id} className="bg-white hover:bg-slate-50/50 transition-colors p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4 min-w-0 flex-1">
+                          <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-amber-100 flex items-center justify-center">
+                            <ShoppingCart className="h-5 w-5 text-amber-600" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="font-semibold text-slate-900">{row.email || 'Sin email'}</div>
+                            <div className="text-sm text-slate-600 mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
+                              <span className="inline-flex items-center gap-1">
+                                <span className="text-slate-500">Hasta qué paso llegó:</span>
+                                <span className="font-medium text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
+                                  {stepLabel}
                                 </span>
-                              </div>
-                              <div className="text-sm text-slate-600 mt-0.5">
-                                {items.length} producto(s) · {Number(row.cart_total || 0).toFixed(2)} €
-                              </div>
+                              </span>
+                              <span>{items.length} producto(s) · {Number(row.cart_total || 0).toFixed(2)} €</span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-4 flex-shrink-0">
-                            <div className="text-right hidden sm:block text-xs text-slate-500">
-                              {new Date(row.created_at).toLocaleDateString('es-ES', {
-                                day: '2-digit',
-                                month: 'short',
-                                year: 'numeric',
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </div>
-                            {isExpanded ? (
-                              <ChevronUp className="h-5 w-5 text-slate-400" />
-                            ) : (
-                              <ChevronDown className="h-5 w-5 text-slate-400" />
-                            )}
+                        </div>
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-shrink-0 mt-3 sm:mt-0 w-full sm:w-auto relative z-20">
+                          <div className="text-left sm:text-right text-xs text-slate-500 sm:mr-2">
+                            {new Date(row.created_at).toLocaleDateString('es-ES', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
                           </div>
-                        </button>
-                        {isExpanded && (
-                          <div className="px-4 pb-4 pt-0 border-t border-slate-100 bg-slate-50/50">
-                            <div className="rounded-xl bg-white border border-slate-200 p-4 space-y-4 mt-4">
-                              {row.email && (
-                                <div className="flex items-center gap-2">
-                                  <Mail className="h-4 w-4 text-slate-400" />
-                                  <span className="text-sm text-slate-900">{row.email}</span>
-                                </div>
-                              )}
-                              <div>
-                                <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Productos en el carrito</div>
-                                <div className="space-y-2">
-                                  {items.map((it, idx) => (
-                                    <div
-                                      key={idx}
-                                      className="flex items-center justify-between p-3 rounded-lg bg-slate-50 border border-slate-100"
-                                    >
-                                      <span className="font-medium text-slate-900 truncate">{it.name}</span>
-                                      <span className="text-sm text-slate-600">
-                                        x{it.quantity} · {Number(it.price || 0).toFixed(2)} €
-                                      </span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                              <div className="text-sm font-semibold text-slate-900 pt-2 border-t border-slate-200">
-                                Total: {Number(row.cart_total || 0).toFixed(2)} €
-                              </div>
-                            </div>
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleSendReminderEmail(row);
+                              }}
+                              disabled={sendingEmailId === row.id || !row.email}
+                              style={{ 
+                                backgroundColor: row.email ? '#d97706' : '#94a3b8', 
+                                color: 'white', 
+                                padding: '6px 12px', 
+                                borderRadius: '6px',
+                                fontSize: '13px',
+                                fontWeight: '500',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '6px',
+                                cursor: row.email ? 'pointer' : 'not-allowed',
+                                border: 'none'
+                              }}
+                            >
+                              <Mail size={14} className={sendingEmailId === row.id ? 'animate-pulse' : ''} />
+                              {sendingEmailId === row.id ? 'Enviando...' : 'Recordatorio manual'}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                setAbandonedDetailRow(row);
+                              }}
+                              className="px-3 py-1.5 text-xs sm:text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 flex items-center justify-center gap-1.5 cursor-pointer"
+                            >
+                              <Info className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                              <span>Ver detalles</span>
+                            </button>
                           </div>
-                        )}
+                        </div>
                       </div>
                     );
                   })}
                 </div>
+
+                {/* Popup de detalles del abandono */}
+                {abandonedDetailRow && (
+                  <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+                    onClick={() => setAbandonedDetailRow(null)}
+                  >
+                    <div
+                      className="bg-white rounded-xl shadow-xl max-w-lg w-full max-h-[90vh] overflow-hidden flex flex-col"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-slate-900">Detalles del carrito abandonado</h3>
+                        <div className="flex items-center gap-2">
+                          {abandonedDetailRow.email && (
+                            <button
+                              onClick={() => handleSendReminderEmail(abandonedDetailRow)}
+                              disabled={sendingEmailId === abandonedDetailRow.id}
+                              className="px-3 py-1.5 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 disabled:opacity-60 flex items-center gap-1.5 transition-colors"
+                            >
+                              <Mail className={`h-4 w-4 ${sendingEmailId === abandonedDetailRow.id ? 'animate-pulse' : ''}`} />
+                              <span className="hidden sm:inline">{sendingEmailId === abandonedDetailRow.id ? 'Enviando...' : 'Enviar recordatorio'}</span>
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setAbandonedDetailRow(null)}
+                            className="p-2 rounded-lg hover:bg-slate-100 text-slate-600"
+                          >
+                            <X className="h-5 w-5" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="p-4 overflow-y-auto space-y-4">
+                        <div>
+                          <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">Hasta qué paso llegó</div>
+                          <div className="text-sm font-medium text-amber-700 bg-amber-50 px-3 py-2 rounded-lg inline-block">
+                            {abandonedDetailRow.source === 'checkout_step_1' ? 'Paso 1 (Contacto)' : abandonedDetailRow.source === 'checkout_step_2' ? 'Paso 2 (Envío)' : abandonedDetailRow.source === 'checkout_cancel' ? 'Canceló en pago (Paso 3)' : abandonedDetailRow.source === 'exit_intent' ? 'Exit intent' : abandonedDetailRow.source}
+                          </div>
+                        </div>
+                        {(abandonedDetailRow.email || abandonedDetailRow.first_name || abandonedDetailRow.phone) && (
+                          <div className="grid sm:grid-cols-2 gap-3">
+                            {abandonedDetailRow.email && (
+                              <div className="flex items-center gap-2">
+                                <Mail className="h-4 w-4 text-slate-400 shrink-0" />
+                                <span className="text-sm text-slate-900">{abandonedDetailRow.email}</span>
+                              </div>
+                            )}
+                            {(abandonedDetailRow.first_name || abandonedDetailRow.last_name) && (
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-slate-400 shrink-0" />
+                                <span className="text-sm text-slate-900">{[abandonedDetailRow.first_name, abandonedDetailRow.last_name].filter(Boolean).join(' ')}</span>
+                              </div>
+                            )}
+                            {abandonedDetailRow.phone && (
+                              <div className="flex items-center gap-2">
+                                <Phone className="h-4 w-4 text-slate-400 shrink-0" />
+                                <span className="text-sm text-slate-900">{abandonedDetailRow.phone}</span>
+                              </div>
+                            )}
+                            {(abandonedDetailRow.street || abandonedDetailRow.city) && (
+                              <div className="flex items-center gap-2 sm:col-span-2">
+                                <MapPin className="h-4 w-4 text-slate-400 shrink-0" />
+                                <span className="text-sm text-slate-900">
+                                  {[abandonedDetailRow.street, abandonedDetailRow.postal_code, abandonedDetailRow.city, abandonedDetailRow.country].filter(Boolean).join(', ')}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                        <div>
+                          <div className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-2">Productos en el carrito</div>
+                          <div className="space-y-2">
+                            {(Array.isArray(abandonedDetailRow.cart_items) ? abandonedDetailRow.cart_items : []).map((it, idx) => (
+                              <div
+                                key={idx}
+                                className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 border border-slate-100"
+                              >
+                                {it.image ? (
+                                  <img src={it.image} alt="" className="w-14 h-14 rounded-lg object-cover flex-shrink-0" />
+                                ) : (
+                                  <div className="w-14 h-14 rounded-lg bg-slate-200 flex items-center justify-center flex-shrink-0">
+                                    <Package className="h-6 w-6 text-slate-400" />
+                                  </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-slate-900 truncate">{it.name}</div>
+                                  <div className="text-sm text-slate-600">
+                                    Cantidad: {it.quantity} · {Number(it.price || 0).toFixed(2)} €
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="text-sm font-semibold text-slate-900 pt-2 border-t border-slate-200">
+                          Total: {Number(abandonedDetailRow.cart_total || 0).toFixed(2)} €
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                </>
               )}
             </div>
           </Tabs.Content>
@@ -1588,14 +1724,14 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
               ) : (
                 <div className="divide-y divide-slate-100">
                   {genderSubmissions.map((sub) => (
-                    <div key={sub.id} className="p-4 hover:bg-slate-50/50 transition-colors flex flex-col sm:flex-row gap-4">
+                    <div key={sub.id} className="p-5 hover:bg-slate-50/70 transition-colors flex flex-col sm:flex-row gap-5 sm:gap-6">
                       <div className="flex-shrink-0">
                         {sub.ultrasound_url ? (
                           <a
                             href={sub.ultrasound_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="block w-24 h-24 rounded-xl overflow-hidden border-2 border-slate-200 hover:border-[#83b5b6] transition-colors"
+                            className="block w-20 h-20 sm:w-24 sm:h-24 rounded-xl overflow-hidden border-2 border-slate-200 hover:border-[#83b5b6] hover:shadow-md transition-all ring-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#83b5b6]"
                           >
                             <img
                               src={sub.ultrasound_url}
@@ -1604,35 +1740,44 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
                             />
                           </a>
                         ) : (
-                          <div className="w-24 h-24 rounded-xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center">
+                          <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl bg-slate-100 border-2 border-slate-200 flex items-center justify-center">
                             <Image className="h-8 w-8 text-slate-400" />
                           </div>
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-slate-900">{sub.name}</div>
-                        <div className="text-sm text-slate-600 flex flex-wrap gap-x-4 gap-y-1 mt-1">
-                          <span className="flex items-center gap-1">
-                            <Mail className="h-3.5 w-3.5" />
-                            {sub.email}
+                      <div className="flex-1 min-w-0 space-y-2">
+                        <div className="flex flex-wrap items-baseline gap-2">
+                          <h4 className="text-base font-semibold text-slate-900">{sub.name}</h4>
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-[#83b5b6]/15 text-[#5a9597]">
+                            Semana {sub.pregnancy_weeks}
                           </span>
-                          <span className="flex items-center gap-1">
-                            <Phone className="h-3.5 w-3.5" />
-                            {sub.phone}
-                          </span>
+                          <span className="text-xs text-slate-400 capitalize">{sub.ultrasound_type}</span>
                         </div>
-                        <div className="text-xs text-slate-500 mt-2 flex flex-wrap gap-x-4">
-                          <span>Semana {sub.pregnancy_weeks}</span>
-                          <span>Tipo: {sub.ultrasound_type}</span>
-                          <span>
-                            {new Date(sub.created_at).toLocaleDateString('es-ES', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
+                        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-1 sm:gap-x-5 sm:gap-y-1 text-sm text-slate-600">
+                          <a
+                            href={`mailto:${sub.email}`}
+                            className="flex items-center gap-1.5 hover:text-[#83b5b6] hover:underline"
+                          >
+                            <Mail className="h-4 w-4 text-slate-400 shrink-0" />
+                            {sub.email}
+                          </a>
+                          <a
+                            href={`tel:${sub.phone}`}
+                            className="flex items-center gap-1.5 hover:text-[#83b5b6] hover:underline"
+                          >
+                            <Phone className="h-4 w-4 text-slate-400 shrink-0" />
+                            {sub.phone}
+                          </a>
+                        </div>
+                        <div className="text-xs text-slate-500 flex items-center gap-1">
+                          <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                          {new Date(sub.created_at).toLocaleDateString('es-ES', {
+                            day: '2-digit',
+                            month: 'short',
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
                         </div>
                       </div>
                     </div>

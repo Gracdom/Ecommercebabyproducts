@@ -32,7 +32,7 @@ VALUES (
   'ecografias',
   true,
   5242880,
-  ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif']::text[]
+  ARRAY['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']::text[]
 )
 ON CONFLICT (id) DO UPDATE SET
   public = EXCLUDED.public,
