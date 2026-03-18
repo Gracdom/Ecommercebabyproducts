@@ -34,6 +34,14 @@ function normalizeProducts(value: unknown): Array<{ reference: string; quantity:
     .sort((a, b) => a.reference.localeCompare(b.reference));
 }
 
+function escapeHtml(s: string): string {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 // Enable logger
 app.use('*', logger(console.log));
 
@@ -64,25 +72,25 @@ app.post("/make-server-335110ef/email/newsletter-welcome", async (c) => {
     const body = await c.req.json().catch(() => ({}));
     const email = String(body?.email ?? "").trim().toLowerCase();
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return c.json({ error: "Email invÃƒÆ’Ã‚Â¡lido" }, 400);
+      return c.json({ error: "Email invalido" }, 400);
     }
 
     await sendEmail({
       from: DEFAULT_FROM_EMAIL,
       to: email,
-      subject: "Ãƒâ€šÃ‚Â¡Bienvenido a e-baby! ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° 10% de descuento en tu primera compra",
+      subject: "\u00a1Bienvenido a e-baby! 10% de descuento en tu primera compra",
       html: `
         <!DOCTYPE html>
         <html>
         <head><meta charset="utf-8"></head>
         <body style="font-family: 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; color: #2d3748;">
-          <h1 style="color: #FFC1CC; margin-bottom: 16px;">Ãƒâ€šÃ‚Â¡Gracias por suscribirte! ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‚Â¶</h1>
+          <h1 style="color: #FFC1CC; margin-bottom: 16px;">\u00a1Gracias por suscribirte!</h1>
           <p>Hola,</p>
-          <p>Ãƒâ€šÃ‚Â¡Bienvenido a la familia e-baby! Estamos encantados de tenerte.</p>
+          <p>\u00a1Bienvenido a la familia e-baby! Estamos encantados de tenerte.</p>
           <p>Como regalo de bienvenida, disfruta de <strong>10% de descuento</strong> en tu primera compra.</p>
           <p style="margin: 24px 0;"><a href="https://e-baby.es" style="background: #FFC1CC; color: white; padding: 12px 24px; text-decoration: none; border-radius: 12px; display: inline-block;">Ir a la tienda</a></p>
-          <p>RecibirÃƒÆ’Ã‚Â¡s ofertas exclusivas, consejos para bebÃƒÆ’Ã‚Â©s y las ÃƒÆ’Ã‚Âºltimas novedades.</p>
-          <p style="color: #718096; font-size: 14px; margin-top: 32px;">e-baby ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Productos para tu bebÃƒÆ’Ã‚Â© con amor ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã¢â‚¬Â¢</p>
+          <p>Recibir\u00e1s ofertas exclusivas, consejos para beb\u00e9s y las \u00faltimas novedades.</p>
+          <p style="color: #718096; font-size: 14px; margin-top: 32px;">e-baby &mdash; Productos para tu beb\u00e9 con amor</p>
         </body>
         </html>
       `,
@@ -105,7 +113,7 @@ app.post("/make-server-335110ef/email/abandoned-cart", async (c) => {
     const sessionId = body?.session_id ? String(body.session_id).slice(0, 128) : null;
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      return c.json({ error: "Email invÃƒÆ’Ã‚Â¡lido" }, 400);
+      return c.json({ error: "Email invalido" }, 400);
     }
 
     // Guardar en abandoned_checkouts para el panel admin
@@ -124,27 +132,27 @@ app.post("/make-server-335110ef/email/abandoned-cart", async (c) => {
     }
 
     const itemsList = items
-      .map((i) => `• ${i.name} x${i.quantity} - ${Number(i.price || 0).toFixed(2)} €`)
+      .map((i) => `&bull; ${escapeHtml(i.name)} x${i.quantity} - ${Number(i.price || 0).toFixed(2)} \u20ac`)
       .join("<br>") || "Productos en tu carrito";
 
-    // Email 1: 1 hora después del abandono
+    // Email 1: 1 hora despues del abandono
     await sendEmail({
       from: DEFAULT_FROM_EMAIL,
       to: email,
       schedule: "in 1 hour",
-      subject: "Ãƒâ€šÃ‚Â¿Olvidaste algo? Tu carrito te espera ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‚Â¶",
+      subject: "\u00bfOlvidaste algo? Tu carrito te espera",
       html: `
         <!DOCTYPE html>
         <html>
         <head><meta charset="utf-8"></head>
         <body style="font-family: 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; color: #2d3748;">
-          <h1 style="color: #FFC1CC; margin-bottom: 16px;">Ãƒâ€šÃ‚Â¡Hola! ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‚Â¶</h1>
-          <p>Has dejado productos en tu carrito. Ãƒâ€šÃ‚Â¿Necesitas ayuda para terminar tu compra?</p>
+          <h1 style="color: #FFC1CC; margin-bottom: 16px;">\u00a1Hola!</h1>
+          <p>Has dejado productos en tu carrito. \u00bfNecesitas ayuda para terminar tu compra?</p>
           <p><strong>Resumen:</strong></p>
           <div style="background: #f9f9f9; padding: 16px; border-radius: 12px; margin: 16px 0;">${itemsList}</div>
-          <p><strong>Total:</strong> ${cartTotal.toFixed(2)} ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬</p>
+          <p><strong>Total:</strong> ${cartTotal.toFixed(2)} \u20ac</p>
           <p style="margin: 24px 0;"><a href="https://e-baby.es" style="background: #FFC1CC; color: white; padding: 12px 24px; text-decoration: none; border-radius: 12px; display: inline-block;">Recuperar carrito</a></p>
-          <p style="color: #718096; font-size: 14px; margin-top: 32px;">e-baby ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Productos para tu bebÃƒÆ’Ã‚Â© con amor ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã¢â‚¬Â¢</p>
+          <p style="color: #718096; font-size: 14px; margin-top: 32px;">e-baby &mdash; Productos para tu beb\u00e9 con amor</p>
         </body>
         </html>
       `,
@@ -154,18 +162,18 @@ app.post("/make-server-335110ef/email/abandoned-cart", async (c) => {
     await sendEmail({
       from: DEFAULT_FROM_EMAIL,
       to: email,
-      subject: "Ãƒâ€šÃ‚Â¿Seguimos con tu pedido? 10% de descuento te espera ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â",
+      subject: "\u00bfSeguimos con tu pedido? 10% de descuento te espera",
       schedule: "in 24 hours",
       html: `
         <!DOCTYPE html>
         <html>
         <head><meta charset="utf-8"></head>
         <body style="font-family: 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; color: #2d3748;">
-          <h1 style="color: #FFC1CC; margin-bottom: 16px;">Te echamos de menos ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂºÃ¢â‚¬â„¢</h1>
-          <p>Tu carrito sigue esperÃƒÆ’Ã‚Â¡ndote. Como regalo, usa <strong>RECUERDA10</strong> para un <strong>10% de descuento</strong> en tu prÃƒÆ’Ã‚Â³xima compra.</p>
-          <p><strong>Total en tu carrito:</strong> ${cartTotal.toFixed(2)} ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬</p>
+          <h1 style="color: #FFC1CC; margin-bottom: 16px;">Te echamos de menos</h1>
+          <p>Tu carrito sigue esper\u00e1ndote. Como regalo, usa <strong>RECUERDA10</strong> para un <strong>10% de descuento</strong> en tu pr\u00f3xima compra.</p>
+          <p><strong>Total en tu carrito:</strong> ${cartTotal.toFixed(2)} \u20ac</p>
           <p style="margin: 24px 0;"><a href="https://e-baby.es" style="background: #83b5b6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 12px; display: inline-block;">Completar compra con descuento</a></p>
-          <p style="color: #718096; font-size: 14px; margin-top: 32px;">e-baby ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Productos para tu bebÃƒÆ’Ã‚Â© con amor ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã¢â‚¬Â¢</p>
+          <p style="color: #718096; font-size: 14px; margin-top: 32px;">e-baby &mdash; Productos para tu beb\u00e9 con amor</p>
         </body>
         </html>
       `,
@@ -175,18 +183,18 @@ app.post("/make-server-335110ef/email/abandoned-cart", async (c) => {
     await sendEmail({
       from: DEFAULT_FROM_EMAIL,
       to: email,
-      subject: "ÃƒÆ’Ã…Â¡ltima oportunidad: tu carrito estÃƒÆ’Ã‚Â¡ a punto de vaciarse ÃƒÂ¢Ã‚ÂÃ‚Â°",
+      subject: "\u00daltima oportunidad: tu carrito est\u00e1 a punto de vaciarse",
       schedule: "in 48 hours",
       html: `
         <!DOCTYPE html>
         <html>
         <head><meta charset="utf-8"></head>
         <body style="font-family: 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; color: #2d3748;">
-          <h1 style="color: #FFC1CC; margin-bottom: 16px;">Ãƒâ€šÃ‚Â¡ÃƒÆ’Ã…Â¡ltima oportunidad! ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‚Â¶</h1>
-          <p>Tu carrito se vaciarÃƒÆ’Ã‚Â¡ pronto. No pierdas tus productos ni el 10% de descuento con <strong>RECUERDA10</strong>.</p>
-          <p><strong>Total:</strong> ${cartTotal.toFixed(2)} ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬</p>
+          <h1 style="color: #FFC1CC; margin-bottom: 16px;">\u00a1\u00daltima oportunidad!</h1>
+          <p>Tu carrito se vaciar\u00e1 pronto. No pierdas tus productos ni el 10% de descuento con <strong>RECUERDA10</strong>.</p>
+          <p><strong>Total:</strong> ${cartTotal.toFixed(2)} \u20ac</p>
           <p style="margin: 24px 0;"><a href="https://e-baby.es" style="background: #FFC1CC; color: white; padding: 12px 24px; text-decoration: none; border-radius: 12px; display: inline-block;">Finalizar compra ahora</a></p>
-          <p style="color: #718096; font-size: 14px; margin-top: 32px;">e-baby ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Productos para tu bebÃƒÆ’Ã‚Â© con amor ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã¢â‚¬Â¢</p>
+          <p style="color: #718096; font-size: 14px; margin-top: 32px;">e-baby &mdash; Productos para tu beb\u00e9 con amor</p>
         </body>
         </html>
       `,
@@ -524,19 +532,19 @@ app.post("/make-server-335110ef/stripe/webhook", async (c) => {
       await sendEmail({
         from: DEFAULT_FROM_EMAIL,
         to: customerEmail,
-        subject: `Ãƒâ€šÃ‚Â¡Pedido confirmado! #${internalReference} - e-baby`,
+        subject: `\u00a1Pedido confirmado! #${internalReference} - e-baby`,
         html: `
           <!DOCTYPE html>
           <html>
           <head><meta charset="utf-8"></head>
           <body style="font-family: 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; color: #2d3748;">
-            <h1 style="color: #FFC1CC; margin-bottom: 16px;">Ãƒâ€šÃ‚Â¡Gracias por tu compra, ${customerName}! ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â°</h1>
+            <h1 style="color: #FFC1CC; margin-bottom: 16px;">\u00a1Gracias por tu compra, ${escapeHtml(customerName)}!</h1>
             <p>Tu pedido ha sido confirmado correctamente.</p>
-            <p><strong>NÃƒâ€šÃ‚Âº de pedido:</strong> ${internalReference}</p>
-            <p><strong>Total:</strong> ${total.toFixed(2)} ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬</p>
-            <p>Te avisaremos cuando tu pedido salga de nuestro almacÃƒÆ’Ã‚Â©n.</p>
+            <p><strong>N\u00ba de pedido:</strong> ${escapeHtml(internalReference)}</p>
+            <p><strong>Total:</strong> ${total.toFixed(2)} \u20ac</p>
+            <p>Te avisaremos cuando tu pedido salga de nuestro almac\u00e9n.</p>
             <p style="margin: 24px 0;"><a href="https://e-baby.es" style="background: #FFC1CC; color: white; padding: 12px 24px; text-decoration: none; border-radius: 12px; display: inline-block;">Seguir comprando</a></p>
-            <p style="color: #718096; font-size: 14px; margin-top: 32px;">e-baby ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Productos para tu bebÃƒÆ’Ã‚Â© con amor ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã¢â‚¬Â¢</p>
+            <p style="color: #718096; font-size: 14px; margin-top: 32px;">e-baby &mdash; Productos para tu beb\u00e9 con amor</p>
           </body>
           </html>
         `,
@@ -546,16 +554,16 @@ app.post("/make-server-335110ef/stripe/webhook", async (c) => {
     await sendEmail({
       from: DEFAULT_FROM_EMAIL,
       to: "karen.rivera@gracdom.com",
-      subject: `ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂºÃ¢â‚¬â„¢ Nueva venta #${internalReference} - e-baby`,
+      subject: `Nueva venta #${internalReference} - e-baby`,
       html: `
         <!DOCTYPE html>
         <html>
         <head><meta charset="utf-8"></head>
         <body style="font-family: 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #2d3748;">
           <h1 style="color: #83b5b6;">Nueva venta (Stripe)</h1>
-          <p><strong>Pedido:</strong> ${internalReference}</p>
-          <p><strong>Cliente:</strong> ${customerName} (${customerEmail})</p>
-          <p><strong>Total:</strong> ${total.toFixed(2)} ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬</p>
+          <p><strong>Pedido:</strong> ${escapeHtml(internalReference)}</p>
+          <p><strong>Cliente:</strong> ${escapeHtml(customerName)} (${escapeHtml(customerEmail)})</p>
+          <p><strong>Total:</strong> ${total.toFixed(2)} \u20ac</p>
         </body>
         </html>
       `,
