@@ -1,4 +1,5 @@
 import { Truck, Calendar } from 'lucide-react';
+import { FREE_SHIPPING_FROM_EUR } from '../constants/shipping';
 
 export function EstimatedDelivery() {
   // Calculate delivery date range (3-5 business days from now)
@@ -70,7 +71,7 @@ export function EstimatedDelivery() {
           )}
           
           <p className="text-xs text-stone-600 mt-2">
-            Envío gratis en pedidos superiores a €50
+            Envío gratis en pedidos a partir de {FREE_SHIPPING_FROM_EUR}€
           </p>
         </div>
       </div>

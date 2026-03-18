@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Heart, ShoppingCart, Star, Truck, Shield, Share2, ChevronRight, ChevronLeft, Check, Sparkles } from 'lucide-react';
 import { Product } from '../types';
+import { FREE_SHIPPING_FROM_EUR } from '../constants/shipping';
 import { useProductAnalytics } from '../hooks/useProductAnalytics';
 
 interface ProductPageProps {
@@ -398,7 +399,7 @@ export function ProductPage({ product, allProducts = [], onAddToCart, onBack, on
                 <Truck className="h-5 w-5 text-[#83b5b6]" />
                 <div className="text-xs">
                   <div className="font-medium text-stone-900">Envío gratis</div>
-                  <div className="text-stone-500">Pedidos +50€</div>
+                  <div className="text-stone-500">Desde {FREE_SHIPPING_FROM_EUR}€</div>
                 </div>
               </div>
               <div className="flex items-center gap-3 p-3 bg-stone-50 rounded-xl">

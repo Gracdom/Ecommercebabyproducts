@@ -1,4 +1,5 @@
-import { Shield, Truck, RefreshCw, Award, Lock, Heart } from 'lucide-react';
+import { Shield, Truck, MessageCircle, Award, Lock, Heart } from 'lucide-react';
+import { FREE_SHIPPING_FROM_EUR } from '../constants/shipping';
 
 export function TrustBadges() {
   return (
@@ -18,15 +19,15 @@ export function TrustBadges() {
               <Truck className="h-7 w-7 text-white" />
             </div>
             <p className="text-sm font-semibold text-[#2d3748] mb-1">Envío gratis</p>
-            <p className="text-xs text-[#718096]">+50€</p>
+            <p className="text-xs text-[#718096]">desde {FREE_SHIPPING_FROM_EUR}€</p>
           </div>
 
           <div className="flex flex-col items-center text-center">
             <div className="w-14 h-14 bg-gradient-to-br from-[#FFF9C4] to-[#FFE5B4] rounded-3xl flex items-center justify-center mb-4 shadow-lg">
-              <RefreshCw className="h-7 w-7 text-white" />
+              <MessageCircle className="h-7 w-7 text-white" />
             </div>
-            <p className="text-sm font-semibold text-[#2d3748] mb-1">Devolución</p>
-            <p className="text-xs text-[#718096]">30 días gratis</p>
+            <p className="text-sm font-semibold text-[#2d3748] mb-1">Soporte</p>
+            <p className="text-xs text-[#718096]">WhatsApp</p>
           </div>
 
           <div className="flex flex-col items-center text-center">

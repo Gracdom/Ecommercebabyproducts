@@ -1,5 +1,6 @@
 import { X, Minus, Plus, ShoppingBag, ArrowRight, Tag } from 'lucide-react';
 import { Product } from '../types';
+import { FREE_SHIPPING_FROM_EUR, shippingCostEur } from '../constants/shipping';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 
 const FALLBACK_PRODUCTS: Product[] = [
@@ -35,8 +36,7 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
 
   const IVA_RATE = 0.21;
   const subtotal = items.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
-  // Coste de envío fijo para el cliente
-  const shipping = items.length > 0 ? 6 : 0;
+  const shipping = shippingCostEur(subtotal);
   const baseImponible = subtotal + shipping;
   const iva = baseImponible * IVA_RATE;
   const total = baseImponible + iva;
@@ -71,7 +71,7 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
           </button>
         </div>
 
-        {/* (Sin barras de progreso de envío: coste fijo de 6 €) */}
+        {/* Envío gratis desde FREE_SHIPPING_FROM_EUR € */}
 
         {/* Scrollable Content: Items + Options */}
         <div className="flex-1 overflow-y-auto p-6 bg-white">
@@ -177,8 +177,15 @@ export function Cart({ isOpen, onClose, items, onUpdateQuantity, onRemove, onChe
               </div>
               <div className="flex justify-between">
                 <span className="text-[#9ca3af]">Envío</span>
-                <span className="font-medium text-[#5e544e]">€{shipping.toFixed(2)}</span>
+                <span className={`font-medium ${shipping === 0 ? 'text-[#83b5b6]' : 'text-[#5e544e]'}`}>
+                  {shipping === 0 ? 'GRATIS' : `€${shipping.toFixed(2)}`}
+                </span>
               </div>
+              {shipping > 0 && (
+                <p className="text-[11px] text-[#9ca3af]">
+                  Envío gratis a partir de {FREE_SHIPPING_FROM_EUR}€
+                </p>
+              )}
               <div className="flex justify-between">
                 <span className="text-[#9ca3af]">IVA (21%)</span>
                 <span className="text-[#5e544e] font-medium">€{iva.toFixed(2)}</span>

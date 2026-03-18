@@ -95,7 +95,7 @@ app.post("/make-server-335110ef/email/newsletter-welcome", async (c) => {
   }
 });
 
-// Carrito abandonado - flujo de 3 correos (1 ahora, 2 programados)
+// Carrito abandonado: 1º correo a 1 h, 2º a 24 h, 3º a 48 h
 app.post("/make-server-335110ef/email/abandoned-cart", async (c) => {
   try {
     const body = await c.req.json().catch(() => ({}));
@@ -127,10 +127,11 @@ app.post("/make-server-335110ef/email/abandoned-cart", async (c) => {
       .map((i) => `• ${i.name} x${i.quantity} - ${Number(i.price || 0).toFixed(2)} €`)
       .join("<br>") || "Productos en tu carrito";
 
-    // Email 1: inmediato
+    // Email 1: 1 hora después del abandono
     await sendEmail({
       from: DEFAULT_FROM_EMAIL,
       to: email,
+      schedule: "in 1 hour",
       subject: "Ãƒâ€šÃ‚Â¿Olvidaste algo? Tu carrito te espera ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‚Â¶",
       html: `
         <!DOCTYPE html>

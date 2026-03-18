@@ -43,6 +43,7 @@ import { LoginModal } from './components/LoginModal';
 import { SignUpModal } from './components/SignUpModal';
 import { UserProfile } from './components/UserProfile';
 import { toast } from 'sonner@2.0.3';
+import { shippingCostEur } from './constants/shipping';
 import { Product } from './types';
 import { fetchCatalogProducts, fetchCategories, fetchProductsByCategory, type CategoryInfo } from './utils/ebaby/catalog';
 import { createProductSlug, createSlug } from './utils/slug';
@@ -330,7 +331,10 @@ export default function App() {
       price: (i.price ?? 0) * (i.quantity ?? 1),
       image: (i.images?.[0] ?? i.image) ?? undefined,
     }));
-    const cartTotal = cartItems.reduce((s, i) => s + (i.price ?? 0) * (i.quantity ?? 1), 0);
+    const subAb = cartItems.reduce((s, i) => s + (i.price ?? 0) * (i.quantity ?? 1), 0);
+    const shAb = shippingCostEur(subAb);
+    const ivaAb = (subAb + shAb) * 0.21;
+    const cartTotal = subAb + shAb + ivaAb;
     let email: string | undefined;
     try {
       const draft = sessionStorage.getItem('checkout_form_draft');

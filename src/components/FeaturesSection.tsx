@@ -1,16 +1,17 @@
-import { Truck, RefreshCw, CreditCard } from 'lucide-react';
+import { Truck, Headphones, CreditCard } from 'lucide-react';
+import { FREE_SHIPPING_FROM_EUR } from '../constants/shipping';
 
 export function FeaturesSection() {
   const features = [
     {
       icon: Truck,
       title: 'Envío Gratuito',
-      description: 'Cada compra superior a 199€ es elegible para envío gratuito.',
+      description: `Envío gratis en pedidos a partir de ${FREE_SHIPPING_FROM_EUR}€.`,
     },
     {
-      icon: RefreshCw,
-      title: 'Devoluciones Fáciles',
-      description: '30 días de garantía para cada producto de nuestra tienda.',
+      icon: Headphones,
+      title: 'Atención al cliente',
+      description: 'Resolvemos tus dudas por email y WhatsApp.',
     },
     {
       icon: CreditCard,

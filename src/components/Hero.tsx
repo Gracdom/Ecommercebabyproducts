@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { ArrowRight, Sparkles, Star, TrendingUp, Baby } from 'lucide-react';
+import { FREE_SHIPPING_FROM_EUR } from '../constants/shipping';
 
 interface HeroProps {
   onGenderPredictorClick?: () => void;
@@ -94,7 +95,7 @@ export function Hero({ onGenderPredictorClick, onExploreClick, onOffersClick }: 
           <div className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-[#FFC1CC]/30 via-[#E0F7FA]/30 to-[#FFF9C4]/30 px-3 sm:px-6 py-2 sm:py-3 rounded-full backdrop-blur-sm flex-wrap w-fit">
             <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-[#FF6B9D] animate-pulse flex-shrink-0" />
             <span className="text-xs sm:text-sm text-[#2d3748] font-semibold">
-              Envío gratis a partir de 200€
+              Envío gratis a partir de {FREE_SHIPPING_FROM_EUR}€
             </span>
             <div className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-[#FFC1CC] rounded-full animate-pulse flex-shrink-0" />
           </div>

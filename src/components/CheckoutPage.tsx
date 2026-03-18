@@ -4,6 +4,7 @@ import { Product } from '../types';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { toast } from 'sonner@2.0.3';
 import { createStripeCheckoutSession, saveAbandonedCheckout } from '../utils/bigbuy/edge';
+import { FREE_SHIPPING_FROM_EUR, shippingCostEur } from '../constants/shipping';
 import { useProductAnalytics } from '../hooks/useProductAnalytics';
 
 interface CheckoutPageProps {
@@ -83,7 +84,7 @@ export function CheckoutPage({ items, sessionId = '', onBack, onComplete }: Chec
   // Calculations (IVA 21% sobre base imponible = subtotal + envío)
   const IVA_RATE = 0.21;
   const subtotal = items.reduce((sum, item) => sum + item.price * (item.quantity || 1), 0);
-  const shipping = items.length > 0 ? 6 : 0;
+  const shipping = shippingCostEur(subtotal);
   const discount = 0;
   const baseImponible = subtotal + shipping;
   const iva = baseImponible * IVA_RATE;
@@ -620,6 +621,17 @@ export function CheckoutPage({ items, sessionId = '', onBack, onComplete }: Chec
                     {shipping === 0 ? 'GRATIS' : `€${shipping.toFixed(2)}`}
                   </span>
                 </div>
+                {items.length > 0 && shipping > 0 && (
+                  <p className="text-xs text-stone-500 -mt-1">
+                    Envío gratis a partir de {FREE_SHIPPING_FROM_EUR}€ en productos (te faltan{' '}
+                    {(FREE_SHIPPING_FROM_EUR - subtotal).toFixed(2)}€)
+                  </p>
+                )}
+                {items.length > 0 && shipping === 0 && subtotal >= FREE_SHIPPING_FROM_EUR && (
+                  <p className="text-xs text-primary font-medium -mt-1">
+                    Has alcanzado el envío gratis (pedidos desde {FREE_SHIPPING_FROM_EUR}€)
+                  </p>
+                )}
                 <div className="flex justify-between">
                   <span className="text-stone-600">IVA (21%)</span>
                   <span className="text-stone-900">€{iva.toFixed(2)}</span>
@@ -635,10 +647,6 @@ export function CheckoutPage({ items, sessionId = '', onBack, onComplete }: Chec
                 <div className="flex items-center gap-2 text-xs text-stone-600">
                   <CheckCircle className="h-4 w-4 text-primary" />
                   <span>Pago seguro encriptado</span>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-stone-600">
-                  <CheckCircle className="h-4 w-4 text-primary" />
-                  <span>Devoluciones gratuitas 30 días</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-stone-600">
                   <CheckCircle className="h-4 w-4 text-primary" />

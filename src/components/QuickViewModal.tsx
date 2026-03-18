@@ -1,5 +1,6 @@
-import { X, Heart, Star, ShoppingCart, TrendingUp, Flame, Package, Truck, Award } from 'lucide-react';
+import { X, Heart, Star, ShoppingCart, TrendingUp, Flame, Truck, Award } from 'lucide-react';
 import { Product } from '../types';
+import { FREE_SHIPPING_FROM_EUR, STANDARD_SHIPPING_EUR } from '../constants/shipping';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from './ui/dialog';
 import { Button } from './ui/button';
@@ -208,11 +209,9 @@ export function QuickViewModal({ product, isOpen, onClose, onAddToCart }: QuickV
             <div className="space-y-3 pt-4 border-t border-stone-200">
               <div className="flex items-center gap-3 text-sm text-stone-700">
                 <Truck className="h-5 w-5 text-stone-500" />
-                <span>Envío 24/48h en España (coste fijo 6€)</span>
-              </div>
-              <div className="flex items-center gap-3 text-sm text-stone-700">
-                <Package className="h-5 w-5 text-stone-500" />
-                <span>Devolución gratuita en 30 días</span>
+                <span>
+                  Envío 24/48h en España ({STANDARD_SHIPPING_EUR}€; gratis desde {FREE_SHIPPING_FROM_EUR}€)
+                </span>
               </div>
               <div className="flex items-center gap-3 text-sm text-stone-700">
                 <Award className="h-5 w-5 text-stone-500" />

@@ -14,6 +14,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet';
 import { cn } from '@/components/ui/utils';
+import { FREE_SHIPPING_FROM_EUR } from '../constants/shipping';
 
 interface HeaderProps {
   cartCount: number;
@@ -87,9 +88,9 @@ export function Header({
         style={{ backgroundColor: '#008080' }}
       >
         <p className="text-[11px] sm:text-sm font-semibold text-white leading-tight">
-          <span className="sm:inline">Envío gratis +50€</span>
+          <span className="sm:inline">Envío gratis a partir de {FREE_SHIPPING_FROM_EUR}€</span>
           <span className="hidden sm:inline"> · </span>
-          <span className="sm:inline">Devolución 30 días</span>
+          <span className="sm:inline">Pago 100% seguro</span>
         </p>
       </div>
 

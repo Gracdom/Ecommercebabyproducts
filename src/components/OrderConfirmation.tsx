@@ -238,10 +238,6 @@ export function OrderConfirmation({ orderData, onBackToHome }: OrderConfirmation
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle className="h-4 w-4 text-green-600" />
-            <span>Devoluciones gratuitas 30 días</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4 text-green-600" />
             <span>Garantía de satisfacción</span>
           </div>
         </div>
