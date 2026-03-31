@@ -1,48 +1,48 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
-// import { QuickShop } from './components/QuickShop';
 import { CategoryDirectory } from './components/CategoryDirectory';
-import { CategoryPage } from './components/CategoryPage';
-import { ProductPage } from './components/ProductPage';
-// import { LifestyleSection } from './components/LifestyleSection';
-import { AboutUs } from './components/AboutUs';
-// import { Newsletter } from './components/Newsletter';
 import { Footer } from './components/Footer';
 import { Cart } from './components/Cart';
-import { QuickViewModal } from './components/QuickViewModal';
-import { RecentlyViewed } from './components/RecentlyViewed';
-import { SocialProofPopup } from './components/SocialProofPopup';
 import { MobileBottomNav } from './components/MobileBottomNav';
 import { ToastNotifications } from './components/ToastNotifications';
-import { WishlistPage } from './components/WishlistPage';
 import { Dialog, DialogContent, DialogTitle } from './components/ui/dialog';
-import { ExitIntentPopup } from './components/ExitIntentPopup';
-// import { RecommendedProducts } from './components/RecommendedProducts';
-import { CheckoutPage, OrderData } from './components/CheckoutPage';
-import { OrderConfirmation } from './components/OrderConfirmation';
-import { ContactPage } from './components/pages/ContactPage';
-import { AvisoLegal } from './components/pages/AvisoLegal';
-import { Privacidad } from './components/pages/Privacidad';
-import { TerminosCondiciones } from './components/pages/TerminosCondiciones';
-import { PoliticaCookies } from './components/pages/PoliticaCookies';
 import { WhatsAppButton } from './components/WhatsAppButton';
-// import { FeaturedProducts } from './components/FeaturedProducts';
 import { FeaturesSection } from './components/FeaturesSection';
-import { CategoryBentoGrid } from './components/CategoryBentoGrid';
-import { Testimonials } from './components/Testimonials';
-import { BrandCarousel } from './components/BrandCarousel';
-import { InstagramSection } from './components/InstagramSection';
-import { GenderPredictor } from './components/GenderPredictor';
-import { GenderPredictorBanner } from './components/GenderPredictorBanner';
-import { BigBuyAdmin } from './components/BigBuyAdmin';
-import { AdminLogin } from './components/AdminLogin';
 import { useWishlist } from './components/WishlistManager';
 import { useAuth } from './hooks/useAuth';
-import { LoginModal } from './components/LoginModal';
-import { SignUpModal } from './components/SignUpModal';
-import { UserProfile } from './components/UserProfile';
 import { toast } from 'sonner@2.0.3';
+
+// Lazy: sólo se cargan cuando el usuario navega a esa sección
+const CategoryPage       = lazy(() => import('./components/CategoryPage').then(m => ({ default: m.CategoryPage })));
+const ProductPage        = lazy(() => import('./components/ProductPage').then(m => ({ default: m.ProductPage })));
+const CheckoutPage       = lazy(() => import('./components/CheckoutPage').then(m => ({ default: m.CheckoutPage })));
+const OrderConfirmation  = lazy(() => import('./components/OrderConfirmation').then(m => ({ default: m.OrderConfirmation })));
+const BigBuyAdmin        = lazy(() => import('./components/BigBuyAdmin').then(m => ({ default: m.BigBuyAdmin })));
+const AdminLogin         = lazy(() => import('./components/AdminLogin').then(m => ({ default: m.AdminLogin })));
+const GenderPredictor    = lazy(() => import('./components/GenderPredictor').then(m => ({ default: m.GenderPredictor })));
+const GenderPredictorBanner = lazy(() => import('./components/GenderPredictorBanner').then(m => ({ default: m.GenderPredictorBanner })));
+const WishlistPage       = lazy(() => import('./components/WishlistPage').then(m => ({ default: m.WishlistPage })));
+const QuickViewModal     = lazy(() => import('./components/QuickViewModal').then(m => ({ default: m.QuickViewModal })));
+const ExitIntentPopup    = lazy(() => import('./components/ExitIntentPopup').then(m => ({ default: m.ExitIntentPopup })));
+const RecentlyViewed     = lazy(() => import('./components/RecentlyViewed').then(m => ({ default: m.RecentlyViewed })));
+const SocialProofPopup   = lazy(() => import('./components/SocialProofPopup').then(m => ({ default: m.SocialProofPopup })));
+const LoginModal         = lazy(() => import('./components/LoginModal').then(m => ({ default: m.LoginModal })));
+const SignUpModal        = lazy(() => import('./components/SignUpModal').then(m => ({ default: m.SignUpModal })));
+const UserProfile        = lazy(() => import('./components/UserProfile').then(m => ({ default: m.UserProfile })));
+const AboutUs            = lazy(() => import('./components/AboutUs').then(m => ({ default: m.AboutUs })));
+const Testimonials       = lazy(() => import('./components/Testimonials').then(m => ({ default: m.Testimonials })));
+const BrandCarousel      = lazy(() => import('./components/BrandCarousel').then(m => ({ default: m.BrandCarousel })));
+const InstagramSection   = lazy(() => import('./components/InstagramSection').then(m => ({ default: m.InstagramSection })));
+const CategoryBentoGrid  = lazy(() => import('./components/CategoryBentoGrid').then(m => ({ default: m.CategoryBentoGrid })));
+const ContactPage        = lazy(() => import('./components/pages/ContactPage').then(m => ({ default: m.ContactPage })));
+const AvisoLegal         = lazy(() => import('./components/pages/AvisoLegal').then(m => ({ default: m.AvisoLegal })));
+const Privacidad         = lazy(() => import('./components/pages/Privacidad').then(m => ({ default: m.Privacidad })));
+const TerminosCondiciones = lazy(() => import('./components/pages/TerminosCondiciones').then(m => ({ default: m.TerminosCondiciones })));
+const PoliticaCookies    = lazy(() => import('./components/pages/PoliticaCookies').then(m => ({ default: m.PoliticaCookies })));
+
+// OrderData type from CheckoutPage (re-exportado para no importar el módulo entero aquí)
+type OrderData = import('./components/CheckoutPage').OrderData;
 import { shippingCostEur } from './constants/shipping';
 import { Product } from './types';
 import { fetchCatalogProducts, fetchCategories, fetchProductsByCategory, type CategoryInfo } from './utils/ebaby/catalog';
@@ -527,8 +527,15 @@ export default function App() {
 
   const cartCount = cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0);
 
+  const PageFallback = () => (
+    <div className="min-h-[60vh] flex items-center justify-center">
+      <div className="h-10 w-10 border-2 border-[#FFC1CC] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
   return (
     <div className={`min-h-screen min-h-[100dvh] bg-white ${currentView !== 'admin' ? 'pb-24 lg:pb-0' : ''}`} style={{ backgroundColor: '#FFFFFF' }}>
+    <Suspense fallback={null}>
           {currentView !== 'admin' && (
           <Header
             cartCount={cartCount}
@@ -555,6 +562,7 @@ export default function App() {
           )}
       
       {currentView === 'home' ? (
+        <Suspense fallback={<PageFallback />}>
         <>
           <Hero 
             onGenderPredictorClick={() => setCurrentView('gender-predictor')}
@@ -651,7 +659,9 @@ export default function App() {
           <BrandCarousel />
           <Footer />
         </>
+        </Suspense>
       ) : currentView === 'category' ? (
+        <Suspense fallback={<PageFallback />}>
         <>
           <CategoryPage 
             products={allProducts}
@@ -679,7 +689,9 @@ export default function App() {
           <BrandCarousel />
           <Footer />
         </>
+        </Suspense>
       ) : currentView === 'product' ? (
+        <Suspense fallback={<PageFallback />}>
         <>
           <ProductPage 
             product={selectedProduct}
@@ -698,7 +710,9 @@ export default function App() {
           <BrandCarousel />
           <Footer />
         </>
+        </Suspense>
       ) : currentView === 'checkout' ? (
+        <Suspense fallback={<PageFallback />}>
         <CheckoutPage
           items={cartItems}
           sessionId={getOrCreateSessionId()}
@@ -733,7 +747,9 @@ export default function App() {
             setCartItems([]);
           }}
         />
+        </Suspense>
       ) : currentView === 'confirmation' && orderData ? (
+        <Suspense fallback={<PageFallback />}>
         <OrderConfirmation
           orderData={orderData}
           onBackToHome={() => {
@@ -741,7 +757,9 @@ export default function App() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
         />
+        </Suspense>
       ) : currentView === 'gender-predictor' ? (
+        <Suspense fallback={<PageFallback />}>
         <GenderPredictor
           onComplete={(gender) => {
             // Redirect to category page filtered by gender
@@ -755,8 +773,10 @@ export default function App() {
           }}
           onBack={() => setCurrentView('home')}
         />
+        </Suspense>
       ) : currentView === 'admin' ? (
-        authLoading ? (
+        <Suspense fallback={<PageFallback />}>
+        {authLoading ? (
           <div className="min-h-screen flex items-center justify-center bg-[#f0f0f1]">
             <div className="flex flex-col items-center gap-4">
               <div className="h-10 w-10 border-2 border-[#2271b1] border-t-transparent rounded-full animate-spin" />
@@ -808,62 +828,73 @@ export default function App() {
               </div>
             </div>
           </div>
-        )
+        )}
+        </Suspense>
       ) : currentView === 'contact' ? (
-        <>
-          <ContactPage
-            onBack={() => {
-              window.history.replaceState(null, '', '/');
-              setCurrentView('home');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          />
-          <Footer />
-        </>
+        <Suspense fallback={<PageFallback />}>
+          <>
+            <ContactPage
+              onBack={() => {
+                window.history.replaceState(null, '', '/');
+                setCurrentView('home');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+            <Footer />
+          </>
+        </Suspense>
       ) : currentView === 'aviso-legal' ? (
-        <>
-          <AvisoLegal
-            onBack={() => {
-              window.history.replaceState(null, '', '/');
-              setCurrentView('home');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          />
-          <Footer />
-        </>
+        <Suspense fallback={<PageFallback />}>
+          <>
+            <AvisoLegal
+              onBack={() => {
+                window.history.replaceState(null, '', '/');
+                setCurrentView('home');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+            <Footer />
+          </>
+        </Suspense>
       ) : currentView === 'privacidad' ? (
-        <>
-          <Privacidad
-            onBack={() => {
-              window.history.replaceState(null, '', '/');
-              setCurrentView('home');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          />
-          <Footer />
-        </>
+        <Suspense fallback={<PageFallback />}>
+          <>
+            <Privacidad
+              onBack={() => {
+                window.history.replaceState(null, '', '/');
+                setCurrentView('home');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+            <Footer />
+          </>
+        </Suspense>
       ) : currentView === 'terminos' ? (
-        <>
-          <TerminosCondiciones
-            onBack={() => {
-              window.history.replaceState(null, '', '/');
-              setCurrentView('home');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          />
-          <Footer />
-        </>
+        <Suspense fallback={<PageFallback />}>
+          <>
+            <TerminosCondiciones
+              onBack={() => {
+                window.history.replaceState(null, '', '/');
+                setCurrentView('home');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+            <Footer />
+          </>
+        </Suspense>
       ) : currentView === 'cookies' ? (
-        <>
-          <PoliticaCookies
-            onBack={() => {
-              window.history.replaceState(null, '', '/');
-              setCurrentView('home');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          />
-          <Footer />
-        </>
+        <Suspense fallback={<PageFallback />}>
+          <>
+            <PoliticaCookies
+              onBack={() => {
+                window.history.replaceState(null, '', '/');
+                setCurrentView('home');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
+            />
+            <Footer />
+          </>
+        </Suspense>
       ) : null}
 
       {/* Wishlist popup */}
@@ -964,6 +995,7 @@ export default function App() {
       )}
 
       <ToastNotifications />
+    </Suspense>
     </div>
   );
 }

@@ -230,8 +230,11 @@ export function BigBuyAdmin({ onBack }: BigBuyAdminProps) {
         cartTotal: row.cart_total,
         session_id: row.session_id || undefined,
         syncSecret,
+        mode: 'manual',
       });
-      toast.success('Correo de recordatorio enviado a ' + row.email);
+      toast.success(
+        'Enviado el 1er recordatorio. Los correos 2 y 3 se programan a 24 h y 48 h.'
+      );
     } catch (e: any) {
       toast.error('Error al enviar el correo', { description: e?.message });
     } finally {

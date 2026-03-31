@@ -11,12 +11,22 @@ interface HeroProps {
 export function Hero({ onGenderPredictorClick, onExploreClick, onOffersClick }: HeroProps = {}) {
   const [scrollY, setScrollY] = useState(0);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const mq = window.matchMedia('(min-width: 1024px)');
+    setIsDesktop(mq.matches);
+    const onChange = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
   }, []);
+
+  useEffect(() => {
+    if (!isDesktop) return;
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [isDesktop]);
 
   const slides = [
     {
@@ -45,8 +55,8 @@ export function Hero({ onGenderPredictorClick, onExploreClick, onOffersClick }: 
         paddingTop: 'env(safe-area-inset-top, 0px)',
       }}
     >
-      {/* Soft animated background shapes - Pastel theme */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Soft animated background shapes - sólo en desktop para no impactar rendimiento móvil */}
+      <div className="hidden lg:block absolute inset-0 overflow-hidden pointer-events-none">
         <div
           className="absolute top-20 -left-20 w-[500px] h-[500px] bg-gradient-to-br from-[#FFC1CC]/25 to-[#E1BEE7]/20 rounded-full blur-3xl animate-pulse"
           style={{ transform: `translateY(${scrollY * 0.3}px)` }}
@@ -77,6 +87,9 @@ export function Hero({ onGenderPredictorClick, onExploreClick, onOffersClick }: 
                 alt=""
                 aria-hidden
                 className="w-full h-full object-cover object-center opacity-50"
+                loading={index === 0 ? 'eager' : 'lazy'}
+                decoding={index === 0 ? 'sync' : 'async'}
+                fetchPriority={index === 0 ? 'high' : 'low'}
               />
             </div>
           ))}
@@ -89,7 +102,7 @@ export function Hero({ onGenderPredictorClick, onExploreClick, onOffersClick }: 
         {/* Columna texto: en móvil va encima del fondo (z-10) y abajo (justify-end); en desktop centrado */}
         <div
           className="flex flex-col justify-end lg:justify-center order-2 lg:order-1 px-4 py-6 sm:px-6 sm:py-8 lg:pl-[7.5rem] lg:pr-10 lg:py-16 relative z-10 space-y-4 sm:space-y-6 lg:space-y-8 pb-8 lg:pb-0"
-          style={{ transform: `translateX(${-scrollY * 0.1}px)` }}
+          style={isDesktop ? { transform: `translateX(${-scrollY * 0.1}px)` } : undefined}
         >
           {/* Badge */}
           <div className="inline-flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-[#FFC1CC]/30 via-[#E0F7FA]/30 to-[#FFF9C4]/30 px-3 sm:px-6 py-2 sm:py-3 rounded-full backdrop-blur-sm flex-wrap w-fit">
@@ -181,6 +194,9 @@ export function Hero({ onGenderPredictorClick, onExploreClick, onOffersClick }: 
                   src={slide.image}
                   alt={`Hero image ${index + 1}`}
                   className="w-full h-full object-cover object-center"
+                  loading={index === 0 ? 'eager' : 'lazy'}
+                  decoding={index === 0 ? 'sync' : 'async'}
+                  fetchPriority={index === 0 ? 'high' : 'low'}
                 />
               </div>
             ))}

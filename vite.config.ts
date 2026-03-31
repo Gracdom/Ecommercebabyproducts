@@ -56,6 +56,37 @@
     build: {
       target: 'esnext',
       outDir: 'build',
+      cssCodeSplit: true,
+      rollupOptions: {
+        output: {
+          manualChunks: (id) => {
+            // Admin panel — sólo se carga cuando el usuario navega a /admin
+            if (id.includes('BigBuyAdmin') || id.includes('AnalyticsDashboard') || id.includes('DashboardOverview')) {
+              return 'chunk-admin';
+            }
+            // recharts (gráficas sólo en admin)
+            if (id.includes('recharts') || id.includes('d3-')) {
+              return 'chunk-charts';
+            }
+            // Radix UI — separado del runtime principal
+            if (id.includes('@radix-ui')) {
+              return 'chunk-radix';
+            }
+            // Librerías de animación
+            if (id.includes('motion') || id.includes('framer-motion')) {
+              return 'chunk-motion';
+            }
+            // Swiper / carruseles
+            if (id.includes('swiper')) {
+              return 'chunk-swiper';
+            }
+            // React core + DOM (siempre en main)
+            if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+              return 'chunk-react';
+            }
+          },
+        },
+      },
     },
     server: {
       port: devPort,

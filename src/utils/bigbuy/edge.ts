@@ -551,15 +551,18 @@ export function sendNewsletterWelcome(email: string) {
 
 export function sendAbandonedCart(params: {
   email: string;
-  items: Array<{ name: string; quantity: number; price: number }>;
+  items: Array<{ name: string; quantity: number; price: number; image?: string }>;
   cartTotal: number;
   session_id?: string;
-  syncSecret?: string; // Add this para auth en el admin
+  syncSecret?: string;
+  /** manual: 1er correo ya; auto (popup): 1er correo a +1h */
+  mode?: "auto" | "manual";
 }) {
+  const { email, items, cartTotal, session_id, syncSecret, mode } = params;
   return edgeRequest<{ ok: boolean }>("/email/abandoned-cart", {
     method: "POST",
-    headers: params.syncSecret ? { "x-bigbuy-sync-secret": params.syncSecret } : undefined,
-    body: params,
+    headers: syncSecret ? { "x-bigbuy-sync-secret": syncSecret } : undefined,
+    body: { email, items, cartTotal, session_id, mode: mode ?? "auto" },
   });
 }
 

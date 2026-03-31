@@ -130,6 +130,9 @@ export function Header({
                   src="/logo.png"
                   alt="e-baby"
                   className="h-8 sm:h-10 lg:h-11 w-auto max-h-12 object-contain shrink-0"
+                  loading="eager"
+                  decoding="sync"
+                  fetchPriority="high"
                   onError={(e) => {
                     const t = e.currentTarget;
                     t.style.display = 'none';

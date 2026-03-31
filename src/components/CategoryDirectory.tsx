@@ -152,7 +152,7 @@ export function CategoryDirectory({ onCategoryClick }: CategoryDirectoryProps) {
             if (index === 0) {
               // Primera tarjeta: Alta (doble altura) y ancha en móvil
               gridClass = 'sm:col-span-2 lg:col-span-1 lg:row-span-2';
-              heightClass = 'h-[600px]';
+              heightClass = 'h-[320px] sm:h-[440px] lg:h-[600px]';
             } else if (index === filteredSubcategories.length - 1) {
               // Última tarjeta: Ancha para llenar espacio
               gridClass = 'sm:col-span-2';

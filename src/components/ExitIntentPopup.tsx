@@ -52,7 +52,7 @@ export function ExitIntentPopup({ cartItems = [], sessionId }: ExitIntentPopupPr
           price: (i.price ?? 0) * (i.quantity ?? 1),
         }));
         const cartTotal = cartItems.reduce((s, i) => s + (i.price ?? 0) * (i.quantity ?? 1), 0);
-        await sendAbandonedCart({ email, items, cartTotal, session_id: sessionId });
+        await sendAbandonedCart({ email, items, cartTotal, session_id: sessionId, mode: 'auto' });
       } else {
         await sendNewsletterWelcome(email);
       }

@@ -42,6 +42,121 @@ function escapeHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
+const EBABY_SITE = "https://e-baby.es";
+const EBABY_LOGO = `${EBABY_SITE}/logo.png`;
+
+type CartItemRow = { name: string; quantity: number; price: number; image?: string };
+
+function abandonedCartItemsTable(items: CartItemRow[]): string {
+  if (!items.length) {
+    return `<tr><td colspan="2" style="padding:20px;text-align:center;color:#718096;font-size:14px;">Productos en tu carrito</td></tr>`;
+  }
+  return items
+    .map((i) => {
+      const url = i.image && /^https?:\/\//i.test(String(i.image)) ? String(i.image).slice(0, 800) : "";
+      const thumb = url
+        ? `<img src="${escapeHtml(url)}" width="56" height="56" alt="" style="border-radius:14px;object-fit:cover;display:block;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,128,128,0.12);"/>`
+        : `<div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(145deg,#ffc1cc,#b2ebf2);line-height:56px;text-align:center;font-size:22px;">&#128118;</div>`;
+      const name = escapeHtml(i.name);
+      const qty = Number(i.quantity) || 1;
+      const price = Number(i.price || 0).toFixed(2);
+      return `<tr>
+        <td style="padding:12px 0;vertical-align:middle;width:68px;">${thumb}</td>
+        <td style="padding:12px 0 12px 16px;vertical-align:middle;">
+          <div style="font-weight:600;color:#2d3748;font-size:15px;line-height:1.35;">${name}</div>
+          <div style="margin-top:4px;font-size:13px;color:#718096;">Cantidad: <strong>${qty}</strong> &middot; <strong>${price} &euro;</strong></div>
+        </td>
+      </tr>`;
+    })
+    .join("");
+}
+
+function abandonedCartEmailHtml(step: 1 | 2 | 3, items: CartItemRow[], cartTotal: number): string {
+  const total = cartTotal.toFixed(2);
+  const itemsRows = abandonedCartItemsTable(items);
+  const badge =
+    step === 1
+      ? "&#127752; Paso 1 de 3"
+      : step === 2
+        ? "&#127873; Paso 2 de 3"
+        : "&#9200; Paso 3 de 3 &middot; &Uacute;ltimo aviso";
+
+  let headline: string;
+  let lines: string[];
+  let cta: string;
+  let ctaLabel: string;
+  let note: string;
+
+  if (step === 1) {
+    headline = "&#161;Hola! &iquest;Olvidaste algo en tu carrito?";
+    lines = [
+      "Sabemos que con un beb&eacute; en casa el tiempo vuela. Hemos guardado tu selecci&oacute;n con mucho cari&ntilde;o para que puedas terminar cuando quieras.",
+      "Tus productos siguen esper&aacute;ndote: solo un clic y listo.",
+    ];
+    cta = EBABY_SITE;
+    ctaLabel = "Recuperar mi carrito";
+    note = "Env&iacute;o <strong>gratis</strong> en pedidos desde <strong>200 &euro;</strong> (productos).";
+  } else if (step === 2) {
+    headline = "Te echamos de menos &#9829;";
+    lines = [
+      "Tu carrito sigue ah&iacute;, pensando en ti. Como regalo, usa el c&oacute;digo <strong style=\"color:#008080;font-size:18px;\">RECUERDA10</strong> y obt&eacute;n un <strong>10% de descuento</strong>.",
+      "&iquest;Alguna duda? Estamos en <a href=\"mailto:info@ebaby-shop.com\" style=\"color:#008080;\">info@ebaby-shop.com</a>.",
+    ];
+    cta = EBABY_SITE;
+    ctaLabel = "Completar compra con descuento";
+    note = "El c&oacute;digo RECUERDA10 se aplica al finalizar la compra.";
+  } else {
+    headline = "&#161;&Uacute;ltima oportunidad!";
+    lines = [
+      "Tu carrito se vaciar&aacute; pronto. No pierdas tus productos ni el <strong>10% con RECUERDA10</strong>.",
+      "Es el momento perfecto para mimar a tu peque con lo que ya elegiste.",
+    ];
+    cta = EBABY_SITE;
+    ctaLabel = "Finalizar compra ahora";
+    note = "&Uacute;ltimo recordatorio de esta serie. &iexcl;Gracias por confiar en e-baby!";
+  }
+
+  const linesHtml = lines.map((l) => `<p style="margin:0 0 14px 0;">${l}</p>`).join("");
+
+  return `<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#eef6f7;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:linear-gradient(180deg,#d6f5f5 0%,#fff5f8 45%,#eef6f7 100%);padding:28px 12px;">
+<tr><td align="center">
+<table role="presentation" width="100%" style="max-width:600px;background:#ffffff;border-radius:28px;overflow:hidden;box-shadow:0 12px 40px rgba(0,128,128,0.14);">
+<tr>
+<td style="padding:32px 28px 24px;text-align:center;background:linear-gradient(135deg,#008080 0%,#4db6ac 42%,#f8bbd0 100%);">
+<img src="${EBABY_LOGO}" alt="e-baby" width="140" style="max-width:140px;height:auto;display:block;margin:0 auto 10px;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.15));"/>
+<p style="margin:0;color:#fff;font-size:15px;font-weight:600;text-shadow:0 1px 2px rgba(0,0,0,0.1);">Productos para tu beb&eacute; con amor</p>
+</td>
+</tr>
+<tr><td style="padding:16px 28px 0;">
+<span style="display:inline-block;background:#fff0f6;color:#ad1457;font-size:12px;font-weight:700;padding:8px 16px;border-radius:999px;border:1px solid #f8bbd0;">${badge}</span>
+</td></tr>
+<tr><td style="padding:20px 28px 8px;">
+<h1 style="margin:0;font-size:24px;line-height:1.3;color:#1a365d;font-family:Georgia,'Times New Roman',serif;">${headline}</h1>
+</td></tr>
+<tr><td style="padding:8px 28px 8px;color:#4a5568;font-size:16px;line-height:1.55;">${linesHtml}</td></tr>
+<tr><td style="padding:8px 28px 24px;">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:linear-gradient(145deg,#fafcff 0%,#fff8fb 100%);border:2px solid #e0f2f1;border-radius:20px;padding:8px 16px;">
+<tr><td>
+<p style="margin:0 0 12px;font-size:12px;font-weight:800;color:#008080;letter-spacing:0.08em;text-transform:uppercase;">Tu carrito</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0">${itemsRows}</table>
+<p style="margin:18px 0 0;padding-top:16px;border-top:2px dashed #b2dfdb;font-size:20px;font-weight:800;color:#008080;">Total: ${total} &euro;</p>
+</td></tr></table>
+</td></tr>
+<tr><td style="padding:4px 28px 32px;text-align:center;">
+<a href="${cta}" style="display:inline-block;background:linear-gradient(135deg,#ff8fa3,#ffc1cc);color:#1a202c;font-weight:800;font-size:17px;padding:18px 40px;border-radius:999px;text-decoration:none;box-shadow:0 6px 20px rgba(255,143,163,0.45);">${ctaLabel}</a>
+<p style="margin:18px 24px 0;font-size:13px;color:#718096;line-height:1.5;">${note}</p>
+</td></tr>
+<tr><td style="padding:22px 28px;background:#f7fafc;border-top:1px solid #edf2f7;text-align:center;font-size:12px;color:#a0aec0;">
+<p style="margin:0;">&copy; e-baby &middot; <a href="${EBABY_SITE}" style="color:#008080;font-weight:600;">Tienda</a> &middot; <a href="mailto:info@ebaby-shop.com" style="color:#008080;">Ayuda</a> &middot; <a href="https://wa.me/34910202911" style="color:#008080;">WhatsApp</a></p>
+</td></tr>
+</table>
+</td></tr></table>
+</body></html>`;
+}
+
 // Enable logger
 app.use('*', logger(console.log));
 
@@ -103,101 +218,63 @@ app.post("/make-server-335110ef/email/newsletter-welcome", async (c) => {
   }
 });
 
-// Carrito abandonado: 1º correo a 1 h, 2º a 24 h, 3º a 48 h
+// Carrito abandonado: auto = correo 1 a +1h, luego +24h y +48h | manual (admin) = correo 1 ya, luego +24h y +48h
 app.post("/make-server-335110ef/email/abandoned-cart", async (c) => {
   try {
     const body = await c.req.json().catch(() => ({}));
     const email = String(body?.email ?? "").trim().toLowerCase();
-    const items: Array<{ name: string; quantity: number; price: number }> = Array.isArray(body?.items) ? body.items : [];
+    const items = (Array.isArray(body?.items) ? body.items : []) as CartItemRow[];
     const cartTotal = Number(body?.cartTotal) || 0;
     const sessionId = body?.session_id ? String(body.session_id).slice(0, 128) : null;
+    const isManual = String(body?.mode ?? "").toLowerCase() === "manual";
 
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return c.json({ error: "Email invalido" }, 400);
     }
 
-    // Guardar en abandoned_checkouts para el panel admin
-    try {
-      const supabase = getServiceSupabase();
-      await supabase.from("abandoned_checkouts").insert({
-        session_id: sessionId,
-        user_id: null,
-        email,
-        cart_items: items,
-        cart_total: cartTotal,
-        source: "exit_intent",
-      });
-    } catch (_e) {
-      // no fallar si la tabla no existe aún
+    if (!isManual) {
+      try {
+        const supabase = getServiceSupabase();
+        await supabase.from("abandoned_checkouts").insert({
+          session_id: sessionId,
+          user_id: null,
+          email,
+          cart_items: items,
+          cart_total: cartTotal,
+          source: "exit_intent",
+        });
+      } catch (_e) {
+        /* tabla opcional */
+      }
     }
 
-    const itemsList = items
-      .map((i) => `&bull; ${escapeHtml(i.name)} x${i.quantity} - ${Number(i.price || 0).toFixed(2)} \u20ac`)
-      .join("<br>") || "Productos en tu carrito";
+    const html1 = abandonedCartEmailHtml(1, items, cartTotal);
+    const html2 = abandonedCartEmailHtml(2, items, cartTotal);
+    const html3 = abandonedCartEmailHtml(3, items, cartTotal);
 
-    // Email 1: 1 hora despues del abandono
+    // Correo 1: inmediato si manual; si auto, a la 1 h
     await sendEmail({
       from: DEFAULT_FROM_EMAIL,
       to: email,
-      schedule: "in 1 hour",
-      subject: "\u00bfOlvidaste algo? Tu carrito te espera",
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head><meta charset="utf-8"></head>
-        <body style="font-family: 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; color: #2d3748;">
-          <h1 style="color: #FFC1CC; margin-bottom: 16px;">\u00a1Hola!</h1>
-          <p>Has dejado productos en tu carrito. \u00bfNecesitas ayuda para terminar tu compra?</p>
-          <p><strong>Resumen:</strong></p>
-          <div style="background: #f9f9f9; padding: 16px; border-radius: 12px; margin: 16px 0;">${itemsList}</div>
-          <p><strong>Total:</strong> ${cartTotal.toFixed(2)} \u20ac</p>
-          <p style="margin: 24px 0;"><a href="https://e-baby.es" style="background: #FFC1CC; color: white; padding: 12px 24px; text-decoration: none; border-radius: 12px; display: inline-block;">Recuperar carrito</a></p>
-          <p style="color: #718096; font-size: 14px; margin-top: 32px;">e-baby &mdash; Productos para tu beb\u00e9 con amor</p>
-        </body>
-        </html>
-      `,
+      schedule: isManual ? undefined : "in 1 hour",
+      subject: "[e-baby] Tu carrito te espera",
+      html: html1,
     });
 
-    // Email 2: en 24 horas
     await sendEmail({
       from: DEFAULT_FROM_EMAIL,
       to: email,
-      subject: "\u00bfSeguimos con tu pedido? 10% de descuento te espera",
+      subject: "[e-baby] 10% dto - termina tu compra",
       schedule: "in 24 hours",
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head><meta charset="utf-8"></head>
-        <body style="font-family: 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; color: #2d3748;">
-          <h1 style="color: #FFC1CC; margin-bottom: 16px;">Te echamos de menos</h1>
-          <p>Tu carrito sigue esper\u00e1ndote. Como regalo, usa <strong>RECUERDA10</strong> para un <strong>10% de descuento</strong> en tu pr\u00f3xima compra.</p>
-          <p><strong>Total en tu carrito:</strong> ${cartTotal.toFixed(2)} \u20ac</p>
-          <p style="margin: 24px 0;"><a href="https://e-baby.es" style="background: #83b5b6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 12px; display: inline-block;">Completar compra con descuento</a></p>
-          <p style="color: #718096; font-size: 14px; margin-top: 32px;">e-baby &mdash; Productos para tu beb\u00e9 con amor</p>
-        </body>
-        </html>
-      `,
+      html: html2,
     });
 
-    // Email 3: en 48 horas
     await sendEmail({
       from: DEFAULT_FROM_EMAIL,
       to: email,
-      subject: "\u00daltima oportunidad: tu carrito est\u00e1 a punto de vaciarse",
+      subject: "[e-baby] Ultimo aviso - tu carrito",
       schedule: "in 48 hours",
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head><meta charset="utf-8"></head>
-        <body style="font-family: 'Segoe UI', sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; color: #2d3748;">
-          <h1 style="color: #FFC1CC; margin-bottom: 16px;">\u00a1\u00daltima oportunidad!</h1>
-          <p>Tu carrito se vaciar\u00e1 pronto. No pierdas tus productos ni el 10% de descuento con <strong>RECUERDA10</strong>.</p>
-          <p><strong>Total:</strong> ${cartTotal.toFixed(2)} \u20ac</p>
-          <p style="margin: 24px 0;"><a href="https://e-baby.es" style="background: #FFC1CC; color: white; padding: 12px 24px; text-decoration: none; border-radius: 12px; display: inline-block;">Finalizar compra ahora</a></p>
-          <p style="color: #718096; font-size: 14px; margin-top: 32px;">e-baby &mdash; Productos para tu beb\u00e9 con amor</p>
-        </body>
-        </html>
-      `,
+      html: html3,
     });
 
     return c.json({ ok: true });
